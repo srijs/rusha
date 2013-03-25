@@ -1,33 +1,36 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Rusha by srijs</title>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Rusha : A high-performance pure-javascript SHA1 implementation suitable for large binary data. Leveraging the amazing asm.js technology, it reaches up to half native speed." />
 
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Rusha</title>
   </head>
+
   <body>
-    <div class="wrapper">
-      <header>
-        <h1>Rusha</h1>
-        <p>A high-performance pure-javascript SHA1 implementation suitable for large binary data.</p>
 
-        <p class="view"><a href="https://github.com/srijs/rusha">View the Project on GitHub <small>srijs/rusha</small></a></p>
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/srijs/rusha">View on GitHub</a>
 
+          <h1 id="project_title">Rusha</h1>
+          <h2 id="project_tagline">A high-performance pure-javascript SHA1 implementation suitable for large binary data. Leveraging the amazing asm.js technology, it reaches up to half native speed.</h2>
 
-        <ul>
-          <li><a href="https://github.com/srijs/rusha/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/srijs/rusha/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/srijs/rusha">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
-      <section>
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/srijs/rusha/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/srijs/rusha/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
         <h2>Prologue: The Sad State of Javascript SHA1 implementations</h2>
 
 <p>When we started experimenting with alternative upload technologies at <a href="http://doctape.com">doctape</a> that required creating SHA1 hashes of the data locally on the client, it quickly became obvious that there were no performant pure-js implementations of SHA1 that worked correctly on binary data.</p>
@@ -204,12 +207,16 @@ Rusha    emitted f46d1431b9e0c5aa30424f67267445fbb2cc619c in 406 milliseconds
 Johnst.  emitted f46d1431b9e0c5aa30424f67267445fbb2cc619c in 433 milliseconds
 </code></pre>
       </section>
-      <footer>
-        <p>This project is maintained by <a href="https://github.com/srijs">srijs</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Rusha maintained by <a href="https://github.com/srijs">srijs</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
+
               <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
@@ -220,6 +227,7 @@ Johnst.  emitted f46d1431b9e0c5aa30424f67267445fbb2cc619c in 433 milliseconds
             pageTracker._trackPageview();
             } catch(err) {}
           </script>
+
 
   </body>
 </html>
