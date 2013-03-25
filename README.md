@@ -9,7 +9,7 @@ Jeff Motts [CryptoJS](http://code.google.com/p/crypto-js/), Brian Tureks [jsSHA]
 
 By modifying Paul Johnstons [sha1.js](http://pajhome.org.uk/crypt/md5/sha1.html) slightly, it worked correctly on binary data but was unfortunately very slow, especially on V8. So a few days were invested on my side to implement a Johnston-inspired SHA1 hashing function with a heavy focus on performance.
 
-The result of this process is Rusha, a SHA1 hash function that works flawlessly on large amounts binary data, such as binary strings or ArrayBuffers returned by the HTML5 File API, and leverages the soon-to-be-landed-in-firefox [asm.js](http://asmjs.org/spec/latest/).
+The result of this process is Rusha, a SHA1 hash function that works flawlessly on large amounts binary data, such as binary strings or ArrayBuffers returned by the HTML5 File API, and leverages the soon-to-be-landed-in-firefox [asm.js](http://asmjs.org/spec/latest/) with whose support its within *half of native speed*!
 
 ## Installing
 
@@ -46,6 +46,25 @@ You can send your instance of the web worker messages in the format `{id: jobid,
 Tested were my Rusha implementation, the sha1.js implementation by [P. A. Johnston](http://pajhome.org.uk/crypt/md5/sha1.html) and the Node.JS native implementation.
 
 All tests were performed on a MacBook Air 1.7 GHz Intel Core i5 and 4 GB 1333 MHz DDR3.
+
+Firefox Nightly (with asm.js support) 22.0a1:
+
+	Benchmarking 4096 bytes ...
+	Native   emitted unavailable in 0 milliseconds
+	Rusha    emitted f1ea1aa67255487fb0991eff509a00dccab8d2d8 in 1 milliseconds
+	Johnst.  emitted f1ea1aa67255487fb0991eff509a00dccab8d2d8 in 3 milliseconds
+	Benchmarking 1048576 bytes ...
+	Native   emitted unavailable in 0 milliseconds
+	Rusha    emitted c9c163d357ad1f3d0a92af43b484d318cab23ef3 in 11 milliseconds
+	Johnst.  emitted c9c163d357ad1f3d0a92af43b484d318cab23ef3 in 57 milliseconds
+	Benchmarking 4194304 bytes ...
+	Native   emitted unavailable in 0 milliseconds
+	Rusha    emitted f0d461a6d6c4322360788ca18865538a621fb738 in 41 milliseconds
+	Johnst.  emitted f0d461a6d6c4322360788ca18865538a621fb738 in 217 milliseconds
+	Benchmarking 8388608 bytes ...
+	Native   emitted unavailable in 0 milliseconds
+	Rusha    emitted fc1c2906a58963ee56f1c37fc9bb637167637d41 in 80 milliseconds
+	Johnst.  emitted fc1c2906a58963ee56f1c37fc9bb637167637d41 in 428 milliseconds
 
 Node (V8) 0.8.18:
 
