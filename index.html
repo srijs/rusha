@@ -44,9 +44,13 @@
 
 <p>There is really no point in doing this, since Node.JS already has a wonderful <code>crypto</code> module that is leveraging low-level hardware instructions to perform really nice. Your can see the comparison below in the benchmarks.</p>
 
+<p>Rusha is available on <a href="http://npmjs.org/">npm</a> via <code>npm install rusha</code>.</p>
+
 <p>If you still want to do this, anyhow, just <code>require()</code> the <code>rusha.js</code> file, follow the instructions on <em>Using the Rusha Object</em>.</p>
 
 <h3>Browser</h3>
+
+<p>Rusha is available on <a href="http://twitter.github.com/bower/">bower</a> via <code>bower install rusha</code>.</p>
 
 <p>It is highly recommended to run CPU-intensive tasks in a <a href="http://developer.mozilla.org/en-US/docs/DOM/Using_web_workers">Web Worker</a>. To do so, just start a worker with <code>var worker = new Worker('rusha.js')</code> and start sending it jobs. Follow the instructions on <em>Using the Rusha Worker</em>.</p>
 
@@ -103,7 +107,7 @@ Benchmarking 1048576 bytes ...
 Native   emitted unavailable in 0 milliseconds
 Rusha    emitted 1339a85453885ee434a04a47f772d74b49ba6bac in 65 milliseconds
 Johnst.  emitted 1339a85453885ee434a04a47f772d74b49ba6bac in 261 milliseconds
-    Benchmarking 4194304 bytes ...
+Benchmarking 4194304 bytes ...
 Native   emitted unavailable in 0 milliseconds
 Rusha    emitted 4861c387e4c854f86e11e9e7f5565e5864235aa7 in 228 milliseconds
 Johnst.  emitted 4861c387e4c854f86e11e9e7f5565e5864235aa7 in 844 milliseconds
