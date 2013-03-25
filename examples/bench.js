@@ -1,7 +1,7 @@
 if (typeof require === 'function') {
   var crypto = require('crypto');
   var johnston = require('./bench/johnston');
-  var Rusha = require('./rusha');
+  var Rusha = require('../rusha');
 }
 
 var fnNative, randomBytes;
