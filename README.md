@@ -17,9 +17,13 @@ The result of this process is Rusha, a SHA1 hash function that works flawlessly 
 
 There is really no point in doing this, since Node.JS already has a wonderful `crypto` module that is leveraging low-level hardware instructions to perform really nice. Your can see the comparison below in the benchmarks.
 
+Rusha is available on [npm](http://npmjs.org/) via `npm install rusha`.
+
 If you still want to do this, anyhow, just `require()` the `rusha.js` file, follow the instructions on _Using the Rusha Object_.
 
 ### Browser
+
+Rusha is available on [bower](http://twitter.github.com/bower/) via `bower install rusha`.
 
 It is highly recommended to run CPU-intensive tasks in a [Web Worker](http://developer.mozilla.org/en-US/docs/DOM/Using_web_workers). To do so, just start a worker with `var worker = new Worker('rusha.js')` and start sending it jobs. Follow the instructions on _Using the Rusha Worker_.
 
