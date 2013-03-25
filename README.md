@@ -45,7 +45,14 @@ You can send your instance of the web worker messages in the format `{id: jobid,
 
 Tested were my Rusha implementation, the sha1.js implementation by [P. A. Johnston](http://pajhome.org.uk/crypt/md5/sha1.html) and the Node.JS native implementation.
 
-All tests were performed on a MacBook Air 1.7 GHz Intel Core i5 and 4 GB 1333 MHz DDR3.
+The best results for each implementation:
+
+	   4096 bytes: Native:  0ms, Rusha:  1ms, Johnston:   3ms
+	1048576 bytes: Native:  4ms, Rusha: 11ms, Johnston:  55ms
+	4194304 bytes: Native: 17ms, Rusha: 41ms, Johnston: 211ms
+	8388608 bytes: Native: 37ms, Rusha: 80ms, Johnston: 428ms
+
+All tests were performed on a MacBook Air 1.7 GHz Intel Core i5 and 4 GB 1333 MHz DDR3. Detailed results below.
 
 Firefox Nightly (with asm.js support) 22.0a1:
 
