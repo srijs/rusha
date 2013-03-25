@@ -34,8 +34,11 @@ if (typeof crypto !== 'undefined' && typeof crypto.pseudoRandomBytes === 'functi
 
 }
 
-var fnRusha = function (bytes) {
-  return (new Rusha()).digestFromBuffer(bytes);
+var sizes = [4*1024, 1024*1024, 4*1024*1024, 8*1024*1024];
+
+var _rush = new Rusha(Math.max.apply(Math, sizes)),
+    fnRusha = function (bytes) {
+  return _rush.digestFromBuffer(bytes);
 };
 
 var fnJohnston = function (bytes) {
@@ -44,7 +47,6 @@ var fnJohnston = function (bytes) {
 
 var ids = ['Native  ', 'Rusha   ', 'Johnst. '];
 var fns = [fnNative, fnRusha, fnJohnston];
-var sizes = [4*1024, 1024*1024, 4*1024*1024, 8*1024*1024];
 
 var bench = function () {
   sizes.forEach(function (size) {

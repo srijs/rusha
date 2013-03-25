@@ -18,8 +18,11 @@ var b64pad  = ""; /* base-64 pad character. "=" for strict RFC compliance   */
  * These are the functions you'll usually want to call
  * They take string arguments and return either hex or base-64 encoded strings
  */
-if (typeof module !== 'undefined') module.exports = function (s) { return rstr2hex(binb2rstr(binb_sha1(buf2binb(s), s.length * 8))); }
-else function johnston (s) { return rstr2hex(binb2rstr(binb_sha1(tarr2binb(s), s.byteLength * 8))); }
+if (typeof module !== 'undefined') {
+  module.exports = function (s) { return rstr2hex(binb2rstr(binb_sha1(buf2binb(s), s.length * 8))); }
+} else {
+  function johnston (s) { return rstr2hex(binb2rstr(binb_sha1(tarr2binb(s), s.byteLength * 8))); }
+}
 function hex_sha1(s)    { return rstr2hex(rstr_sha1(str2rstr_utf8(s))); }
 function b64_sha1(s)    { return rstr2b64(rstr_sha1(str2rstr_utf8(s))); }
 function any_sha1(s, e) { return rstr2any(rstr_sha1(str2rstr_utf8(s)), e); }
