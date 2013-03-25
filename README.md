@@ -7,9 +7,9 @@ When we started experimenting with alternative upload technologies at [doctape](
 
 Jeff Motts [CryptoJS](http://code.google.com/p/crypto-js/), Brian Tureks [jsSHA](http://caligatio.github.com/jsSHA/) and Tim Caswells [Cifre](http://github.com/openpeer/cifre) were all hash functions that worked correctly on ASCII strings of a small size, but didn't scale to large data and/or didn't work correctly with binary data.
 
-By modifying Paul Johnstons [sha1.js](http://pajhome.org.uk/crypt/md5/sha1.html) slightly, it worked correctly on binary data but was unforunately very slow, especially on V8. So a few days were invested on my side to implement a Johnston-inspired SHA1 hashing function with a heavy focus on performance.
+By modifying Paul Johnstons [sha1.js](http://pajhome.org.uk/crypt/md5/sha1.html) slightly, it worked correctly on binary data but was unfortunately very slow, especially on V8. So a few days were invested on my side to implement a Johnston-inspired SHA1 hashing function with a heavy focus on performance.
 
-The result of this process is Rusha, a SHA1 hash function that works flawlessly on large amounts binary data, such as binary strings or ArrayBuffers returned by the HTML5 File API.
+The result of this process is Rusha, a SHA1 hash function that works flawlessly on large amounts binary data, such as binary strings or ArrayBuffers returned by the HTML5 File API, and leverages the soon-to-be-landed-in-firefox [asm.js](http://asmjs.org/spec/latest/).
 
 ## Installing
 
@@ -35,7 +35,7 @@ Your instantiate a new Rusha object by doing `var r = new Rusha(optionalSizeHint
 
 ## Using the Rusha Worker
 
-You can send your instance of the web worker messages in the format `{id: jobid, data: dataobject}`. The worker then sends back a message in the format `{id: jobid, hash: hash}`, were jobid is the id of the job previously received and hash is the hash of the dataobject you passed, be it a `Blob`, `Array`, `Buffer`, `ArrayBuffer` or `String`.
+You can send your instance of the web worker messages in the format `{id: jobid, data: dataobject}`. The worker then sends back a message in the format `{id: jobid, hash: hash}`, were jobid is the id of the job previously received and hash is the hash of the data-object you passed, be it a `Blob`, `Array`, `Buffer`, `ArrayBuffer` or `String`.
 
 ## Benchmarks
 
