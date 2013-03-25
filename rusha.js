@@ -115,23 +115,29 @@
     // Convert a array containing 32 bit integers
     // into its hexadecimal string representation.
     var hex = function (binarray) {
-      var hex_tab = "0123456789abcdef";
-      return binarray.map(function (x) {
-        return hex_tab.charAt((x >> 28) & 0xF) +
-               hex_tab.charAt((x >> 24) & 0xF) +
-               hex_tab.charAt((x >> 20) & 0xF) +
-               hex_tab.charAt((x >> 16) & 0xF) +
-               hex_tab.charAt((x >> 12) & 0xF) +
-               hex_tab.charAt((x >>  8) & 0xF) +
-               hex_tab.charAt((x >>  4) & 0xF) +
-               hex_tab.charAt((x >>  0) & 0xF);
-      }).join('');
+      var i, x, hex_tab = "0123456789abcdef", res = [];
+      for (i = 0; i < binarray.length; i++) {
+        x = binarray[i];
+        res[i] = hex_tab.charAt((x >> 28) & 0xF) +
+                 hex_tab.charAt((x >> 24) & 0xF) +
+                 hex_tab.charAt((x >> 20) & 0xF) +
+                 hex_tab.charAt((x >> 16) & 0xF) +
+                 hex_tab.charAt((x >> 12) & 0xF) +
+                 hex_tab.charAt((x >>  8) & 0xF) +
+                 hex_tab.charAt((x >>  4) & 0xF) +
+                 hex_tab.charAt((x >>  0) & 0xF);
+      }
+      return res.join('');
+    };
+
+    var nextPow2 = function (v) {
+      var p = 1; while (p < v) p = p << 1; return p;
     };
 
     // Resize the internal data structures to a new capacity.
     var resize = function (size) {
       self.sizeHint = size;
-      self.heap     = new ArrayBuffer(padlen(self.sizeHint) + 320);
+      self.heap     = new ArrayBuffer(nextPow2(padlen(size) + 320));
       self.core     = RushaCore({Int32Array: Int32Array}, {}, self.heap);
     };
 
@@ -145,7 +151,8 @@
       if (str.length > self.sizeHint) {
         resize(str.length);
       }
-      return hex(self.core.hash(conv(str)));
+      self.core.hash(conv(str));
+      return hex(new Int32Array(self.heap, 0, 5));
     };
 
     // The digestFromBuffer interface returns the hash digest
@@ -154,7 +161,8 @@
       if (buf.length > self.sizeHint) {
         resize(buf.length);
       }
-      return hex(self.core.hash(convBuf(buf)));
+      self.core.hash(convBuf(buf));
+      return hex(new Int32Array(self.heap, 0, 5));
     };
 
     // The digestFromArrayBuffer interface returns the hash digest
@@ -163,7 +171,8 @@
       if (buf.length > self.sizeHint) {
         resize(buf.byteLength);
       }
-      return hex(self.core.hash(convBuf(new Uint8Array(buf))));
+      self.core.hash(convBuf(buf));
+      return hex(new Int32Array(self.heap, 0, 5));
     };
   };
 
@@ -178,17 +187,18 @@
 
     var H = new stdlib.Int32Array(heap);
 
-    function hash (length) {
+    function hash (k) {
 
-      var i, j, k = length|0,
-          y0 =  1732584193, z0,
-          y1 =  -271733879, z1,
-          y2 = -1732584194, z2,
-          y3 =   271733878, z3,
-          y4 = -1009589776, z4,
-          t0, t1;
+      k = k|0;
+      var i = 0, j = 0,
+          y0 =  1732584193, z0 = 0,
+          y1 =  -271733879, z1 = 0,
+          y2 = -1732584194, z2 = 0,
+          y3 =   271733878, z3 = 0,
+          y4 = -1009589776, z4 = 0,
+          t0 = 0, t1 = 0;
 
-      for (i = 0; i < k; i += 16) {
+      for (i = 0; (i|0) < (k|0); i = i + 16 |0) {
 
         z0 = y0;
         z1 = y1;
@@ -196,10 +206,10 @@
         z3 = y3;
         z4 = y4;
 
-        for (j = 0; j < 16; j++) {
-          H[k+j] = H[i+j];
+        for (j = 0; (j|0) < 16; j = j + 1 |0) {
+          H[k+j<<2>>2] = H[i+j<<2>>2];
           t1 = ((y0 << 5 | y0 >>> 27) + (y1 & y2 | ~y1 & y3) |0) +
-               ((y4 + H[k+j]      |0) + (1518500249)         |0) |0;
+               ((y4 + (H[k+j<<2>>2]|0) |0) + (1518500249) |0) |0;
           y4 = y3;
           y3 = y2;
           y2 = y1 << 30 | y1 >>> 2;
@@ -207,11 +217,11 @@
           y0 = t1;
         }
 
-        for (j = k + 16; j < k + 20; j++) {
-          t0 = H[j-3] ^ H[j-8] ^ H[j-14] ^ H[j-16];
-          H[j] = t0 << 1 | t0 >>> 31;
+        for (j = k + 16 |0; (j|0) < (k + 20 |0); j = j + 1 |0) {
+          t0 = H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2];
+          H[j<<2>>2] = t0 << 1 | t0 >>> 31;
           t1 = ((y0 << 5 | y0 >>> 27) + (y1 & y2 | ~y1 & y3) |0) +
-               ((y4 + H[j]        |0) + (1518500249)         |0) |0;
+               ((y4 + (H[j<<2>>2]|0) |0) + (1518500249) |0) |0;
           y4 = y3;
           y3 = y2;
           y2 = y1 << 30 | y1 >>> 2;
@@ -219,11 +229,11 @@
           y0 = t1;
         }
 
-        for (j = k + 20; j < k + 40; j++) {
-          t0 = H[j-3] ^ H[j-8] ^ H[j-14] ^ H[j-16];
-          H[j] = t0 << 1 | t0 >>> 31;
+        for (j = k + 20 |0; (j|0) < (k + 40 |0); j = j + 1 |0) {
+          t0 = H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2];
+          H[j<<2>>2] = t0 << 1 | t0 >>> 31;
           t1 = ((y0 << 5 | y0 >>> 27) + (y1 ^ y2 ^ y3) |0) +
-               ((y4 + H[j]        |0) + (1859775393)   |0) |0;
+               ((y4 + (H[j<<2>>2]|0) |0) + (1859775393) |0) |0;
           y4 = y3;
           y3 = y2;
           y2 = y1 << 30 | y1 >>> 2;
@@ -231,11 +241,11 @@
           y0 = t1;
         }
 
-        for (j = k + 40; j < k + 60; j++) {
-          t0 = H[j-3] ^ H[j-8] ^ H[j-14] ^ H[j-16];
-          H[j] = t0 << 1 | t0 >>> 31;
+        for (j = k + 40 |0; (j|0) < (k + 60 |0); j = j + 1 |0) {
+          t0 = H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2];
+          H[j<<2>>2] = t0 << 1 | t0 >>> 31;
           t1 = ((y0 << 5 | y0 >>> 27) + (y1 & y2 | y1 & y3 | y2 & y3) |0) +
-               ((y4 + H[j]        |0) - (1894007588)                  |0) |0;
+               ((y4 + (H[j<<2>>2]|0) |0) - (1894007588) |0) |0;
           y4 = y3;
           y3 = y2;
           y2 = y1 << 30 | y1 >>> 2;
@@ -243,11 +253,11 @@
           y0 = t1;
         }
 
-        for (j = k + 60; j < k + 80; j++) {
-          t0 = H[j-3] ^ H[j-8] ^ H[j-14] ^ H[j-16];
-          H[j] = t0 << 1 | t0 >>> 31;
+        for (j = k + 60 |0; (j|0) < (k + 80 |0); j = j + 1 |0) {
+          t0 = H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2];
+          H[j<<2>>2] = t0 << 1 | t0 >>> 31;
           t1 = ((y0 << 5 | y0 >>> 27) + (y1 ^ y2 ^ y3) |0) +
-               ((y4 + H[j]        |0) - (899497514)    |0) |0;
+               ((y4 + (H[j<<2>>2]|0) |0) - (899497514) |0) |0;
           y4 = y3;
           y3 = y2;
           y2 = y1 << 30 | y1 >>> 2;
@@ -263,7 +273,11 @@
 
       }
 
-      return [y0,y1,y2,y3,y4];
+      H[0] = y0;
+      H[1] = y1;
+      H[2] = y2;
+      H[3] = y3;
+      H[4] = y4;
 
     }
 
