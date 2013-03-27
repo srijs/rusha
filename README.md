@@ -47,11 +47,10 @@ You can send your instance of the web worker messages in the format `{id: jobid,
 
 Tested were my Rusha implementation, the sha1.js implementation by [P. A. Johnston](http://pajhome.org.uk/crypt/md5/sha1.html), Tim Caswell's [Cifre](http://github.com/openpeer/cifre) and the Node.JS native implementation.
 
-A rough estimation based on the results below, smaller is better:
+A normalized estimation based on the best results for each implementation, smaller is better:
 ![rough performance graph](http://awesam.de/rusha/bench/unscientific01.png)
 
 Results per Implementation and Browser, smaller is better, again:
-
 ![performance graph](http://awesam.de/rusha/bench/unscientific02.png)
 
 The best results for each implementation:
