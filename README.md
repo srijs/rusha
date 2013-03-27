@@ -5,9 +5,11 @@
 
 When we started experimenting with alternative upload technologies at [doctape](http://doctape.com) that required creating SHA1 hashes of the data locally on the client, it quickly became obvious that there were no performant pure-js implementations of SHA1 that worked correctly on binary data.
 
-Jeff Motts [CryptoJS](http://code.google.com/p/crypto-js/), Brian Tureks [jsSHA](http://caligatio.github.com/jsSHA/) and Tim Caswells [Cifre](http://github.com/openpeer/cifre) were all hash functions that worked correctly on ASCII strings of a small size, but didn't scale to large data and/or didn't work correctly with binary data.
+Jeff Mott's [CryptoJS](http://code.google.com/p/crypto-js/) and Brian Turek's [jsSHA](http://caligatio.github.com/jsSHA/) were both hash functions that worked correctly on ASCII strings of a small size, but didn't scale to large data and/or didn't work correctly with binary data.
 
-By modifying Paul Johnstons [sha1.js](http://pajhome.org.uk/crypt/md5/sha1.html) slightly, it worked correctly on binary data but was unfortunately very slow, especially on V8. So a few days were invested on my side to implement a Johnston-inspired SHA1 hashing function with a heavy focus on performance.
+(On a sidenode, as of now Tim Caswell's [Cifre](http://github.com/openpeer/cifre) actually works with large binary data, as opposed to previously statet.)
+
+By modifying Paul Johnston's [sha1.js](http://pajhome.org.uk/crypt/md5/sha1.html) slightly, it worked correctly on binary data but was unfortunately very slow, especially on V8. So a few days were invested on my side to implement a Johnston-inspired SHA1 hashing function with a heavy focus on performance.
 
 The result of this process is Rusha, a SHA1 hash function that works flawlessly on large amounts binary data, such as binary strings or ArrayBuffers returned by the HTML5 File API, and leverages the soon-to-be-landed-in-firefox [asm.js](http://asmjs.org/spec/latest/) with whose support its within *half of native speed*!
 
@@ -43,14 +45,14 @@ You can send your instance of the web worker messages in the format `{id: jobid,
 
 ## Benchmarks
 
-Tested were my Rusha implementation, the sha1.js implementation by [P. A. Johnston](http://pajhome.org.uk/crypt/md5/sha1.html) and the Node.JS native implementation.
+Tested were my Rusha implementation, the sha1.js implementation by [P. A. Johnston](http://pajhome.org.uk/crypt/md5/sha1.html), Tim Caswell's [Cifre](http://github.com/openpeer/cifre) and the Node.JS native implementation.
 
 The best results for each implementation:
 
-	   4096 bytes: Native:  0ms, Rusha:  1ms, Johnston:   3ms
-	1048576 bytes: Native:  4ms, Rusha: 11ms, Johnston:  55ms
-	4194304 bytes: Native: 17ms, Rusha: 41ms, Johnston: 211ms
-	8388608 bytes: Native: 37ms, Rusha: 80ms, Johnston: 428ms
+	   4096 bytes: Native:  0ms, Rusha:  1ms, Johnston:   3ms, Cifre:   4ms
+	1048576 bytes: Native:  4ms, Rusha: 11ms, Johnston:  55ms, Cifre: 150ms
+	4194304 bytes: Native: 17ms, Rusha: 41ms, Johnston: 211ms, Cifre: 614ms
+	8388608 bytes: Native: 37ms, Rusha: 80ms, Johnston: 428ms, Cifre: 
 
 All tests were performed on a MacBook Air 1.7 GHz Intel Core i5 and 4 GB 1333 MHz DDR3. Detailed results below.
 
@@ -58,110 +60,136 @@ Firefox Nightly (with asm.js support) 22.0a1:
 
 	Benchmarking 4096 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted f1ea1aa67255487fb0991eff509a00dccab8d2d8 in 1 milliseconds
-	Johnst.  emitted f1ea1aa67255487fb0991eff509a00dccab8d2d8 in 3 milliseconds
+	Rusha    emitted e217ea942d68455677ca703baea41367ead7e912 in 1 milliseconds
+	Johnst.  emitted e217ea942d68455677ca703baea41367ead7e912 in 3 milliseconds
+	Cifre    emitted e217ea942d68455677ca703baea41367ead7e912 in 5 milliseconds
 	Benchmarking 1048576 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted c9c163d357ad1f3d0a92af43b484d318cab23ef3 in 11 milliseconds
-	Johnst.  emitted c9c163d357ad1f3d0a92af43b484d318cab23ef3 in 57 milliseconds
+	Rusha    emitted f39c96db473b722e6ecd0f429807588b198c931c in 11 milliseconds
+	Johnst.  emitted f39c96db473b722e6ecd0f429807588b198c931c in 82 milliseconds
+	Cifre    emitted f39c96db473b722e6ecd0f429807588b198c931c in 183 milliseconds
 	Benchmarking 4194304 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted f0d461a6d6c4322360788ca18865538a621fb738 in 41 milliseconds
-	Johnst.  emitted f0d461a6d6c4322360788ca18865538a621fb738 in 217 milliseconds
+	Rusha    emitted df59869d022e543d26fa9c80b78349c8c3a7372f in 41 milliseconds
+	Johnst.  emitted df59869d022e543d26fa9c80b78349c8c3a7372f in 243 milliseconds
+	Cifre    emitted df59869d022e543d26fa9c80b78349c8c3a7372f in 633 milliseconds
 	Benchmarking 8388608 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted fc1c2906a58963ee56f1c37fc9bb637167637d41 in 80 milliseconds
-	Johnst.  emitted fc1c2906a58963ee56f1c37fc9bb637167637d41 in 428 milliseconds
+	Rusha    emitted 709f1cdd1b69e3e692f92cd7aaeafa70bc3d93f1 in 80 milliseconds
+	Johnst.  emitted 709f1cdd1b69e3e692f92cd7aaeafa70bc3d93f1 in 429 milliseconds
+	Cifre    emitted 709f1cdd1b69e3e692f92cd7aaeafa70bc3d93f1 in 1312 milliseconds
 
 Node (V8) 0.8.18:
 
 	Benchmarking 4096 bytes ...
-	Native   emitted b180fa62481c53fcf86c21e7f6e319d4555ebd7a in 0 milliseconds
-	Rusha    emitted b180fa62481c53fcf86c21e7f6e319d4555ebd7a in 5 milliseconds
-	Johnst.  emitted b180fa62481c53fcf86c21e7f6e319d4555ebd7a in 3 milliseconds
+	Native   emitted 377322fdb03494521d8781c68ccad0be909bc39c in 0 milliseconds
+	Rusha    emitted 377322fdb03494521d8781c68ccad0be909bc39c in 4 milliseconds
+	Johnst.  emitted 377322fdb03494521d8781c68ccad0be909bc39c in 3 milliseconds
+	Cifre    emitted 377322fdb03494521d8781c68ccad0be909bc39c in 9 milliseconds
 	Benchmarking 1048576 bytes ...
-	Native   emitted 6d7471eace53611faef8541b78d8130558a34070 in 4 milliseconds
-	Rusha    emitted 6d7471eace53611faef8541b78d8130558a34070 in 29 milliseconds
-	Johnst.  emitted 6d7471eace53611faef8541b78d8130558a34070 in 100 milliseconds
+	Native   emitted e7dcf18132f327aa3ff96198b10e733db2f7378e in 4 milliseconds
+	Rusha    emitted e7dcf18132f327aa3ff96198b10e733db2f7378e in 30 milliseconds
+	Johnst.  emitted e7dcf18132f327aa3ff96198b10e733db2f7378e in 98 milliseconds
+	Cifre    emitted e7dcf18132f327aa3ff96198b10e733db2f7378e in 330 milliseconds
 	Benchmarking 4194304 bytes ...
-	Native   emitted bf8ed89073ea76ff9b9ac44d203f3c421669dd37 in 17 milliseconds
-	Rusha    emitted bf8ed89073ea76ff9b9ac44d203f3c421669dd37 in 110 milliseconds
-	Johnst.  emitted bf8ed89073ea76ff9b9ac44d203f3c421669dd37 in 431 milliseconds
+	Native   emitted d3c7af18250e3518eb961010c3d0d891c9431989 in 22 milliseconds
+	Rusha    emitted d3c7af18250e3518eb961010c3d0d891c9431989 in 119 milliseconds
+	Johnst.  emitted d3c7af18250e3518eb961010c3d0d891c9431989 in 396 milliseconds
+	Cifre    emitted d3c7af18250e3518eb961010c3d0d891c9431989 in 1226 milliseconds
 	Benchmarking 8388608 bytes ...
-	Native   emitted c9bbff50949da456fcf4d78093510f6e599e1568 in 37 milliseconds
-	Rusha    emitted c9bbff50949da456fcf4d78093510f6e599e1568 in 220 milliseconds
-	Johnst.  emitted c9bbff50949da456fcf4d78093510f6e599e1568 in 686 milliseconds
+	Native   emitted ce99b2f0a3c4279bd5c33378ba83cc2569642053 in 34 milliseconds
+	Rusha    emitted ce99b2f0a3c4279bd5c33378ba83cc2569642053 in 226 milliseconds
+	Johnst.  emitted ce99b2f0a3c4279bd5c33378ba83cc2569642053 in 702 milliseconds
+	Cifre    emitted ce99b2f0a3c4279bd5c33378ba83cc2569642053 in 2455 milliseconds
 
 Chrome (V8) 25.0:
 
 	Benchmarking 4096 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted 67e1504a88a87adc7e6498872c8296030c501f52 in 5 milliseconds
-	Johnst.  emitted 67e1504a88a87adc7e6498872c8296030c501f52 in 9 milliseconds
-	Benchmarking 1048576 bytes ...
+	Rusha    emitted 2e69e5a3dcdf0b9a258656795e91219c8470157c in 6 milliseconds
+	Johnst.  emitted 2e69e5a3dcdf0b9a258656795e91219c8470157c in 23 milliseconds
+	Cifre    emitted 2e69e5a3dcdf0b9a258656795e91219c8470157c in 9 milliseconds
+	Benchmarking 1048576 bytes
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted 1339a85453885ee434a04a47f772d74b49ba6bac in 65 milliseconds
-	Johnst.  emitted 1339a85453885ee434a04a47f772d74b49ba6bac in 261 milliseconds 	Benchmarking 4194304 bytes ...
+	Rusha    emitted 7edd589e41d6182818039e2433c951e3a9aa4893 in 72 milliseconds
+	Johnst.  emitted 7edd589e41d6182818039e2433c951e3a9aa4893 in 250 milliseconds
+	Cifre    emitted 7edd589e41d6182818039e2433c951e3a9aa4893 in 150 milliseconds
+	Benchmarking 4194304 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted 4861c387e4c854f86e11e9e7f5565e5864235aa7 in 228 milliseconds
-	Johnst.  emitted 4861c387e4c854f86e11e9e7f5565e5864235aa7 in 844 milliseconds
+	Rusha    emitted 8ff4c621772029827b4b94326fe25fec257e3de4 in 242 milliseconds
+	Johnst.  emitted 8ff4c621772029827b4b94326fe25fec257e3de4 in 993 milliseconds
+	Cifre    emitted 8ff4c621772029827b4b94326fe25fec257e3de4 in 614 milliseconds
 	Benchmarking 8388608 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted 2f04698c8509c96e7fe15daa4e2385d1a1b1f0f0 in 462 milliseconds
-	Johnst.  emitted 2f04698c8509c96e7fe15daa4e2385d1a1b1f0f0 in 1929 milliseconds
+	Rusha    emitted 112df4d0e15ff90ce11bf613191db3b190b318d6 in 470 milliseconds
+	Johnst.  emitted 112df4d0e15ff90ce11bf613191db3b190b318d6 in 1960 milliseconds
+	Cifre    emitted 112df4d0e15ff90ce11bf613191db3b190b318d6 in 1205 milliseconds 
 
 Safari 6.0.2:
 
 	Benchmarking 4096 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted c6f613ccd8b9a71945dccdd9268abe92f9796690 in 4 milliseconds
-	Johnst.  emitted c6f613ccd8b9a71945dccdd9268abe92f9796690 in 3 milliseconds
+	Rusha    emitted f73e06fd363306d948f15c2c5b19250b620996be in 5 milliseconds
+	Johnst.  emitted f73e06fd363306d948f15c2c5b19250b620996be in 34 milliseconds
+	Cifre    emitted f73e06fd363306d948f15c2c5b19250b620996be in 13 milliseconds
 	Benchmarking 1048576 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted 134ad263901ee070bd2ff7848294fd898e6d834c in 32 milliseconds
-	Johnst.  emitted 134ad263901ee070bd2ff7848294fd898e6d834c in 83 milliseconds
+	Rusha    emitted 654bbffd41912d5e0deaefcf391c58e3150f94d0 in 937 milliseconds
+	Johnst.  emitted 654bbffd41912d5e0deaefcf391c58e3150f94d0 in 7574 milliseconds
+	Cifre    emitted 654bbffd41912d5e0deaefcf391c58e3150f94d0 in 2817 milliseconds
 	Benchmarking 4194304 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted 4e6a71b9e1d2d00ba73051198ed39397dad3db4b in 104 milliseconds
-	Johnst.  emitted 4e6a71b9e1d2d00ba73051198ed39397dad3db4b in 331 milliseconds
+	Rusha    emitted abdd60ca01aad6cb57d721857b63c6a3928a962b in 3795 milliseconds
+	Johnst.  emitted abdd60ca01aad6cb57d721857b63c6a3928a962b in 31965 milliseconds
+	Cifre    emitted abdd60ca01aad6cb57d721857b63c6a3928a962b in 12899 milliseconds
 	Benchmarking 8388608 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted f0f5d94371727bf4c413dadb722eee4af971931e in 281 milliseconds
-	Johnst.  emitted f0f5d94371727bf4c413dadb722eee4af971931e in 774 milliseconds
+	Rusha    emitted fd40b28b24fa98634a85db99e306bb4bd4580ec3 in 8189 milliseconds
+	Johnst.  emitted fd40b28b24fa98634a85db99e306bb4bd4580ec3 in 70497 milliseconds
+	Cifre    emitted fd40b28b24fa98634a85db99e306bb4bd4580ec3 in 24996 milliseconds
 
 Firefox Aurora 21.0a2:
 
 	Benchmarking 4096 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted 2b06ba1f166c14bf66c21fc3c70fb9ca0e916cd3 in 6 milliseconds
-	Johnst.  emitted 2b06ba1f166c14bf66c21fc3c70fb9ca0e916cd3 in 4 milliseconds
+	Rusha    emitted 349f713c66d8f88eaed58e087f9cc8b8c33bcecf in 2 milliseconds
+	Johnst.  emitted 349f713c66d8f88eaed58e087f9cc8b8c33bcecf in 3 milliseconds
+	Cifre    emitted 349f713c66d8f88eaed58e087f9cc8b8c33bcecf in 4 milliseconds
 	Benchmarking 1048576 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted 82eecaa400182aa0930c7b0b096583c3a69f300e in 22 milliseconds
-	Johnst.  emitted 82eecaa400182aa0930c7b0b096583c3a69f300e in 55 milliseconds
+	Rusha    emitted ebf9b8f7ab2ae5ddfe40887c5f0e5dbf88c889ab in 25 milliseconds
+	Johnst.  emitted ebf9b8f7ab2ae5ddfe40887c5f0e5dbf88c889ab in 53 milliseconds
+	Cifre    emitted ebf9b8f7ab2ae5ddfe40887c5f0e5dbf88c889ab in 161 milliseconds
 	Benchmarking 4194304 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted 9ad3fd23dd6d53466f4ee37a60c5b20e0d07fc4a in 71 milliseconds
-	Johnst.  emitted 9ad3fd23dd6d53466f4ee37a60c5b20e0d07fc4a in 211 milliseconds
+	Rusha    emitted 30fa929476b34564ed1b977d33cc331d55dd06b0 in 83 milliseconds
+	Johnst.  emitted 30fa929476b34564ed1b977d33cc331d55dd06b0 in 210 milliseconds
+	Cifre    emitted 30fa929476b34564ed1b977d33cc331d55dd06b0 in 625 milliseconds
 	Benchmarking 8388608 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted ae5472ffd492e410c764204409150989c9fda75a in 142 milliseconds
-	Johnst.  emitted ae5472ffd492e410c764204409150989c9fda75a in 434 milliseconds
+	Rusha    emitted bc6a87bb491ba6befdd0555fcf79775fa6df02d2 in 165 milliseconds
+	Johnst.  emitted bc6a87bb491ba6befdd0555fcf79775fa6df02d2 in 451 milliseconds
+	Cifre    emitted bc6a87bb491ba6befdd0555fcf79775fa6df02d2 in 1256 milliseconds
 
 Firefox 19.0.2:
 
+	Benchmarking 4096 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted ced3abd7a93caf2a70edb3a9a795ffdaf43f67ed in 4 milliseconds
-	Johnst.  emitted ced3abd7a93caf2a70edb3a9a795ffdaf43f67ed in 3 milliseconds
+	Rusha    emitted 631800fc7cce39400fd7d5bffbf421821fbcf066 in 3 milliseconds
+	Johnst.  emitted 631800fc7cce39400fd7d5bffbf421821fbcf066 in 3 milliseconds
+	Cifre    emitted 631800fc7cce39400fd7d5bffbf421821fbcf066 in 4 milliseconds
 	Benchmarking 1048576 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted be0d6856f1bb92a7c9ffcf770adb2c463cc75053 in 57 milliseconds
-	Johnst.  emitted be0d6856f1bb92a7c9ffcf770adb2c463cc75053 in 56 milliseconds
+	Rusha    emitted 80dd388d67a9ea4ac36dbbf9d58c59da8ec71132 in 73 milliseconds
+	Johnst.  emitted 80dd388d67a9ea4ac36dbbf9d58c59da8ec71132 in 55 milliseconds
+	Cifre    emitted 80dd388d67a9ea4ac36dbbf9d58c59da8ec71132 in 181 milliseconds
 	Benchmarking 4194304 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted 308a4f69f3aa2723e3839833c93b8ed2cb7cd6d1 in 221 milliseconds
-	Johnst.  emitted 308a4f69f3aa2723e3839833c93b8ed2cb7cd6d1 in 218 milliseconds
+	Rusha    emitted 03b651c3edec8c8f77a5302af0e44523e946b762 in 277 milliseconds
+	Johnst.  emitted 03b651c3edec8c8f77a5302af0e44523e946b762 in 214 milliseconds
+	Cifre    emitted 03b651c3edec8c8f77a5302af0e44523e946b762 in 693 milliseconds
 	Benchmarking 8388608 bytes ...
 	Native   emitted unavailable in 0 milliseconds
-	Rusha    emitted f46d1431b9e0c5aa30424f67267445fbb2cc619c in 406 milliseconds
-	Johnst.  emitted f46d1431b9e0c5aa30424f67267445fbb2cc619c in 433 milliseconds
+	Rusha    emitted 908803b41d10fb94d2e97c9c16533c954e21b53d in 553 milliseconds
+	Johnst.  emitted 908803b41d10fb94d2e97c9c16533c954e21b53d in 419 milliseconds
+	Cifre    emitted 908803b41d10fb94d2e97c9c16533c954e21b53d in 1340 milliseconds
