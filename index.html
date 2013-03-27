@@ -80,6 +80,12 @@
 
 <p>Tested were my Rusha implementation, the sha1.js implementation by <a href="http://pajhome.org.uk/crypt/md5/sha1.html">P. A. Johnston</a>, Tim Caswell's <a href="http://github.com/openpeer/cifre">Cifre</a> and the Node.JS native implementation.</p>
 
+<p>A normalized estimation based on the best results for each implementation, smaller is better:
+<img src="http://awesam.de/rusha/bench/unscientific01.png" alt="rough performance graph"></p>
+
+<p>Results per Implementation and Browser, smaller is better, again:
+<img src="http://awesam.de/rusha/bench/unscientific02.png" alt="performance graph"></p>
+
 <p>The best results for each implementation:</p>
 
 <pre><code>   4096 bytes: Native:  0ms, Rusha:  1ms, Johnston:   3ms, Cifre:    4ms
