@@ -63,7 +63,7 @@
     "use strict";
 
     // Private object structure.
-    var self = {};
+    var self = {fill: 0};
 
     // Calculate the length of buffer that the sha1 routine uses
     // including the padding.
@@ -71,10 +71,8 @@
       return len + 1 + ((len + 1) % 64 < 56 ? 56 : 56 + 64) - (len + 1) % 64 + 8; 
     };
 
-    var padData = function (len, copyloop) {
-      var i, plen = padlen(len),
-          bin = new Int32Array(self.heap, 0, plen / 4);
-      for (i = len>>2; i < bin.length; i++) bin[i] = 0;
+    var padData = function (bin, len, copyloop) {
+      for (var i = len>>2; i < bin.length; i++) bin[i] = 0;
       copyloop(bin);
       bin[len>>2] |= 0x80 << (24 - (len % 4 << 3));
       bin[(((len >> 2) + 2) & ~0x0f) + 15] = len << 3;
@@ -112,10 +110,6 @@
     // Convert general data to a big-endian Int32Array written on the
     // heap and return it's length;
     var conv = function (data) {
-      var length = data.byteLength || data.length;
-      if (length > self.sizeHint) {
-        resize(length);
-      }
       if (typeof data === 'string') {
         return convStr(data);
       } else if (data instanceof Array || (typeof Buffer !== 'undefined' &&
@@ -181,7 +175,12 @@
     this.digest = this.digestFromString =
     this.digestFromBuffer = this.digestFromArrayBuffer =
     function (str) {
-      coreCall(padData(str.byteLength || str.length, conv(str)));
+      var len = str.byteLength || str.length;
+      if (len > self.sizeHint) {
+        resize(len);
+      }
+      var view = new Int32Array(self.heap, 0, padlen(len) >> 2);
+      coreCall(padData(view, len, conv(str)));
       return hex(new Int32Array(self.heap, 0, 5));
     };
 
