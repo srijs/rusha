@@ -48,15 +48,10 @@
         hasher = new Rusha(4 * 1024 * 1024);
     self.onmessage = function (event) {
       var hash, data = event.data.data;
-      if (typeof data === 'string') {
-        hash = hasher.digestFromString(data);
-      } else if (data instanceof ArrayBuffer) {
-        hash = hasher.digestFromArrayBuffer(data);
-      } else if (data instanceof Array) {
-        hash = hasher.digestFromBuffer(data);
-      } else if (data instanceof Blob) {
-        hash = hasher.digestFromString(reader.readAsBinaryString(data));
+      if (data instanceof Blob) {
+        data = reader.readAsBinaryString(data);
       }
+      hash = hasher.digest(data);
       self.postMessage({id: event.data.id, hash: hash});
     };
   }
@@ -76,42 +71,66 @@
       return len + 1 + ((len + 1) % 64 < 56 ? 56 : 56 + 64) - (len + 1) % 64 + 8;
     };
 
+    var padData = function (len, copyloop) {
+      var i, plen = padlen(len),
+          bin = new Int32Array(self.heap, 0, plen / 4);
+      for (i = len>>2; i < bin.length; i++) bin[i] = 0;
+      copyloop(bin);
+      bin[len>>2] |= 0x80 << (24 - (len % 4 << 3));
+      bin[(((len >> 2) + 2) & ~0x0f) + 15] = len << 3;
+      return bin.length;
+    };
+
     // Convert a binary string to a big-endian Int32Array using
     // four characters per slot and pad it per the sha1 spec.
     // A binary string is expected to only contain char codes < 256.
-    var conv = function (str) {
-      var i, len = padlen(str.length),
-          bin = new Int32Array(self.heap, 0, len / 4);
-      for (i = str.length>>2; i < bin.length; i++) bin[i] = 0;
-      for (i = 0; i < str.length; i+=4) {
-        bin[i>>2] = (str.charCodeAt(i)   << 24) |
-                    (str.charCodeAt(i+1) << 16) |
-                    (str.charCodeAt(i+2) <<  8) |
-                    (str.charCodeAt(i+3));
-      }
-      bin[str.length>>2] |= 0x80 << (24 - (str.length % 4 << 3));
-      bin[(((str.length >> 2) + 2) & ~0x0f) + 15] = str.length << 3;
-      return bin.length;
+    var convStr = function (str) {
+      return padData(str.length, function (bin) {
+        for (var i = 0; i < str.length; i+=4) {
+          bin[i>>2] = (str.charCodeAt(i)   << 24) |
+                      (str.charCodeAt(i+1) << 16) |
+                      (str.charCodeAt(i+2) <<  8) |
+                      (str.charCodeAt(i+3));
+        }
+      });
     };
 
     // Convert a buffer or array to a big-endian Int32Array using
     // four elements per slot and pad it per the sha1 spec.
     // The buffer or array is expected to only contain elements < 256. 
     var convBuf = function (buf) {
-      var i, len = padlen(buf.length),
-          bin = new Int32Array(self.heap, 0, len / 4);
-      for (i = buf.length>>2; i < bin.length; i++) bin[i] = 0;
-      for (i = 0; i < buf.length; i+=4) {
-        bin[i>>2] = (buf[i]   << 24) |
-                    (buf[i+1] << 16) |
-                    (buf[i+2] <<  8) |
-                    (buf[i+3]);
-      }
-      bin[buf.length>>2] |= 0x80 << (24 - (buf.length % 4 << 3));
-      bin[(((buf.length >> 2) + 2) & ~0x0f) + 15] = buf.length << 3;
-      return bin.length;
+      return padData(buf.length, function (bin) {
+        for (var i = 0; i < buf.length; i+=4) {
+          bin[i>>2] = (buf[i]   << 24) |
+                      (buf[i+1] << 16) |
+                      (buf[i+2] <<  8) |
+                      (buf[i+3]);
+        }
+      });
     };
 
+    // Convert general data to a big-endian Int32Array written on the
+    // heap and return it's length;
+    var conv = function (data) {
+      var length = data.byteLength || data.length;
+      if (length > self.sizeHint) {
+        resize(length);
+      }
+      if (typeof data === 'string') {
+        return convStr(data);
+      } else if (data instanceof Array || (typeof Buffer !== 'undefined' &&
+                                           data instanceof Buffer)) {
+        return convBuf(data);
+      } else if (data instanceof ArrayBuffer) {
+        return convBuf(new Uint8Array(data));
+      } else if (data.buffer instanceof ArrayBuffer) {
+        return convBuf(new Uint8Array(data.buffer));
+      } else {
+        throw new Error('Unsupported data type.');
+      }
+    };
+      
+    
     // Convert a array containing 32 bit integers
     // into its hexadecimal string representation.
     var hex = function (binarray) {
@@ -159,33 +178,13 @@
 
     // The digestFromString interface returns the hash digest
     // of a binary string.
-    this.digestFromString = function (str) {
-      if (str.length > self.sizeHint) {
-        resize(str.length);
-      }
+    this.digest = this.digestFromString =
+    this.digestFromBuffer = this.digestFromArrayBuffer =
+    function (str) {
       coreCall(conv(str));
       return hex(new Int32Array(self.heap, 0, 5));
     };
 
-    // The digestFromBuffer interface returns the hash digest
-    // of a buffer or array containing 8-bit integers.
-    this.digestFromBuffer = function (buf) {
-      if (buf.length > self.sizeHint) {
-        resize(buf.length);
-      }
-      coreCall(convBuf(buf));
-      return hex(new Int32Array(self.heap, 0, 5));
-    };
-
-    // The digestFromArrayBuffer interface returns the hash digest
-    // of an ArrayBuffer.
-    this.digestFromArrayBuffer = function (buf) {
-      if (buf.length > self.sizeHint) {
-        resize(buf.byteLength);
-      }
-      coreCall(convBuf(buf));
-      return hex(new Int32Array(self.heap, 0, 5));
-    };
   };
 
   // The low-level RushCore module provides the heart of Rusha,

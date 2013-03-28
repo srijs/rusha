@@ -35,6 +35,7 @@ If you can't, for any reason, use Web Workers, include the `rusha.js` file in a 
 
 Your instantiate a new Rusha object by doing `var r = new Rusha(optionalSizeHint)`. When created, it provides the following methods:
 
+- `Rusha#digest(d)`: Create a hex digest from data of the three kinds mentioned below, or throw and error if the type is unsupported.
 - `Rusha#digestFromString(s)`: Create a hex digest from a binary `String`. A binary string is expected to only contain characters whose charCode < 256.
 - `Rusha#digestFromBuffer(b)`: Create a hex digest from a `Buffer` or `Array`. Both are expected to only contain elements < 256.
 - `Rusha#digestFromArrayBuffer(a)`: Create a hex digest from an `ArrayBuffer` object.
