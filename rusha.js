@@ -68,7 +68,7 @@
     // Calculate the length of buffer that the sha1 routine uses
     // including the padding.
     var padlen = function (len) {
-      return len + 1 + ((len + 1) % 64 < 56 ? 56 : 56 + 64) - (len + 1) % 64 + 8;
+      return len + 1 + ((len + 1) % 64 < 56 ? 56 : 56 + 64) - (len + 1) % 64 + 8; 
     };
 
     var padData = function (len, copyloop) {
@@ -85,28 +85,28 @@
     // four characters per slot and pad it per the sha1 spec.
     // A binary string is expected to only contain char codes < 256.
     var convStr = function (str) {
-      return padData(str.length, function (bin) {
+      return function (bin) {
         for (var i = 0; i < str.length; i+=4) {
           bin[i>>2] = (str.charCodeAt(i)   << 24) |
                       (str.charCodeAt(i+1) << 16) |
                       (str.charCodeAt(i+2) <<  8) |
                       (str.charCodeAt(i+3));
         }
-      });
+      };
     };
 
     // Convert a buffer or array to a big-endian Int32Array using
     // four elements per slot and pad it per the sha1 spec.
     // The buffer or array is expected to only contain elements < 256. 
     var convBuf = function (buf) {
-      return padData(buf.length, function (bin) {
+      return function (bin) {
         for (var i = 0; i < buf.length; i+=4) {
           bin[i>>2] = (buf[i]   << 24) |
                       (buf[i+1] << 16) |
                       (buf[i+2] <<  8) |
                       (buf[i+3]);
         }
-      });
+      };
     };
 
     // Convert general data to a big-endian Int32Array written on the
@@ -181,7 +181,7 @@
     this.digest = this.digestFromString =
     this.digestFromBuffer = this.digestFromArrayBuffer =
     function (str) {
-      coreCall(conv(str));
+      coreCall(padData(str.byteLength || str.length, conv(str)));
       return hex(new Int32Array(self.heap, 0, 5));
     };
 
