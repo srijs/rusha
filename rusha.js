@@ -145,13 +145,25 @@
     // to an optional size hint.
     resize(sizeHint || 0);
 
+    // Initialize and call the RushaCore,
+    // assuming an input buffer of length len * 4.
+    var coreCall = function (len) {
+      var h = new Int32Array(self.heap, len << 2, 5);
+      h[0] =  1732584193;
+      h[1] =  -271733879;
+      h[2] = -1732584194;
+      h[3] =   271733878;
+      h[4] = -1009589776;
+      self.core.hash(len);
+    };
+
     // The digestFromString interface returns the hash digest
     // of a binary string.
     this.digestFromString = function (str) {
       if (str.length > self.sizeHint) {
         resize(str.length);
       }
-      self.core.hash(conv(str));
+      coreCall(conv(str));
       return hex(new Int32Array(self.heap, 0, 5));
     };
 
@@ -161,7 +173,7 @@
       if (buf.length > self.sizeHint) {
         resize(buf.length);
       }
-      self.core.hash(convBuf(buf));
+      coreCall(convBuf(buf));
       return hex(new Int32Array(self.heap, 0, 5));
     };
 
@@ -171,7 +183,7 @@
       if (buf.length > self.sizeHint) {
         resize(buf.byteLength);
       }
-      self.core.hash(convBuf(buf));
+      coreCall(convBuf(buf));
       return hex(new Int32Array(self.heap, 0, 5));
     };
   };
@@ -191,13 +203,16 @@
 
       k = k|0;
       var i = 0, j = 0,
-          y0 =  1732584193, z0 = 0,
-          y1 =  -271733879, z1 = 0,
-          y2 = -1732584194, z2 = 0,
-          y3 =   271733878, z3 = 0,
-          y4 = -1009589776, z4 = 0,
-          t0 = 0, t1 = 0;
+          y0 = 0, z0 = 0, y1 = 0, z1 = 0,
+          y2 = 0, z2 = 0, y3 = 0, z3 = 0,
+          y4 = 0, z4 = 0, t0 = 0, t1 = 0;
 
+      y0 = H[k+0<<2>>2]|0;
+      y1 = H[k+1<<2>>2]|0;
+      y2 = H[k+2<<2>>2]|0;
+      y3 = H[k+3<<2>>2]|0;
+      y4 = H[k+4<<2>>2]|0;
+ 
       for (i = 0; (i|0) < (k|0); i = i + 16 |0) {
 
         z0 = y0;
