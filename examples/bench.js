@@ -36,7 +36,8 @@ if (typeof crypto !== 'undefined' && typeof crypto.pseudoRandomBytes === 'functi
 
 }
 
-var sizes = [4*1024, 1024*1024, 4*1024*1024, 8*1024*1024];
+var sizes = [4*1024, 65535, 1024*1024, 4*1024*1024, 8*1024*1024];
+var repeats = [ 100,    30,         3,           1,           1];
 
 var _rush = new Rusha(Math.max.apply(Math, sizes)),
     fnRusha = function (bytes) {
@@ -55,14 +56,16 @@ var ids = ['Native  ', 'Rusha   ', 'Johnst. ', 'Cifre   '];
 var fns = [fnNative, fnRusha, fnJohnston, fnCifre];
 
 var bench = function () {
-  sizes.forEach(function (size) {
+  sizes.forEach(function (size, k) {
     console.log('Benchmarking ' + size + ' bytes ...');
     var bytes = randomBytes(size);
     fns.forEach(function (fn, i) {
       var t0 = (new Date()).getTime();
-      var res = fn(bytes);
+      var res = "";
+      for (j=0;j<repeats[k];j++)
+        res += fn(bytes);
       var t1 = (new Date()).getTime();
-      console.log(ids[i] + ' emitted ' + res + ' in ' + (t1-t0) + ' milliseconds');
+      console.log(ids[i] + ' emitted ' + res.substring(0,40) + ' in ' + ((t1-t0)/repeats[k]) + ' milliseconds');
     });
   });
 }
