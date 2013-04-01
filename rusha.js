@@ -68,7 +68,7 @@
     // Calculate the length of buffer that the sha1 routine uses
     // including the padding.
     var padlen = function (len) {
-      return len + 1 + ((len + 1) % 64 < 56 ? 56 : 56 + 64) - (len + 1) % 64 + 8; 
+      return len + 1 + ((len ) % 64 < 56 ? 56 : 56 + 64) - (len ) % 64 + 8;
     };
 
     var padData = function (bin, len, copyloop) {
