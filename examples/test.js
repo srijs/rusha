@@ -4,22 +4,9 @@ if (typeof require === 'function') {
   var Rusha = require('../rusha');
   var cifre_utils = require('./bench/cifre/utils.js');
   var cifre_sha1 = require('./bench/cifre/sha1.js');
-}
-
-var fnNative, randomBytes;
-
-if (typeof crypto !== 'undefined' && typeof crypto.pseudoRandomBytes === 'function') {
-
-  fnNative = function (bytes) {
-    var shasum = crypto.createHash('sha1');
-    shasum.update(bytes);
-    return shasum.digest('hex');
-  };
-
-} else {
-
-  fnNative = function () { return 'unavailable'; };
-
+  var random = require('./random');
+  var fnNative = random.fnNative,
+      randomBytes = random.randomBytes;
 }
 
 var _rush = new Rusha(1),
@@ -41,11 +28,8 @@ var fns = [fnNative, fnRusha];
 
 var bench = function () {
   for (size=0;size<8192;size++) {
-    // use fixed test data
-    var bytes = new Uint8Array(size);
-    for (var i = 0; i < size; i++) {
-        bytes[i] = i % 255;
-    }
+    // use random test data
+    var bytes = randomBytes(size);
     var ref = "";
     fns.forEach(function (fn, i) {
       var res = fn(bytes);
