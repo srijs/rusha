@@ -22,9 +22,8 @@ var fnCifre = function (bytes) {
   return cifre_utils.tohex(cifre_sha1(bytes));
 };
 
-var ids = ['Native  ', 'Rusha   '];
-var fns = [fnNative, fnRusha];
-// Cifre seems to be broken on a few sizes, fnCifre];
+var ids = ['Native  ', 'Rusha   ', 'Cifre   '];
+var fns = [fnNative, fnRusha/*, fnCifre*/];
 
 var bench = function () {
   for (size=0;size<8192;size++) {
