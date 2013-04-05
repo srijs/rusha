@@ -67,6 +67,8 @@
 
 <ul>
 <li>
+<code>Rusha#digest(d)</code>: Create a hex digest from data of the three kinds mentioned below, or throw and error if the type is unsupported.</li>
+<li>
 <code>Rusha#digestFromString(s)</code>: Create a hex digest from a binary <code>String</code>. A binary string is expected to only contain characters whose charCode &lt; 256.</li>
 <li>
 <code>Rusha#digestFromBuffer(b)</code>: Create a hex digest from a <code>Buffer</code> or <code>Array</code>. Both are expected to only contain elements &lt; 256.</li>
@@ -79,6 +81,8 @@
 <h2>Benchmarks</h2>
 
 <p>Tested were my Rusha implementation, the sha1.js implementation by <a href="http://pajhome.org.uk/crypt/md5/sha1.html">P. A. Johnston</a>, Tim Caswell's <a href="http://github.com/openpeer/cifre">Cifre</a> and the Node.JS native implementation.</p>
+
+<p>If you want to check the performance for yourself in your own browser, I compiled a <a href="http://jsperf.com/rusha/2">JSPerf Page</a>.</p>
 
 <p>A normalized estimation based on the best results for each implementation, smaller is better:
 <img src="http://awesam.de/rusha/bench/unscientific01.png" alt="rough performance graph"></p>
