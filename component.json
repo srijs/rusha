@@ -1,6 +1,9 @@
 {
   "name": "Rusha",
   "version": "0.6.0",
-  "main": "./rusha.js",
+  "main": "rusha.js",
+  "scripts": [
+    "rusha.js"
+  ],
   "ignore": ["examples/", "package.json"]
 }

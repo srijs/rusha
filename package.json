@@ -10,5 +10,12 @@
   ],
   "author": "Sam Rijs",
   "license": "MIT",
-  "readmeFilename": "README.md"
+  "readmeFilename": "README.md",
+  "devDependencies": {
+    "mocha": "~1.8.2",
+    "chai": "~1.5.0"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha test/rusha-node.js"
+  }
 }

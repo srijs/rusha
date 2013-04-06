@@ -124,6 +124,15 @@
       }
     };
       
+    // Convert an UTF-8 encoded string to a binary string using
+    // black magic from http://monsur.hossa.in/2012/07/20/utf-8-in-javascript.html
+    var convUTF8StringToBinaryString = function (str) {
+      if (typeof module !== 'undefined' && module.exports) {
+        return new Buffer(str, "utf8").toString("binary");
+      } else {
+        return unescape(encodeURIComponent(str));
+      }
+    }
     
     // Convert a array containing 32 bit integers
     // into its hexadecimal string representation.
@@ -183,6 +192,11 @@
       coreCall(padData(view, len, conv(str)));
       return hex(new Int32Array(self.heap, 0, 5));
     };
+
+    this.digestFromUTF8String = function(str) {
+      var binary_string = convUTF8StringToBinaryString(str);
+      return this.digestFromString(binary_string);
+    }
 
   };
 
