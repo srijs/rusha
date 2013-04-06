@@ -5,5 +5,5 @@
   "scripts": [
     "rusha.js"
   ],
-  "ignore": ["examples/", "package.json"]
+  "ignore": ["examples/", "package.json", ".npmignore"]
 }
