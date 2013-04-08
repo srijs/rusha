@@ -8,6 +8,9 @@
     "binary",
     "crypto"
   ],
+  "devDependencies": {
+    "jsmin": "~1.0"
+  },
   "author": "Sam Rijs",
   "license": "MIT",
   "readmeFilename": "README.md"
