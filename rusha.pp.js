@@ -83,8 +83,8 @@
     // Convert a binary string to a big-endian Int32Array using
     // four characters per slot and pad it per the sha1 spec.
     // A binary string is expected to only contain char codes < 256.
-    var convStr = function (str, bin) {
-      var i, len = str.length |0;
+    var convStr = function (str, bin, len) {
+      var i;
       for (i = 0; i < len; i = i + 4 |0) {
         bin[i>>2] = (str.charCodeAt(i)   << 24) |
                     (str.charCodeAt(i+1) << 16) |
@@ -96,8 +96,8 @@
     // Convert a buffer or array to a big-endian Int32Array using
     // four elements per slot and pad it per the sha1 spec.
     // The buffer or array is expected to only contain elements < 256. 
-    var convBuf = function (buf, bin) {
-      var i, len = buf.length |0;
+    var convBuf = function (buf, bin, len) {
+      var i;
       for (i = 0; i < len; i = i + 4 |0) {
         bin[i>>2] = (buf[i]   << 24) |
                     (buf[i+1] << 16) |
@@ -108,16 +108,16 @@
 
     // Convert general data to a big-endian Int32Array written on the
     // heap and return it's length;
-    var conv = function (data, bin) {
+    var conv = function (data, bin, len) {
       if (typeof data === 'string') {
-        return convStr(data, bin);
+        return convStr(data, bin, len);
       } else if (data instanceof Array || (typeof Buffer !== 'undefined' &&
                                            data instanceof Buffer)) {
-        return convBuf(data, bin);
+        return convBuf(data, bin, len);
       } else if (data instanceof ArrayBuffer) {
-        return convBuf(new Uint8Array(data), bin);
+        return convBuf(new Uint8Array(data), bin, len);
       } else if (data.buffer instanceof ArrayBuffer) {
-        return convBuf(new Uint8Array(data.buffer), bin);
+        return convBuf(new Uint8Array(data.buffer), bin, len);
       } else {
         throw new Error('Unsupported data type.');
       }
@@ -180,7 +180,7 @@
       }
       var view = new Int32Array(self.heap, 0, padlen(len) >> 2);
       padZeroes(view, len);
-      conv(str, view);
+      conv(str, view, len);
       padData(view, len);
       coreCall(view.length);
       return hex(new Int32Array(self.heap, 0, 5));
