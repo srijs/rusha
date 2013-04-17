@@ -71,54 +71,53 @@
       return len + 1 + ((len ) % 64 < 56 ? 56 : 56 + 64) - (len ) % 64 + 8;
     };
 
-    var padData = function (bin, len, copyloop) {
-      for (var i = len>>2; i < bin.length; i++) bin[i] = 0;
-      copyloop(bin);
+    var padZeroes = function (bin, len) {
+      for (var i = len >> 2; i < bin.length; i++) bin[i] = 0;
+    };
+
+    var padData = function (bin, len) {
       bin[len>>2] |= 0x80 << (24 - (len % 4 << 3));
       bin[(((len >> 2) + 2) & ~0x0f) + 15] = len << 3;
-      return bin.length;
     };
 
     // Convert a binary string to a big-endian Int32Array using
     // four characters per slot and pad it per the sha1 spec.
     // A binary string is expected to only contain char codes < 256.
-    var convStr = function (str) {
-      return function (bin) {
-        for (var i = 0; i < str.length; i+=4) {
-          bin[i>>2] = (str.charCodeAt(i)   << 24) |
-                      (str.charCodeAt(i+1) << 16) |
-                      (str.charCodeAt(i+2) <<  8) |
-                      (str.charCodeAt(i+3));
-        }
-      };
+    var convStr = function (str, bin) {
+      var i, len = str.length |0;
+      for (i = 0; i < len; i = i + 4 |0) {
+        bin[i>>2] = (str.charCodeAt(i)   << 24) |
+                    (str.charCodeAt(i+1) << 16) |
+                    (str.charCodeAt(i+2) <<  8) |
+                    (str.charCodeAt(i+3));
+      }
     };
 
     // Convert a buffer or array to a big-endian Int32Array using
     // four elements per slot and pad it per the sha1 spec.
     // The buffer or array is expected to only contain elements < 256. 
-    var convBuf = function (buf) {
-      return function (bin) {
-        for (var i = 0; i < buf.length; i+=4) {
-          bin[i>>2] = (buf[i]   << 24) |
-                      (buf[i+1] << 16) |
-                      (buf[i+2] <<  8) |
-                      (buf[i+3]);
-        }
-      };
+    var convBuf = function (buf, bin) {
+      var i, len = buf.length |0;
+      for (i = 0; i < len; i = i + 4 |0) {
+        bin[i>>2] = (buf[i]   << 24) |
+                    (buf[i+1] << 16) |
+                    (buf[i+2] <<  8) |
+                    (buf[i+3]);
+      }
     };
 
     // Convert general data to a big-endian Int32Array written on the
     // heap and return it's length;
-    var conv = function (data) {
+    var conv = function (data, bin) {
       if (typeof data === 'string') {
-        return convStr(data);
+        return convStr(data, bin);
       } else if (data instanceof Array || (typeof Buffer !== 'undefined' &&
                                            data instanceof Buffer)) {
-        return convBuf(data);
+        return convBuf(data, bin);
       } else if (data instanceof ArrayBuffer) {
-        return convBuf(new Uint8Array(data));
+        return convBuf(new Uint8Array(data), bin);
       } else if (data.buffer instanceof ArrayBuffer) {
-        return convBuf(new Uint8Array(data.buffer));
+        return convBuf(new Uint8Array(data.buffer), bin);
       } else {
         throw new Error('Unsupported data type.');
       }
@@ -180,7 +179,10 @@
         resize(len);
       }
       var view = new Int32Array(self.heap, 0, padlen(len) >> 2);
-      coreCall(padData(view, len, conv(str)));
+      padZeroes(view, len);
+      conv(str, view);
+      padData(view, len);
+      coreCall(view.length);
       return hex(new Int32Array(self.heap, 0, 5));
     };
 
