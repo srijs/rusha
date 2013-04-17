@@ -86,10 +86,10 @@
     var convStr = function (str, bin, len) {
       var i;
       for (i = 0; i < len; i = i + 4 |0) {
-        bin[i>>2] = (str.charCodeAt(i)   << 24) |
-                    (str.charCodeAt(i+1) << 16) |
-                    (str.charCodeAt(i+2) <<  8) |
-                    (str.charCodeAt(i+3));
+        bin[i>>2] = str.charCodeAt(i)   << 24 |
+                    str.charCodeAt(i+1) << 16 |
+                    str.charCodeAt(i+2) <<  8 |
+                    str.charCodeAt(i+3);
       }
     };
 
@@ -97,12 +97,19 @@
     // four elements per slot and pad it per the sha1 spec.
     // The buffer or array is expected to only contain elements < 256. 
     var convBuf = function (buf, bin, len) {
-      var i;
-      for (i = 0; i < len; i = i + 4 |0) {
-        bin[i>>2] = (buf[i]   << 24) |
-                    (buf[i+1] << 16) |
-                    (buf[i+2] <<  8) |
-                    (buf[i+3]);
+      var i, m = len % 4, j = len - m;
+      bin[j>>2] = 0;
+      switch (m) {
+        case 0: bin[j>>2] |= buf[j+3];
+        case 3: bin[j>>2] |= buf[j+2] << 8;
+        case 2: bin[j>>2] |= buf[j+1] << 16;
+        case 1: bin[j>>2] |= buf[j]   << 24;
+      }
+      for (i = 0; i < j; i = i + 4 |0) {
+          bin[i>>2] = buf[i]   << 24 |
+                      buf[i+1] << 16 |
+                      buf[i+2] <<  8 |
+                      buf[i+3];
       }
     };
 
