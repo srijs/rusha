@@ -98,18 +98,17 @@
     // The buffer or array is expected to only contain elements < 256. 
     var convBuf = function (buf, bin, len) {
       var i, m = len % 4, j = len - m;
-      bin[j>>2] = 0;
+      for (i = 0; i < j; i = i + 4 |0) {
+        bin[i>>2] = buf[i]   << 24 |
+                    buf[i+1] << 16 |
+                    buf[i+2] <<  8 |
+                    buf[i+3];
+      }
       switch (m) {
         case 0: bin[j>>2] |= buf[j+3];
         case 3: bin[j>>2] |= buf[j+2] << 8;
         case 2: bin[j>>2] |= buf[j+1] << 16;
         case 1: bin[j>>2] |= buf[j]   << 24;
-      }
-      for (i = 0; i < j; i = i + 4 |0) {
-          bin[i>>2] = buf[i]   << 24 |
-                      buf[i+1] << 16 |
-                      buf[i+2] <<  8 |
-                      buf[i+3];
       }
     };
 
