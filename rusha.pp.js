@@ -46,10 +46,15 @@
   if (typeof FileReaderSync !== 'undefined') {
     var reader = new FileReaderSync(),
         hasher = new Rusha(4 * 1024 * 1024);
-    self.onmessage = function (event) {
+    self.onmessage = function onMessage (event) {
       var hash, data = event.data.data;
       if (data instanceof Blob) {
-        data = reader.readAsBinaryString(data);
+        try {
+          data = reader.readAsBinaryString(data);
+        } catch (e) {
+          self.postMessage({id: event.data.id, error: e.name});
+          return;
+        }
       }
       hash = hasher.digest(data);
       self.postMessage({id: event.data.id, hash: hash});
