@@ -54,6 +54,6 @@ A normalized estimation based on the best results for each implementation, small
 ![rough performance graph](http://awesam.de/rusha/bench/unscientific01.png)
 
 Results per Implementation and Platform, smaller is better, again:
-<script type="text/javascript" src="//ajax.googleapis.com/ajax/static/modules/gviz/1.0/chart.js"> {"dataSourceUrl":"//docs.google.com/spreadsheet/tq?key=0Ag9CYh5kHpegdDB1ZG16WU1xVFgxdjRuQUVwQXRnWVE&transpose=0&headers=1&range=A1%3AD4&gid=0&pub=1","options":{"vAxes":[{"useFormatFromData":true,"title":null,"minValue":null,"logScale":false,"viewWindow":{"min":null,"max":null},"maxValue":null},{"useFormatFromData":true,"minValue":null,"logScale":false,"viewWindow":{"min":null,"max":null},"maxValue":null}],"titleTextStyle":{"bold":true,"color":"#000","fontSize":16},"booleanRole":"certainty","title":"SHA1 Performance (ms / 8MB)","animation":{"duration":500},"domainAxis":{"direction":1},"legend":"in","focusTarget":"category","hAxis":{"title":"(smaller is better)","useFormatFromData":true,"minValue":null,"viewWindowMode":null,"viewWindow":null,"maxValue":null},"tooltip":{},"isStacked":false,"width":450,"height":320},"state":{},"view":{},"isDefaultVisualization":true,"chartType":"ColumnChart","chartName":"Chart 1"} </script>
+![performance chart](https://docs.google.com/spreadsheet/oimg?key=0Ag9CYh5kHpegdDB1ZG16WU1xVFgxdjRuQUVwQXRnWVE&oid=1&zx=pcatr2aits9)
 
 All tests were performed on a MacBook Air 1.7 GHz Intel Core i5 and 4 GB 1333 MHz DDR3.
