@@ -1,37 +1,36 @@
 <!DOCTYPE html>
 <html>
-
   <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Rusha : High-performance pure-javascript SHA1 implementation suitable for large binary data, reaching up to half the native speed." />
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
 
-    <title>Rusha</title>
+    <title>Rusha by srijs</title>
   </head>
 
   <body>
+    <header>
+      <div class="inner">
+        <h1>Rusha</h1>
+        <h2>High-performance pure-javascript SHA1 implementation suitable for large binary data, reaching up to half the native speed.</h2>
+        <a href="https://github.com/srijs/rusha" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/srijs/rusha">View on GitHub</a>
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <p><img src="https://docs.google.com/spreadsheet/oimg?key=0Ag9CYh5kHpegdDB1ZG16WU1xVFgxdjRuQUVwQXRnWVE&amp;oid=1&amp;zx=pcatr2aits9" alt="performance chart"></p>
 
-          <h1 id="project_title">Rusha</h1>
-          <h2 id="project_tagline">High-performance pure-javascript SHA1 implementation suitable for large binary data, reaching up to half the native speed.</h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/srijs/rusha/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/srijs/rusha/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h2>Prologue: The Sad State of Javascript SHA1 implementations</h2>
+<h2>Prologue: The Sad State of Javascript SHA1 implementations</h2>
 
 <p>When we started experimenting with alternative upload technologies at <a href="http://doctape.com">doctape</a> that required creating SHA1 hashes of the data locally on the client, it quickly became obvious that there were no performant pure-js implementations of SHA1 that worked correctly on binary data.</p>
 
@@ -87,174 +86,30 @@
 <p>A normalized estimation based on the best results for each implementation, smaller is better:
 <img src="http://awesam.de/rusha/bench/unscientific01.png" alt="rough performance graph"></p>
 
-<p>Results per Implementation and Browser, smaller is better, again:
-<img src="http://awesam.de/rusha/bench/unscientific02.png" alt="performance graph"></p>
+<p>Results per Implementation and Platform:
+<img src="https://docs.google.com/spreadsheet/oimg?key=0Ag9CYh5kHpegdDB1ZG16WU1xVFgxdjRuQUVwQXRnWVE&amp;oid=1&amp;zx=pcatr2aits9" alt="performance chart"></p>
 
-<p>The best results for each implementation:</p>
+<p>All tests were performed on a MacBook Air 1.7 GHz Intel Core i5 and 4 GB 1333 MHz DDR3.</p>
+        </section>
 
-<pre><code>   4096 bytes: Native:  0ms, Rusha:  1ms, Johnston:   3ms, Cifre:    4ms
-1048576 bytes: Native:  4ms, Rusha: 11ms, Johnston:  55ms, Cifre:  150ms
-4194304 bytes: Native: 17ms, Rusha: 41ms, Johnston: 211ms, Cifre:  614ms
-8388608 bytes: Native: 37ms, Rusha: 80ms, Johnston: 428ms, Cifre: 1205ms
-</code></pre>
+        <aside id="sidebar">
+          <a href="https://github.com/srijs/rusha/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/srijs/rusha/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
 
-<p>All tests were performed on a MacBook Air 1.7 GHz Intel Core i5 and 4 GB 1333 MHz DDR3. Detailed results below.</p>
+          <p class="repo-owner"><a href="https://github.com/srijs/rusha"></a> is maintained by <a href="https://github.com/srijs">srijs</a>.</p>
 
-<p>Firefox Nightly (with asm.js support) 22.0a1:</p>
-
-<pre><code>Benchmarking 4096 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted e217ea942d68455677ca703baea41367ead7e912 in 1 milliseconds
-Johnst.  emitted e217ea942d68455677ca703baea41367ead7e912 in 3 milliseconds
-Cifre    emitted e217ea942d68455677ca703baea41367ead7e912 in 5 milliseconds
-Benchmarking 1048576 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted f39c96db473b722e6ecd0f429807588b198c931c in 11 milliseconds
-Johnst.  emitted f39c96db473b722e6ecd0f429807588b198c931c in 82 milliseconds
-Cifre    emitted f39c96db473b722e6ecd0f429807588b198c931c in 183 milliseconds
-Benchmarking 4194304 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted df59869d022e543d26fa9c80b78349c8c3a7372f in 41 milliseconds
-Johnst.  emitted df59869d022e543d26fa9c80b78349c8c3a7372f in 243 milliseconds
-Cifre    emitted df59869d022e543d26fa9c80b78349c8c3a7372f in 633 milliseconds
-Benchmarking 8388608 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 709f1cdd1b69e3e692f92cd7aaeafa70bc3d93f1 in 80 milliseconds
-Johnst.  emitted 709f1cdd1b69e3e692f92cd7aaeafa70bc3d93f1 in 429 milliseconds
-Cifre    emitted 709f1cdd1b69e3e692f92cd7aaeafa70bc3d93f1 in 1312 milliseconds
-</code></pre>
-
-<p>Node (V8) 0.8.18:</p>
-
-<pre><code>Benchmarking 4096 bytes ...
-Native   emitted 377322fdb03494521d8781c68ccad0be909bc39c in 0 milliseconds
-Rusha    emitted 377322fdb03494521d8781c68ccad0be909bc39c in 4 milliseconds
-Johnst.  emitted 377322fdb03494521d8781c68ccad0be909bc39c in 3 milliseconds
-Cifre    emitted 377322fdb03494521d8781c68ccad0be909bc39c in 9 milliseconds
-Benchmarking 1048576 bytes ...
-Native   emitted e7dcf18132f327aa3ff96198b10e733db2f7378e in 4 milliseconds
-Rusha    emitted e7dcf18132f327aa3ff96198b10e733db2f7378e in 30 milliseconds
-Johnst.  emitted e7dcf18132f327aa3ff96198b10e733db2f7378e in 98 milliseconds
-Cifre    emitted e7dcf18132f327aa3ff96198b10e733db2f7378e in 330 milliseconds
-Benchmarking 4194304 bytes ...
-Native   emitted d3c7af18250e3518eb961010c3d0d891c9431989 in 22 milliseconds
-Rusha    emitted d3c7af18250e3518eb961010c3d0d891c9431989 in 119 milliseconds
-Johnst.  emitted d3c7af18250e3518eb961010c3d0d891c9431989 in 396 milliseconds
-Cifre    emitted d3c7af18250e3518eb961010c3d0d891c9431989 in 1226 milliseconds
-Benchmarking 8388608 bytes ...
-Native   emitted ce99b2f0a3c4279bd5c33378ba83cc2569642053 in 34 milliseconds
-Rusha    emitted ce99b2f0a3c4279bd5c33378ba83cc2569642053 in 226 milliseconds
-Johnst.  emitted ce99b2f0a3c4279bd5c33378ba83cc2569642053 in 702 milliseconds
-Cifre    emitted ce99b2f0a3c4279bd5c33378ba83cc2569642053 in 2455 milliseconds
-</code></pre>
-
-<p>Chrome (V8) 25.0:</p>
-
-<pre><code>Benchmarking 4096 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 2e69e5a3dcdf0b9a258656795e91219c8470157c in 6 milliseconds
-Johnst.  emitted 2e69e5a3dcdf0b9a258656795e91219c8470157c in 23 milliseconds
-Cifre    emitted 2e69e5a3dcdf0b9a258656795e91219c8470157c in 9 milliseconds
-Benchmarking 1048576 bytes
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 7edd589e41d6182818039e2433c951e3a9aa4893 in 72 milliseconds
-Johnst.  emitted 7edd589e41d6182818039e2433c951e3a9aa4893 in 250 milliseconds
-Cifre    emitted 7edd589e41d6182818039e2433c951e3a9aa4893 in 150 milliseconds
-Benchmarking 4194304 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 8ff4c621772029827b4b94326fe25fec257e3de4 in 242 milliseconds
-Johnst.  emitted 8ff4c621772029827b4b94326fe25fec257e3de4 in 993 milliseconds
-Cifre    emitted 8ff4c621772029827b4b94326fe25fec257e3de4 in 614 milliseconds
-Benchmarking 8388608 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 112df4d0e15ff90ce11bf613191db3b190b318d6 in 470 milliseconds
-Johnst.  emitted 112df4d0e15ff90ce11bf613191db3b190b318d6 in 1960 milliseconds
-Cifre    emitted 112df4d0e15ff90ce11bf613191db3b190b318d6 in 1205 milliseconds 
-</code></pre>
-
-<p>Safari 6.0.2:</p>
-
-<pre><code>Benchmarking 4096 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted f73e06fd363306d948f15c2c5b19250b620996be in 5 milliseconds
-Johnst.  emitted f73e06fd363306d948f15c2c5b19250b620996be in 34 milliseconds
-Cifre    emitted f73e06fd363306d948f15c2c5b19250b620996be in 13 milliseconds
-Benchmarking 1048576 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 654bbffd41912d5e0deaefcf391c58e3150f94d0 in 937 milliseconds
-Johnst.  emitted 654bbffd41912d5e0deaefcf391c58e3150f94d0 in 7574 milliseconds
-Cifre    emitted 654bbffd41912d5e0deaefcf391c58e3150f94d0 in 2817 milliseconds
-Benchmarking 4194304 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted abdd60ca01aad6cb57d721857b63c6a3928a962b in 3795 milliseconds
-Johnst.  emitted abdd60ca01aad6cb57d721857b63c6a3928a962b in 31965 milliseconds
-Cifre    emitted abdd60ca01aad6cb57d721857b63c6a3928a962b in 12899 milliseconds
-Benchmarking 8388608 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted fd40b28b24fa98634a85db99e306bb4bd4580ec3 in 8189 milliseconds
-Johnst.  emitted fd40b28b24fa98634a85db99e306bb4bd4580ec3 in 70497 milliseconds
-Cifre    emitted fd40b28b24fa98634a85db99e306bb4bd4580ec3 in 24996 milliseconds
-</code></pre>
-
-<p>Firefox Aurora 21.0a2:</p>
-
-<pre><code>Benchmarking 4096 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 349f713c66d8f88eaed58e087f9cc8b8c33bcecf in 2 milliseconds
-Johnst.  emitted 349f713c66d8f88eaed58e087f9cc8b8c33bcecf in 3 milliseconds
-Cifre    emitted 349f713c66d8f88eaed58e087f9cc8b8c33bcecf in 4 milliseconds
-Benchmarking 1048576 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted ebf9b8f7ab2ae5ddfe40887c5f0e5dbf88c889ab in 25 milliseconds
-Johnst.  emitted ebf9b8f7ab2ae5ddfe40887c5f0e5dbf88c889ab in 53 milliseconds
-Cifre    emitted ebf9b8f7ab2ae5ddfe40887c5f0e5dbf88c889ab in 161 milliseconds
-Benchmarking 4194304 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 30fa929476b34564ed1b977d33cc331d55dd06b0 in 83 milliseconds
-Johnst.  emitted 30fa929476b34564ed1b977d33cc331d55dd06b0 in 210 milliseconds
-Cifre    emitted 30fa929476b34564ed1b977d33cc331d55dd06b0 in 625 milliseconds
-Benchmarking 8388608 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted bc6a87bb491ba6befdd0555fcf79775fa6df02d2 in 165 milliseconds
-Johnst.  emitted bc6a87bb491ba6befdd0555fcf79775fa6df02d2 in 451 milliseconds
-Cifre    emitted bc6a87bb491ba6befdd0555fcf79775fa6df02d2 in 1256 milliseconds
-</code></pre>
-
-<p>Firefox 19.0.2:</p>
-
-<pre><code>Benchmarking 4096 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 631800fc7cce39400fd7d5bffbf421821fbcf066 in 3 milliseconds
-Johnst.  emitted 631800fc7cce39400fd7d5bffbf421821fbcf066 in 3 milliseconds
-Cifre    emitted 631800fc7cce39400fd7d5bffbf421821fbcf066 in 4 milliseconds
-Benchmarking 1048576 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 80dd388d67a9ea4ac36dbbf9d58c59da8ec71132 in 73 milliseconds
-Johnst.  emitted 80dd388d67a9ea4ac36dbbf9d58c59da8ec71132 in 55 milliseconds
-Cifre    emitted 80dd388d67a9ea4ac36dbbf9d58c59da8ec71132 in 181 milliseconds
-Benchmarking 4194304 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 03b651c3edec8c8f77a5302af0e44523e946b762 in 277 milliseconds
-Johnst.  emitted 03b651c3edec8c8f77a5302af0e44523e946b762 in 214 milliseconds
-Cifre    emitted 03b651c3edec8c8f77a5302af0e44523e946b762 in 693 milliseconds
-Benchmarking 8388608 bytes ...
-Native   emitted unavailable in 0 milliseconds
-Rusha    emitted 908803b41d10fb94d2e97c9c16533c954e21b53d in 553 milliseconds
-Johnst.  emitted 908803b41d10fb94d2e97c9c16533c954e21b53d in 419 milliseconds
-Cifre    emitted 908803b41d10fb94d2e97c9c16533c954e21b53d in 1340 milliseconds
-</code></pre>
-      </section>
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
     </div>
 
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Rusha maintained by <a href="https://github.com/srijs">srijs</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
-
-              <script type="text/javascript">
+            <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
@@ -264,7 +119,6 @@ Cifre    emitted 908803b41d10fb94d2e97c9c16533c954e21b53d in 1340 milliseconds
             pageTracker._trackPageview();
             } catch(err) {}
           </script>
-
 
   </body>
 </html>
