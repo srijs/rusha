@@ -153,11 +153,8 @@
       self.core.hash(len);
     };
 
-    // The digestFromString interface returns the hash digest
-    // of a binary string.
-    this.digest = this.digestFromString =
-    this.digestFromBuffer = this.digestFromArrayBuffer =
-    function (str) {
+    // Calculate the hash digest as an array of 5 32bit integers.
+    var rawDigest = this.rawDigest = function (str) {
       var len = str.byteLength || str.length;
       if (len > self.sizeHint) {
         resize(len);
@@ -167,7 +164,15 @@
       conv(str, view, len);
       padData(view, len);
       coreCall(view.length);
-      return hex(new Int32Array(self.heap, 0, 5));
+      return new Int32Array(self.heap, 0, 5);
+    };
+
+    // The digest and digestFrom* interface returns the hash digest
+    // as a hex string.
+    this.digest = this.digestFromString =
+    this.digestFromBuffer = this.digestFromArrayBuffer =
+    function (str) {
+      return hex(rawDigest(str));
     };
 
   };
@@ -208,30 +213,30 @@
 
         for (j = 0; (j|0) < 16; j = j + 1 |0) {
           H[k+j<<2>>2] = H[i+j<<2>>2];
-          t0 = (((y0) << 5 | (y0) >>> 27) + (y1 & y2 | ~y1 & y3) |0) + (( y4 + (H[k+j<<2>>2]|0) |0) + 1518500249 |0) |0;
+          t0 = (((y0) << 5 | (y0) >>> 27) + (y1 & y2 | ~y1 & y3) |0) + ( ( y4 + (H[k+j<<2>>2]|0) |0) + 1518500249 |0) |0;;
           y4 = y3; y3 = y2; y2 = ((y1) << 30 | (y1) >>> 2); y1 = y0; y0 = t0;
         }
 
         for (j = k + 16 |0; (j|0) < (k + 20 |0); j = j + 1 |0) {
-          H[j<<2>>2] = ((H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) << 1 | (H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) >>> 31);
+          H[j<<2>>2] = (((H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) << 1 | (H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) >>> 31));
           t0 = (((y0) << 5 | (y0) >>> 27) + (y1 & y2 | ~y1 & y3) |0) + (( y4 + (H[j<<2>>2]|0) |0) + 1518500249 |0) |0;
           y4 = y3; y3 = y2; y2 = ((y1) << 30 | (y1) >>> 2); y1 = y0; y0 = t0;
         }
 
         for (j = k + 20 |0; (j|0) < (k + 40 |0); j = j + 1 |0) {
-          H[j<<2>>2] = ((H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) << 1 | (H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) >>> 31);
+          H[j<<2>>2] = (((H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) << 1 | (H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) >>> 31));
           t0 = (((y0) << 5 | (y0) >>> 27) + (y1 ^ y2 ^ y3) |0) + (( y4 + (H[j<<2>>2]|0) |0) + 1859775393 |0) |0;
           y4 = y3; y3 = y2; y2 = ((y1) << 30 | (y1) >>> 2); y1 = y0; y0 = t0;
         }
 
         for (j = k + 40 |0; (j|0) < (k + 60 |0); j = j + 1 |0) {
-          H[j<<2>>2] = ((H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) << 1 | (H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) >>> 31);
+          H[j<<2>>2] = (((H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) << 1 | (H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) >>> 31));
           t0 = (((y0) << 5 | (y0) >>> 27) + (y1 & y2 | y1 & y3 | y2 & y3) |0) + (( y4 + (H[j<<2>>2]|0) |0) - 1894007588 |0) |0;
           y4 = y3; y3 = y2; y2 = ((y1) << 30 | (y1) >>> 2); y1 = y0; y0 = t0;
         }
 
         for (j = k + 60 |0; (j|0) < (k + 80 |0); j = j + 1 |0) {
-          H[j<<2>>2] = ((H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) << 1 | (H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) >>> 31);
+          H[j<<2>>2] = (((H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) << 1 | (H[j-3<<2>>2] ^ H[j-8<<2>>2] ^ H[j-14<<2>>2] ^ H[j-16<<2>>2]) >>> 31));
           t0 = (((y0) << 5 | (y0) >>> 27) + (y1 ^ y2 ^ y3) |0) + (( y4 + (H[j<<2>>2]|0) |0) - 899497514 |0) |0;
           y4 = y3; y3 = y2; y2 = ((y1) << 30 | (y1) >>> 2); y1 = y0; y0 = t0;
         }

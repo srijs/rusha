@@ -180,11 +180,8 @@
       self.core.hash(len);
     };
 
-    // The digestFromString interface returns the hash digest
-    // of a binary string.
-    this.digest = this.digestFromString =
-    this.digestFromBuffer = this.digestFromArrayBuffer =
-    function (str) {
+    // Calculate the hash digest as an array of 5 32bit integers.
+    var rawDigest = this.rawDigest = function (str) {
       var len = str.byteLength || str.length;
       if (len > self.sizeHint) {
         resize(len);
@@ -194,7 +191,15 @@
       conv(str, view, len);
       padData(view, len);
       coreCall(view.length);
-      return hex(new Int32Array(self.heap, 0, 5));
+      return new Int32Array(self.heap, 0, 5);
+    };
+
+    // The digest and digestFrom* interface returns the hash digest
+    // as a hex string.
+    this.digest = this.digestFromString =
+    this.digestFromBuffer = this.digestFromArrayBuffer =
+    function (str) {
+      return hex(rawDigest(str));
     };
 
   };
@@ -237,37 +242,39 @@
 #define ROL1(v)  ((v) << 1 | (v) >>> 31)
 #define ROL5(v)  ((v) << 5 | (v) >>> 27)
 #define ROL30(v) ((v) << 30 | (v) >>> 2)
+#define EXTENDED(j) (ROL1(HX(j-3) ^ HX(j-8) ^ HX(j-14) ^ HX(j-16)))
 #define F0(b,c,d) (b & c | ~b & d)
 #define F1(b,c,d) (b ^ c ^ d)
 #define F2(b,c,d) (b & c | b & d | c & d)
+#define ROUND(f, add) (ROL5(y0) + f(y1,y2,y3) |0) + (add |0) |0;
 #define SWAP(a,b,c,d,e,t) e = d; d = c; c = ROL30(b); b = a; a = t;
 
         for (j = 0; (j|0) < 16; j = j + 1 |0) {
           HX(k+j) = HX(i+j);
-          t0 = (ROL5(y0) + F0(y1,y2,y3) |0) + (HXADD(k+j, y4) + 1518500249 |0) |0;
+          t0 = ROUND(F0, HXADD(k+j, y4) + 1518500249);
           SWAP(y0,y1,y2,y3,y4,t0)
         }
 
         for (j = k + 16 |0; (j|0) < (k + 20 |0); j = j + 1 |0) {
-          HX(j) = ROL1(HX(j-3) ^ HX(j-8) ^ HX(j-14) ^ HX(j-16));
+          HX(j) = EXTENDED(j);
           t0 = (ROL5(y0) + F0(y1,y2,y3) |0) + (HXADD(j, y4) + 1518500249 |0) |0;
           SWAP(y0,y1,y2,y3,y4,t0)
         }
 
         for (j = k + 20 |0; (j|0) < (k + 40 |0); j = j + 1 |0) {
-          HX(j) = ROL1(HX(j-3) ^ HX(j-8) ^ HX(j-14) ^ HX(j-16));
+          HX(j) = EXTENDED(j);
           t0 = (ROL5(y0) + F1(y1,y2,y3) |0) + (HXADD(j, y4) + 1859775393 |0) |0;
           SWAP(y0,y1,y2,y3,y4,t0)
         }
 
         for (j = k + 40 |0; (j|0) < (k + 60 |0); j = j + 1 |0) {
-          HX(j) = ROL1(HX(j-3) ^ HX(j-8) ^ HX(j-14) ^ HX(j-16));
+          HX(j) = EXTENDED(j);
           t0 = (ROL5(y0) + F2(y1,y2,y3) |0) + (HXADD(j, y4) - 1894007588 |0) |0;
           SWAP(y0,y1,y2,y3,y4,t0)
         }
 
         for (j = k + 60 |0; (j|0) < (k + 80 |0); j = j + 1 |0) {
-          HX(j) = ROL1(HX(j-3) ^ HX(j-8) ^ HX(j-14) ^ HX(j-16));
+          HX(j) = EXTENDED(j);
           t0 = (ROL5(y0) + F1(y1,y2,y3) |0) + (HXADD(j, y4) - 899497514 |0) |0;
           SWAP(y0,y1,y2,y3,y4,t0)
         }
