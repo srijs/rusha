@@ -1,6 +1,6 @@
 {
   "name": "Rusha",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "main": "rusha.js",
   "scripts": [
     "rusha.js"

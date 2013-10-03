@@ -1,12 +1,13 @@
 {
   "name": "rusha",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "A high-performance pure-javascript SHA1 implementation suitable for large binary data.",
   "main": "rusha.js",
   "keywords": [
     "sha1",
     "binary",
-    "crypto"
+    "crypto",
+    "hash"
   ],
   "devDependencies": {
     "jsmin": "~1.0"
