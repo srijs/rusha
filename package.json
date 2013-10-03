@@ -9,6 +9,10 @@
     "crypto",
     "hash"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/srijs/rusha"
+  },
   "devDependencies": {
     "jsmin": "~1.0"
   },
