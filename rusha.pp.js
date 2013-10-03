@@ -221,7 +221,7 @@
       var i = 0, j = 0,
           y0 = 0, z0 = 0, y1 = 0, z1 = 0,
           y2 = 0, z2 = 0, y3 = 0, z3 = 0,
-          y4 = 0, z4 = 0, t0 = 0;
+          y4 = 0, z4 = 0, t0 = 0, t1 = 0;
 
       y0 = H[k+0<<2>>2]|0;
       y1 = H[k+1<<2>>2]|0;
@@ -238,7 +238,7 @@
         z4 = y4;
 
 #define HX(x)       H[x<<2>>2]
-#define HXADD(x, y) (y + (HX(x)|0) |0)
+#define ADD(x, y) ((y + x)|0)
 #define ROL1(v)  ((v) << 1 | (v) >>> 31)
 #define ROL5(v)  ((v) << 5 | (v) >>> 27)
 #define ROL30(v) ((v) << 30 | (v) >>> 2)
@@ -246,37 +246,42 @@
 #define F0(b,c,d) (b & c | ~b & d)
 #define F1(b,c,d) (b ^ c ^ d)
 #define F2(b,c,d) (b & c | b & d | c & d)
-#define ROUND(f, add) (ROL5(y0) + f(y1,y2,y3) |0) + (add |0) |0;
-#define SWAP(a,b,c,d,e,t) e = d; d = c; c = ROL30(b); b = a; a = t;
+#define ROUND(f, add) ((ROL5(y0) + f(y1,y2,y3) |0) + ((t1 + y4 | 0) add |0) |0)
+#define SWAP y4 = y3; y3 = y2; y2 = ROL30(y1); y1 = y0; y0 = t0;
 
         for (j = 0; (j|0) < 16; j = j + 1 |0) {
-          HX(k+j) = HX(i+j);
-          t0 = ROUND(F0, HXADD(k+j, y4) + 1518500249);
-          SWAP(y0,y1,y2,y3,y4,t0)
+          t1 = HX(i+j)|0;
+          t0 = ROUND(F0, +1518500249);
+          SWAP
+          HX(k+j) = t1;
         }
 
         for (j = k + 16 |0; (j|0) < (k + 20 |0); j = j + 1 |0) {
-          HX(j) = EXTENDED(j);
-          t0 = (ROL5(y0) + F0(y1,y2,y3) |0) + (HXADD(j, y4) + 1518500249 |0) |0;
-          SWAP(y0,y1,y2,y3,y4,t0)
+          t1 = EXTENDED(j);
+          t0 = ROUND(F0, +1518500249);
+          SWAP
+          HX(j) = t1;
         }
 
         for (j = k + 20 |0; (j|0) < (k + 40 |0); j = j + 1 |0) {
-          HX(j) = EXTENDED(j);
-          t0 = (ROL5(y0) + F1(y1,y2,y3) |0) + (HXADD(j, y4) + 1859775393 |0) |0;
-          SWAP(y0,y1,y2,y3,y4,t0)
+          t1 = EXTENDED(j);
+          t0 = ROUND(F1, +1859775393);
+          SWAP
+          HX(j) = t1;
         }
 
         for (j = k + 40 |0; (j|0) < (k + 60 |0); j = j + 1 |0) {
-          HX(j) = EXTENDED(j);
-          t0 = (ROL5(y0) + F2(y1,y2,y3) |0) + (HXADD(j, y4) - 1894007588 |0) |0;
-          SWAP(y0,y1,y2,y3,y4,t0)
+          t1 = EXTENDED(j);
+          t0 = ROUND(F2, -1894007588);
+          SWAP
+          HX(j) = t1;
         }
 
         for (j = k + 60 |0; (j|0) < (k + 80 |0); j = j + 1 |0) {
-          HX(j) = EXTENDED(j);
-          t0 = (ROL5(y0) + F1(y1,y2,y3) |0) + (HXADD(j, y4) - 899497514 |0) |0;
-          SWAP(y0,y1,y2,y3,y4,t0)
+          t1 = EXTENDED(j);
+          t0 = ROUND(F1, -899497514);
+          SWAP
+          HX(j) = t1;
         }
 
         y0 = y0 + z0 |0;
