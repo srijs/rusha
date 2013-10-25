@@ -122,8 +122,9 @@
     var conv = function (data, bin, len) {
       if (typeof data === 'string') {
         return convStr(data, bin, len);
-      } else if (data instanceof Array || (typeof Buffer !== 'undefined' &&
-                                           data instanceof Buffer)) {
+      } else if (data instanceof Array || (typeof global !== 'undefined' &&
+                                           typeof global.Buffer !== 'undefined' &&
+                                           data instanceof global.Buffer)) {
         return convBuf(data, bin, len);
       } else if (data instanceof ArrayBuffer) {
         return convBuf(new Uint8Array(data), bin, len);
