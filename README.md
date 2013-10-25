@@ -54,7 +54,7 @@ If you want to check the performance for yourself in your own browser, I compile
 A normalized estimation based on the best results for each implementation, smaller is better:
 ![rough performance graph](http://awesam.de/rusha/bench/unscientific01.png)
 
-Results per Implementation and Platform, smaller is better, again:
+Results per Implementation and Platform:
 ![performance chart](https://docs.google.com/spreadsheet/oimg?key=0Ag9CYh5kHpegdDB1ZG16WU1xVFgxdjRuQUVwQXRnWVE&oid=1&zx=pcatr2aits9)
 
 All tests were performed on a MacBook Air 1.7 GHz Intel Core i5 and 4 GB 1333 MHz DDR3.
