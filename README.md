@@ -39,7 +39,7 @@ Your instantiate a new Rusha object by doing `var r = new Rusha(optionalSizeHint
 - `Rusha#digestFromString(s)`: Create a hex digest from a binary `String`. A binary string is expected to only contain characters whose charCode < 256.
 - `Rusha#digestFromBuffer(b)`: Create a hex digest from a `Buffer` or `Array`. Both are expected to only contain elements < 256.
 - `Rusha#digestFromArrayBuffer(a)`: Create a hex digest from an `ArrayBuffer` object.
-- `Rusha#rawDigest(d)`: Behaves just like #digest(d), except that it returns the digest as an Int32Array of size 5.
+- `Rusha#rawDigest(d)`: Behaves just like #digest(d), except that it returns the digest as an ArrayBuffer with 20 bytes.
 
 ## Using the Rusha Worker
 

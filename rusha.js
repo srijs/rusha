@@ -107,21 +107,13 @@
         throw new Error('Unsupported data type.');
       }
     };
-      
     
-    // Convert a array containing 32 bit integers
-    // into its hexadecimal string representation.
-    var hex = function (binarray) {
-      var i, x, hex_tab = "0123456789abcdef", res = [];
+    // Convert an ArrayBuffer into its hexadecimal string representation.
+    var hex = function (arrayBuffer) {
+      var i, x, hex_tab = "0123456789abcdef", res = [], binarray = new Uint8Array(arrayBuffer);
       for (i = 0; i < binarray.length; i++) {
         x = binarray[i];
-        res[i] = hex_tab.charAt((x >> 28) & 0xF) +
-                 hex_tab.charAt((x >> 24) & 0xF) +
-                 hex_tab.charAt((x >> 20) & 0xF) +
-                 hex_tab.charAt((x >> 16) & 0xF) +
-                 hex_tab.charAt((x >> 12) & 0xF) +
-                 hex_tab.charAt((x >>  8) & 0xF) +
-                 hex_tab.charAt((x >>  4) & 0xF) +
+        res[i] = hex_tab.charAt((x >>  4) & 0xF) +
                  hex_tab.charAt((x >>  0) & 0xF);
       }
       return res.join('');
@@ -135,7 +127,7 @@
     var resize = function (size) {
       self.sizeHint = size;
       self.heap     = new ArrayBuffer(nextPow2(padlen(size) + 320));
-      self.core     = RushaCore({Int32Array: Int32Array}, {}, self.heap);
+      self.core     = RushaCore({Int32Array: Int32Array, DataView: DataView}, {}, self.heap);
     };
 
     // On initialize, resize the datastructures according
@@ -165,7 +157,7 @@
       conv(str, view, len);
       padData(view, len);
       coreCall(view.length);
-      return new Int32Array(self.heap, 0, 5);
+      return self.heap.slice(0, 20);
     };
 
     // The digest and digestFrom* interface returns the hash digest
@@ -255,11 +247,12 @@
 
       }
 
-      H[0] = y0;
-      H[1] = y1;
-      H[2] = y2;
-      H[3] = y3;
-      H[4] = y4;
+      var view = new stdlib.DataView(heap);
+      view.setInt32( 0, y0, false);
+      view.setInt32( 4, y1, false);
+      view.setInt32( 8, y2, false);
+      view.setInt32(12, y3, false);
+      view.setInt32(16, y4, false);
 
     }
 
@@ -268,3 +261,4 @@
   }
 
 })();
+
