@@ -9,11 +9,15 @@
     "crypto",
     "hash"
   ],
+  "scripts": {
+    "test": "mocha --harmony --reporter spec"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/srijs/rusha"
   },
   "devDependencies": {
+    "mocha": "~1.15.0",
     "jsmin": "~1.0"
   },
   "author": "Sam Rijs",
