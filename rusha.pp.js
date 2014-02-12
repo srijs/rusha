@@ -184,7 +184,14 @@
       conv(str, view, len);
       padData(view, len);
       coreCall(view.length);
-      return new Int32Array(self.heap.slice(0, 20));
+      var out = new Int32Array(5);
+      var arr = new DataView(out.buffer);
+      arr.setInt32(0,  view[0], false);
+      arr.setInt32(4,  view[1], false);
+      arr.setInt32(8,  view[2], false);
+      arr.setInt32(12, view[3], false);
+      arr.setInt32(16, view[4], false);
+      return out;
     };
 
     // The digest and digestFrom* interface returns the hash digest
@@ -285,12 +292,11 @@
 
       }
 
-      var view = new stdlib.DataView(heap);
-      view.setInt32( 0, y0, false);
-      view.setInt32( 4, y1, false);
-      view.setInt32( 8, y2, false);
-      view.setInt32(12, y3, false);
-      view.setInt32(16, y4, false);
+      H[0] = y0;
+      H[1] = y1;
+      H[2] = y2;
+      H[3] = y3;
+      H[4] = y4;
 
     }
 
