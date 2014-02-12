@@ -45,6 +45,13 @@ Your instantiate a new Rusha object by doing `var r = new Rusha(optionalSizeHint
 
 You can send your instance of the web worker messages in the format `{id: jobid, data: dataobject}`. The worker then sends back a message in the format `{id: jobid, hash: hash}`, were jobid is the id of the job previously received and hash is the hash of the data-object you passed, be it a `Blob`, `Array`, `Buffer`, `ArrayBuffer` or `String`.
 
+## Development
+
+* Download npm dependencies with `npm install .`
+* Source file to be edited is `rusha.pp.js`
+* Build with `make rusha.min.js`
+* Run tests with `npm test`
+
 ## Benchmarks
 
 Tested were my Rusha implementation, the sha1.js implementation by [P. A. Johnston](http://pajhome.org.uk/crypt/md5/sha1.html), Tim Caswell's [Cifre](http://github.com/openpeer/cifre) and the Node.JS native implementation.
