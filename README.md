@@ -1,4 +1,4 @@
-# Rusha
+# Rusha [![Build Status](https://travis-ci.org/srijs/rusha.png?branch=master)](https://travis-ci.org/srijs/rusha)
 *A high-performance pure-javascript SHA1 implementation suitable for large binary data.*
 
 ## Prologue: The Sad State of Javascript SHA1 implementations
