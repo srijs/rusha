@@ -124,7 +124,7 @@
         return convStr(data, bin, len);
       } else if (data instanceof Array || (typeof global !== 'undefined' &&
                                            typeof global.Buffer !== 'undefined' &&
-                                           data instanceof global.Buffer)) {
+                                           global.Buffer.isBuffer(data))) {
         return convBuf(data, bin, len);
       } else if (data instanceof ArrayBuffer) {
         return convBuf(new Uint8Array(data), bin, len);
