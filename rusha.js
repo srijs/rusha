@@ -119,14 +119,28 @@
       return res.join('');
     };
 
-    var nextPow2 = function (v) {
-      var p = 1; while (p < v) p = p << 1; return p;
+    var ceilHeapSize = function (v) {
+      // The asm.js spec says:
+      // The heap object's byteLength must be either
+      // 2^n for n in [12, 24) or 2^24 * n for n ≥ 1.
+      var p;
+      // If v is smaller than 2^12, the smallest possible solution
+      // is 2^12.
+      if (v <= 4096) return 4096;
+      // If v < 2^24, we round up to 2^n,
+      // otherwise we round up to 2^24 * n.
+      if (v < 16777216) {
+        for (p = 1; p < v; p = p << 1);
+      } else {
+        for (p = 16777216; p < v; p += p);
+      }
+      return p;
     };
 
     // Resize the internal data structures to a new capacity.
     var resize = function (size) {
       self.sizeHint = size;
-      self.heap     = new ArrayBuffer(nextPow2(padlen(size) + 320));
+      self.heap     = new ArrayBuffer(ceilHeapSize(padlen(size) + 320));
       self.core     = RushaCore({Int32Array: Int32Array, DataView: DataView}, {}, self.heap);
     };
 
