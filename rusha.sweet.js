@@ -175,15 +175,18 @@
     // to an optional size hint.
     resize(sizeHint || 0);
 
-    // Initialize and call the RushaCore,
-    // assuming an input buffer of length len * 4.
-    var coreCall = function (len) {
-      var h = new Int32Array(self.heap, len << 2, 5);
+    var initState = function (heap, len) {
+      var h = new Int32Array(heap, len << 2, 5);
       h[0] =  1732584193;
       h[1] =  -271733879;
       h[2] = -1732584194;
       h[3] =   271733878;
       h[4] = -1009589776;
+    };
+
+    // Initialize and call the RushaCore,
+    // assuming an input buffer of length len * 4.
+    var coreCall = function (len) {
       self.core.hash(len);
     };
 
@@ -197,6 +200,7 @@
       padZeroes(view, len);
       conv(str, view, len);
       padData(view, len);
+      initState(self.heap, view.length);
       coreCall(view.length);
       var out = new Int32Array(5);
       var arr = new DataView(out.buffer);
