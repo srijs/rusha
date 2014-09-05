@@ -180,7 +180,8 @@
     // to an optional size hint.
     resize(sizeHint || 0);
 
-    var initState = function (io) {
+    var initState = function (heap, padMsgLen) {
+      var io  = new Int32Array(heap, padMsgLen + 320, 5);
       io[0] =  1732584193;
       io[1] =  -271733879;
       io[2] = -1732584194;
@@ -194,20 +195,8 @@
       self.core.hash(len);
     };
 
-    // Calculate the hash digest as an array of 5 32bit integers.
-    var rawDigest = this.rawDigest = function (str) {
-      var len = str.byteLength || str.length;
-      if (len > self.sizeHint) {
-        resize(len);
-      }
-      var padMsgLen = padlen(len);
-      var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
-      var io = new Int32Array(self.heap, padMsgLen + 320, 5);
-      padZeroes(view, len);
-      conv(str, view, len);
-      padData(view, len);
-      initState(io);
-      coreCall(padMsgLen);
+    var getRawDigest = function (heap, padMsgLen) {
+      var io  = new Int32Array(heap, padMsgLen + 320, 5);
       var out = new Int32Array(5);
       var arr = new DataView(out.buffer);
       arr.setInt32(0,  io[0], false);
@@ -216,6 +205,22 @@
       arr.setInt32(12, io[3], false);
       arr.setInt32(16, io[4], false);
       return out;
+    };
+
+    // Calculate the hash digest as an array of 5 32bit integers.
+    var rawDigest = this.rawDigest = function (str) {
+      var len = str.byteLength || str.length;
+      if (len > self.sizeHint) {
+        resize(len);
+      }
+      var padMsgLen = padlen(len);
+      var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
+      padZeroes(view, len);
+      conv(str, view, len);
+      padData(view, len);
+      initState(self.heap, padMsgLen);
+      coreCall(padMsgLen);
+      return getRawDigest(self.heap, padMsgLen);
     };
 
     // The digest and digestFrom* interface returns the hash digest
