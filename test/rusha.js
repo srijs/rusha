@@ -42,11 +42,17 @@
       it('returns hex string from string', function() {
         assert.equal('a9993e364706816aba3e25717850c26c9cd0d89d', (new Rusha()).digestFromString(abcString));
       });
+      it('returns hex string from string with offset', function() {
+        assert.equal('7288edd0fc3ffcbe93a0cf06e3568e28521687bc', (new Rusha()).digestFromString("foobartest123", 6));
+      });
     });
 
     describe('digestFromBuffer', function() {
       it('returns hex string from buffer', function() {
         assert.equal('a9993e364706816aba3e25717850c26c9cd0d89d', r.digest(abcBuffer));
+      });
+      it('returns hex string from buffer with offset', function() {
+        assert.equal('7288edd0fc3ffcbe93a0cf06e3568e28521687bc', (new Rusha()).digest(new Buffer("foobartest123"), 6));
       });
       it('returns hex string from array', function() {
         assert.equal('a9993e364706816aba3e25717850c26c9cd0d89d', r.digest(abcArray));

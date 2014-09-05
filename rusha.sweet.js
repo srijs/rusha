@@ -89,48 +89,48 @@
     // Convert a binary string to a big-endian Int32Array using
     // four characters per slot and pad it per the sha1 spec.
     // A binary string is expected to only contain char codes < 256.
-    var convStr = function (str, bin, len) {
+    var convStr = function (str, bin, start, len) {
       var i;
       for (i = 0; i < len; i = i + 4 |0) {
-        bin[i>>2] = str.charCodeAt(i)   << 24 |
-                    str.charCodeAt(i+1) << 16 |
-                    str.charCodeAt(i+2) <<  8 |
-                    str.charCodeAt(i+3);
+        bin[i>>2] = str.charCodeAt(start+i)   << 24 |
+                    str.charCodeAt(start+i+1) << 16 |
+                    str.charCodeAt(start+i+2) <<  8 |
+                    str.charCodeAt(start+i+3);
       }
     };
 
     // Convert a buffer or array to a big-endian Int32Array using
     // four elements per slot and pad it per the sha1 spec.
     // The buffer or array is expected to only contain elements < 256.
-    var convBuf = function (buf, bin, len) {
+    var convBuf = function (buf, bin, start, len) {
       var i, m = len % 4, j = len - m;
       for (i = 0; i < j; i = i + 4 |0) {
-        bin[i>>2] = buf[i]   << 24 |
-                    buf[i+1] << 16 |
-                    buf[i+2] <<  8 |
-                    buf[i+3];
+        bin[i>>2] = buf[start+i]   << 24 |
+                    buf[start+i+1] << 16 |
+                    buf[start+i+2] <<  8 |
+                    buf[start+i+3];
       }
       switch (m) {
-        case 0: bin[j>>2] |= buf[j+3];
-        case 3: bin[j>>2] |= buf[j+2] << 8;
-        case 2: bin[j>>2] |= buf[j+1] << 16;
-        case 1: bin[j>>2] |= buf[j]   << 24;
+        case 0: bin[j>>2] |= buf[start+j+3];
+        case 3: bin[j>>2] |= buf[start+j+2] << 8;
+        case 2: bin[j>>2] |= buf[start+j+1] << 16;
+        case 1: bin[j>>2] |= buf[start+j]   << 24;
       }
     };
 
     // Convert general data to a big-endian Int32Array written on the
-    // heap and return it's length;
-    var conv = function (data, bin, len) {
+    // heap.
+    var conv = function (data, bin, start, len) {
       if (typeof data === 'string') {
-        return convStr(data, bin, len);
+        return convStr(data, bin, start, len);
       } else if (data instanceof Array || (typeof global !== 'undefined' &&
                                            typeof global.Buffer !== 'undefined' &&
                                            global.Buffer.isBuffer(data))) {
-        return convBuf(data, bin, len);
+        return convBuf(data, bin, start, len);
       } else if (data instanceof ArrayBuffer) {
-        return convBuf(new Uint8Array(data), bin, len);
+        return convBuf(new Uint8Array(data), bin, start, len);
       } else if (data.buffer instanceof ArrayBuffer) {
-        return convBuf(new Uint8Array(data.buffer), bin, len);
+        return convBuf(new Uint8Array(data.buffer), bin, start, len);
       } else {
         throw new Error('Unsupported data type.');
       }
@@ -174,6 +174,7 @@
       // 3. The 160 bit state the algoritm uses
       self.heap     = new ArrayBuffer(ceilHeapSize(padlen(size) + 320 + 20));
       self.core     = RushaCore({Int32Array: Int32Array, DataView: DataView}, {}, self.heap);
+      self.buffer   = null;
     };
 
     // On initialize, resize the datastructures according
@@ -208,17 +209,18 @@
     };
 
     // Calculate the hash digest as an array of 5 32bit integers.
-    var rawDigest = this.rawDigest = function (str) {
-      var len = str.byteLength || str.length;
+    var rawDigest = this.rawDigest = function (str, start) {
+      start = start || 0;
+      var len = (str.byteLength || str.length) - start;
       if (len > self.sizeHint) {
         resize(len);
       }
       var padMsgLen = padlen(len);
       var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
-      padZeroes(view, len);
-      conv(str, view, len);
-      padData(view, len);
       initState(self.heap, padMsgLen);
+      padZeroes(view, len);
+      conv(str, view, start, len);
+      padData(view, len);
       coreCall(padMsgLen);
       return getRawDigest(self.heap, padMsgLen);
     };
@@ -227,8 +229,8 @@
     // as a hex string.
     this.digest = this.digestFromString =
     this.digestFromBuffer = this.digestFromArrayBuffer =
-    function (str) {
-      return hex(rawDigest(str).buffer);
+    function (str, start) {
+      return hex(rawDigest(str, start).buffer);
     };
 
   };
