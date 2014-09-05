@@ -180,13 +180,12 @@
     // to an optional size hint.
     resize(sizeHint || 0);
 
-    var initState = function (heap, padMsgLen) {
-      var h = new Int32Array(heap, padMsgLen + 320, 5);
-      h[0] =  1732584193;
-      h[1] =  -271733879;
-      h[2] = -1732584194;
-      h[3] =   271733878;
-      h[4] = -1009589776;
+    var initState = function (io) {
+      io[0] =  1732584193;
+      io[1] =  -271733879;
+      io[2] = -1732584194;
+      io[3] =   271733878;
+      io[4] = -1009589776;
     };
 
     // Initialize and call the RushaCore,
@@ -203,18 +202,19 @@
       }
       var padMsgLen = padlen(len);
       var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
+      var io = new Int32Array(self.heap, padMsgLen + 320, 5);
       padZeroes(view, len);
       conv(str, view, len);
       padData(view, len);
-      initState(self.heap, padMsgLen);
+      initState(io);
       coreCall(padMsgLen);
       var out = new Int32Array(5);
       var arr = new DataView(out.buffer);
-      arr.setInt32(0,  view[0], false);
-      arr.setInt32(4,  view[1], false);
-      arr.setInt32(8,  view[2], false);
-      arr.setInt32(12, view[3], false);
-      arr.setInt32(16, view[4], false);
+      arr.setInt32(0,  io[0], false);
+      arr.setInt32(4,  io[1], false);
+      arr.setInt32(8,  io[2], false);
+      arr.setInt32(12, io[3], false);
+      arr.setInt32(16, io[4], false);
       return out;
     };
 
@@ -331,11 +331,11 @@
 
       }
 
-      H[0] = y0;
-      H[1] = y1;
-      H[2] = y2;
-      H[3] = y3;
-      H[4] = y4;
+      H[k+320>>2] = y0;
+      H[k+324>>2] = y1;
+      H[k+328>>2] = y2;
+      H[k+332>>2] = y3;
+      H[k+336>>2] = y4;
 
     }
 
