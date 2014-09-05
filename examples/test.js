@@ -9,7 +9,7 @@ if (typeof require === 'function') {
       randomBytes = random.randomBytes;
 }
 
-var _rush = new Rusha(1),
+var _rush = new Rusha(10000),
     fnRusha = function (bytes) {
   return _rush.digestFromBuffer(bytes);
 };
