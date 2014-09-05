@@ -218,6 +218,33 @@
 
   };
 
+  macro rol1  { rule { ($v:expr) } => { ($v <<  1 | $v >>> 31) } }
+  macro rol5  { rule { ($v:expr) } => { ($v <<  5 | $v >>> 27) } }
+  macro rol30 { rule { ($v:expr) } => { ($v << 30 | $v >>>  2) } }
+
+  macro extended {
+    rule { ($H, $j:expr) } => {
+      rol1($H[$j-12>>2] ^ $H[$j-32>>2] ^ $H[$j-56>>2] ^ $H[$j-64>>2])
+    }
+  }
+
+  macro F0 { rule { ($b,$c,$d) } => { ($b & $c | ~$b & $d) } }
+  macro F1 { rule { ($b,$c,$d) } => { ($b ^ $c ^ $d) }}
+  macro F2 { rule { ($b,$c,$d) } => { ($b & $c | $b & $d | $c & $d) }}
+
+  macro swap {
+    rule { ($y0, $y1, $y2, $y3, $y4, $t0) } => {
+      $y4 = $y3;
+      $y3 = $y2;
+      $y2 = rol30($y1);
+      $y1 = $y0;
+      $y0 = $t0;
+    }
+  }
+
+  macro roundL { rule { ($y0, $f:expr) } => { (rol5($y0) + $f |0) } }
+  macro roundR { rule { ($y4, $t1) }     => { ($t1 + $y4 |0) } }
+
   // The low-level RushCore module provides the heart of Rusha,
   // a high-speed sha1 implementation working on an Int32Array heap.
   // At first glance, the implementation seems complicated, however
@@ -253,52 +280,38 @@
         z3 = y3;
         z4 = y4;
 
-#define ROL1(v)  ((v) <<  1 | (v) >>> 31)
-#define ROL5(v)  ((v) <<  5 | (v) >>> 27)
-#define ROL30(v) ((v) << 30 | (v) >>>  2)
-
-#define EXTENDED(j) ROL1(H[j-12>>2] ^ H[j-32>>2] ^ H[j-56>>2] ^ H[j-64>>2])
-
-#define F0(b,c,d) (b & c | ~b & d)
-#define F1(b,c,d) (b ^ c ^ d)
-#define F2(b,c,d) (b & c | b & d | c & d)
-
-#define ROUND(f, add) ((ROL5(y0) + f(y1,y2,y3) |0) + ((t1 + y4 | 0) add |0) |0)
-
-#define SWAP y4 = y3; y3 = y2; y2 = ROL30(y1); y1 = y0; y0 = t0;
-
         for (j = 0; (j|0) < 64; j = j + 4 |0) {
           t1 = H[i+j>>2]|0;
-          t0 = ROUND(F0, +1518500249);
-          SWAP
+          t0 = roundL(y0, F0(y1, y2, y3)) + (roundR(y4, t1) + 1518500249 |0) |0;
+          swap(y0, y1, y2, y3, y4, t0);
           H[k+j>>2] = t1;
         }
 
         for (j = k + 64 |0; (j|0) < (k + 80 |0); j = j + 4 |0) {
-          t1 = EXTENDED(j);
-          t0 = ROUND(F0, +1518500249);
-          SWAP
+          t1 = extended(H, j);
+          t0 = roundL(y0, F0(y1, y2, y3)) + (roundR(y4, t1) + 1518500249 |0) |0;
+          swap(y0, y1, y2, y3, y4, t0);
           H[j>>2] = t1;
         }
 
         for (j = k + 80 |0; (j|0) < (k + 160 |0); j = j + 4 |0) {
-          t1 = EXTENDED(j);
-          t0 = ROUND(F1, +1859775393);
-          SWAP
+          t1 = extended(H, j);
+          t0 = roundL(y0, F1(y1, y2, y3)) + (roundR(y4, t1) + 1859775393 |0) |0;
+          swap(y0, y1, y2, y3, y4, t0);
           H[j>>2] = t1;
         }
 
         for (j = k + 160 |0; (j|0) < (k + 240 |0); j = j + 4 |0) {
-          t1 = EXTENDED(j);
-          t0 = ROUND(F2, -1894007588);
-          SWAP
+          t1 = extended(H, j);
+          t0 = roundL(y0, F2(y1, y2, y3)) + (roundR(y4, t1) - 1894007588 |0) |0;
+          swap(y0, y1, y2, y3, y4, t0);
           H[j>>2] = t1;
         }
 
         for (j = k + 240 |0; (j|0) < (k + 320 |0); j = j + 4 |0) {
-          t1 = EXTENDED(j);
-          t0 = ROUND(F1, -899497514);
-          SWAP
+          t1 = extended(H, j);
+          t0 = roundL(y0, F1(y1, y2, y3)) + (roundR(y4, t1) - 899497514 |0) |0;
+          swap(y0, y1, y2, y3, y4, t0);
           H[j>>2] = t1;
         }
 

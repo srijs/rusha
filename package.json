@@ -18,7 +18,8 @@
   },
   "devDependencies": {
     "mocha": "~1.15.0",
-    "jsmin": "~1.0"
+    "jsmin": "~1.0",
+    "sweet.js": "~0.7.1"
   },
   "author": "Sam Rijs",
   "license": "MIT",
