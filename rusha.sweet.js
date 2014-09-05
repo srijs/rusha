@@ -64,7 +64,7 @@
   // The Rusha object is a wrapper around the low-level RushaCore.
   // It provides means of converting different inputs to the
   // format accepted by RushaCore as well as other utility methods.
-  function Rusha (sizeHint) {
+  function Rusha (maxChunkLen) {
     "use strict";
 
     // Private object structure.
@@ -167,7 +167,7 @@
 
     // Resize the internal data structures to a new capacity.
     var resize = function (size) {
-      self.sizeHint = size;
+      self.maxChunkLen = size;
       // The size of the heap is the sum of:
       // 1. The padded input message size
       // 2. The extended space the algorithm needs (320 byte)
@@ -179,7 +179,7 @@
 
     // On initialize, resize the datastructures according
     // to an optional size hint.
-    resize(sizeHint || 0);
+    resize(maxChunkLen || 0);
 
     var initState = function (heap, padMsgLen) {
       var io  = new Int32Array(heap, padMsgLen + 320, 5);
@@ -215,8 +215,8 @@
     var rawDigest = this.rawDigest = function (str, start) {
       start = start || 0;
       var msgLen = (str.byteLength || str.length) - start;
-      if (msgLen > self.sizeHint) {
-        resize(msgLen);
+      if (msgLen > self.maxChunkLen) {
+        throw new Error('Max chunk len exceeded.');
       }
       var padMsgLen = padlen(msgLen);
       var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
