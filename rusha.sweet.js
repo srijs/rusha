@@ -214,14 +214,14 @@
     // Calculate the hash digest as an array of 5 32bit integers.
     var rawDigest = this.rawDigest = function (str, start) {
       start = start || 0;
-      var len = (str.byteLength || str.length) - start;
-      if (len > self.sizeHint) {
-        resize(len);
+      var msgLen = (str.byteLength || str.length) - start;
+      if (msgLen > self.sizeHint) {
+        resize(msgLen);
       }
-      var padMsgLen = padlen(len);
+      var padMsgLen = padlen(msgLen);
       var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
       initState(self.heap, padMsgLen);
-      coreCall(str, view, start, len, padMsgLen);
+      coreCall(str, view, start, msgLen, padMsgLen);
       return getRawDigest(self.heap, padMsgLen);
     };
 
