@@ -168,11 +168,12 @@
     // Resize the internal data structures to a new capacity.
     var resize = function (size) {
       self.maxChunkLen = size;
+      self.padMaxChunkLen = padlen(size);
       // The size of the heap is the sum of:
       // 1. The padded input message size
       // 2. The extended space the algorithm needs (320 byte)
       // 3. The 160 bit state the algoritm uses
-      self.heap     = new ArrayBuffer(ceilHeapSize(padlen(size) + 320 + 20));
+      self.heap     = new ArrayBuffer(ceilHeapSize(self.padMaxChunkLen + 320 + 20));
       self.core     = RushaCore({Int32Array: Int32Array, DataView: DataView}, {}, self.heap);
       self.buffer   = null;
     };
@@ -196,11 +197,11 @@
       padZeroes(view, chunkLen);
       conv(data, view, chunkStart, chunkLen);
       padData(view, chunkLen);
-      self.core.hash(padMsgLen);
+      self.core.hash(padMsgLen, self.padMaxChunkLen);
     };
 
-    var getRawDigest = function (heap, padMsgLen) {
-      var io  = new Int32Array(heap, padMsgLen + 320, 5);
+    var getRawDigest = function (heap, padMaxChunkLen) {
+      var io  = new Int32Array(heap, padMaxChunkLen + 320, 5);
       var out = new Int32Array(5);
       var arr = new DataView(out.buffer);
       arr.setInt32(0,  io[0], false);
@@ -220,9 +221,9 @@
       }
       var padMsgLen = padlen(msgLen);
       var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
-      initState(self.heap, padMsgLen);
+      initState(self.heap, self.padMaxChunkLen);
       coreCall(str, view, start, msgLen, msgLen, padMsgLen);
-      return getRawDigest(self.heap, padMsgLen);
+      return getRawDigest(self.heap, self.padMaxChunkLen);
     };
 
     // The digest and digestFrom* interface returns the hash digest
@@ -273,19 +274,20 @@
 
     var H = new stdlib.Int32Array(heap);
 
-    function hash (k) { // k in bytes
+    function hash (k, x) { // k in bytes
 
       k = k|0;
+      x = x|0;
       var i = 0, j = 0,
           y0 = 0, z0 = 0, y1 = 0, z1 = 0,
           y2 = 0, z2 = 0, y3 = 0, z3 = 0,
           y4 = 0, z4 = 0, t0 = 0, t1 = 0;
 
-      y0 = H[k+320>>2]|0;
-      y1 = H[k+324>>2]|0;
-      y2 = H[k+328>>2]|0;
-      y3 = H[k+332>>2]|0;
-      y4 = H[k+336>>2]|0;
+      y0 = H[x+320>>2]|0;
+      y1 = H[x+324>>2]|0;
+      y2 = H[x+328>>2]|0;
+      y3 = H[x+332>>2]|0;
+      y4 = H[x+336>>2]|0;
 
       for (i = 0; (i|0) < (k|0); i = i + 64 |0) {
 
@@ -338,11 +340,11 @@
 
       }
 
-      H[k+320>>2] = y0;
-      H[k+324>>2] = y1;
-      H[k+328>>2] = y2;
-      H[k+332>>2] = y3;
-      H[k+336>>2] = y4;
+      H[x+320>>2] = y0;
+      H[x+324>>2] = y1;
+      H[x+328>>2] = y2;
+      H[x+332>>2] = y3;
+      H[x+336>>2] = y4;
 
     }
 
