@@ -220,8 +220,8 @@
         throw new Error('Max chunk len exceeded.');
       }
       var padMsgLen = padlen(msgLen);
-      var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
       initState(self.heap, self.padMaxChunkLen);
+      var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
       coreCall(str, view, start, msgLen, msgLen, padMsgLen);
       return getRawDigest(self.heap, self.padMaxChunkLen);
     };
