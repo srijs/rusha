@@ -192,10 +192,10 @@
 
     // Initialize and call the RushaCore,
     // assuming an input buffer of length len * 4.
-    var coreCall = function (data, view, start, len, padMsgLen) {
-      padZeroes(view, len);
-      conv(data, view, start, len);
-      padData(view, len);
+    var coreCall = function (data, view, chunkStart, chunkLen, msgLen, padMsgLen) {
+      padZeroes(view, chunkLen);
+      conv(data, view, chunkStart, chunkLen);
+      padData(view, chunkLen);
       self.core.hash(padMsgLen);
     };
 
@@ -221,7 +221,7 @@
       var padMsgLen = padlen(msgLen);
       var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
       initState(self.heap, padMsgLen);
-      coreCall(str, view, start, msgLen, padMsgLen);
+      coreCall(str, view, start, msgLen, msgLen, padMsgLen);
       return getRawDigest(self.heap, padMsgLen);
     };
 
