@@ -73,7 +73,8 @@
     // Calculate the length of buffer that the sha1 routine uses
     // including the padding.
     var padlen = function (len) {
-      return len + 1 + ((len ) % 64 < 56 ? 56 : 56 + 64) - (len ) % 64 + 8;
+      for (len += 9; len % 64 > 0; len += 1);
+      return len;
     };
 
     var padZeroes = function (bin, len) {
@@ -167,7 +168,11 @@
     // Resize the internal data structures to a new capacity.
     var resize = function (size) {
       self.sizeHint = size;
-      self.heap     = new ArrayBuffer(ceilHeapSize(padlen(size) + 320));
+      // The size of the heap is the sum of:
+      // 1. The padded input message size
+      // 2. The extended space the algorithm needs (320 byte)
+      // 3. The 160 bit state the algoritm uses
+      self.heap     = new ArrayBuffer(ceilHeapSize(padlen(size) + 320 + 20));
       self.core     = RushaCore({Int32Array: Int32Array, DataView: DataView}, {}, self.heap);
     };
 
@@ -175,8 +180,8 @@
     // to an optional size hint.
     resize(sizeHint || 0);
 
-    var initState = function (heap, len) {
-      var h = new Int32Array(heap, len << 2, 5);
+    var initState = function (heap, padMsgLen) {
+      var h = new Int32Array(heap, padMsgLen + 320, 5);
       h[0] =  1732584193;
       h[1] =  -271733879;
       h[2] = -1732584194;
@@ -196,12 +201,13 @@
       if (len > self.sizeHint) {
         resize(len);
       }
-      var view = new Int32Array(self.heap, 0, padlen(len) >> 2);
+      var padMsgLen = padlen(len);
+      var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
       padZeroes(view, len);
       conv(str, view, len);
       padData(view, len);
-      initState(self.heap, view.length);
-      coreCall(view.length);
+      initState(self.heap, padMsgLen);
+      coreCall(padMsgLen);
       var out = new Int32Array(5);
       var arr = new DataView(out.buffer);
       arr.setInt32(0,  view[0], false);
@@ -260,7 +266,7 @@
 
     var H = new stdlib.Int32Array(heap);
 
-    function hash (k) {
+    function hash (k) { // k in bytes
 
       k = k|0;
       var i = 0, j = 0,
@@ -268,13 +274,11 @@
           y2 = 0, z2 = 0, y3 = 0, z3 = 0,
           y4 = 0, z4 = 0, t0 = 0, t1 = 0;
 
-      k = k<<2;
-
-      y0 = H[k+0>>2]|0;
-      y1 = H[k+4>>2]|0;
-      y2 = H[k+8>>2]|0;
-      y3 = H[k+12>>2]|0;
-      y4 = H[k+16>>2]|0;
+      y0 = H[k+320>>2]|0;
+      y1 = H[k+324>>2]|0;
+      y2 = H[k+328>>2]|0;
+      y3 = H[k+332>>2]|0;
+      y4 = H[k+336>>2]|0;
 
       for (i = 0; (i|0) < (k|0); i = i + 64 |0) {
 
