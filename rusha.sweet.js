@@ -155,10 +155,6 @@
       }
     };
 
-    var conv = function (data, bin, start, len, writeOffset) {
-      var fn = convFn(data)(bin, start, len, writeOffset);
-    };
-
     var slice = function (data, offset) {
       switch (util.getDataType(data)) {
         case 'string': return data.sliced(offset);
@@ -246,7 +242,7 @@
 
     // Write data to the heap.
     var write = function (data, chunkOffset, chunkLen) {
-      conv(data, self.view, chunkOffset, chunkLen, 0);
+      convFn(data)(self.view, chunkOffset, chunkLen, 0);
     };
 
     // Initialize and call the RushaCore,
