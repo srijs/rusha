@@ -64,62 +64,73 @@
     // The Rusha object is a wrapper around the low-level RushaCore.
     // It provides means of converting different inputs to the
     // format accepted by RushaCore as well as other utility methods.
-    function Rusha(sizeHint) {
+    function Rusha(chunkSize) {
         'use strict';
         // Private object structure.
         var self$2 = { fill: 0 };
         // Calculate the length of buffer that the sha1 routine uses
         // including the padding.
         var padlen = function (len) {
-            return len + 1 + (len % 64 < 56 ? 56 : 56 + 64) - len % 64 + 8;
+            for (len += 9; len % 64 > 0; len += 1);
+            return len;
         };
         var padZeroes = function (bin, len) {
             for (var i = len >> 2; i < bin.length; i++)
                 bin[i] = 0;
         };
-        var padData = function (bin, len) {
-            bin[len >> 2] |= 128 << 24 - (len % 4 << 3);
-            bin[((len >> 2) + 2 & ~15) + 15] = len << 3;
+        var padData = function (bin, chunkLen, msgLen) {
+            bin[chunkLen >> 2] |= 128 << 24 - (chunkLen % 4 << 3);
+            bin[((chunkLen >> 2) + 2 & ~15) + 15] = msgLen << 3;
         };
         // Convert a binary string to a big-endian Int32Array using
         // four characters per slot and pad it per the sha1 spec.
         // A binary string is expected to only contain char codes < 256.
-        var convStr = function (str, bin, len) {
-            var i;
-            for (i = 0; i < len; i = i + 4 | 0) {
-                bin[i >> 2] = str.charCodeAt(i) << 24 | str.charCodeAt(i + 1) << 16 | str.charCodeAt(i + 2) << 8 | str.charCodeAt(i + 3);
+        var convStr = function (str, bin, start, len) {
+            var i, m = len % 4, j = len - m;
+            for (i = 0; i < j; i = i + 4 | 0) {
+                bin[i >> 2] = str.charCodeAt(start + i) << 24 | str.charCodeAt(start + i + 1) << 16 | str.charCodeAt(start + i + 2) << 8 | str.charCodeAt(start + i + 3);
+            }
+            switch (m) {
+            case 0:
+                bin[j >> 2] |= str.charCodeAt(start + j + 3);
+            case 3:
+                bin[j >> 2] |= str.charCodeAt(start + j + 2) << 8;
+            case 2:
+                bin[j >> 2] |= str.charCodeAt(start + j + 1) << 16;
+            case 1:
+                bin[j >> 2] |= str.charCodeAt(start + j) << 24;
             }
         };
         // Convert a buffer or array to a big-endian Int32Array using
         // four elements per slot and pad it per the sha1 spec.
         // The buffer or array is expected to only contain elements < 256.
-        var convBuf = function (buf, bin, len) {
+        var convBuf = function (buf, bin, start, len) {
             var i, m = len % 4, j = len - m;
             for (i = 0; i < j; i = i + 4 | 0) {
-                bin[i >> 2] = buf[i] << 24 | buf[i + 1] << 16 | buf[i + 2] << 8 | buf[i + 3];
+                bin[i >> 2] = buf[start + i] << 24 | buf[start + i + 1] << 16 | buf[start + i + 2] << 8 | buf[start + i + 3];
             }
             switch (m) {
             case 0:
-                bin[j >> 2] |= buf[j + 3];
+                bin[j >> 2] |= buf[start + j + 3];
             case 3:
-                bin[j >> 2] |= buf[j + 2] << 8;
+                bin[j >> 2] |= buf[start + j + 2] << 8;
             case 2:
-                bin[j >> 2] |= buf[j + 1] << 16;
+                bin[j >> 2] |= buf[start + j + 1] << 16;
             case 1:
-                bin[j >> 2] |= buf[j] << 24;
+                bin[j >> 2] |= buf[start + j] << 24;
             }
         };
         // Convert general data to a big-endian Int32Array written on the
-        // heap and return it's length;
-        var conv = function (data, bin, len) {
+        // heap.
+        var conv = function (data, bin, start, len) {
             if (typeof data === 'string') {
-                return convStr(data, bin, len);
+                return convStr(data, bin, start, len);
             } else if (data instanceof Array || typeof global !== 'undefined' && typeof global.Buffer !== 'undefined' && global.Buffer.isBuffer(data)) {
-                return convBuf(data, bin, len);
+                return convBuf(data, bin, start, len);
             } else if (data instanceof ArrayBuffer) {
-                return convBuf(new Uint8Array(data), bin, len);
+                return convBuf(new Uint8Array(data), bin, start, len);
             } else if (data.buffer instanceof ArrayBuffer) {
-                return convBuf(new Uint8Array(data.buffer), bin, len);
+                return convBuf(new Uint8Array(data.buffer), bin, start, len);
             } else {
                 throw new Error('Unsupported data type.');
             }
@@ -137,11 +148,12 @@
             // The asm.js spec says:
             // The heap object's byteLength must be either
             // 2^n for n in [12, 24) or 2^24 * n for n ≥ 1.
+            // Also, byteLengths smaller than 2^16 are deprecated.
             var p;
-            // If v is smaller than 2^12, the smallest possible solution
-            // is 2^12.
-            if (v <= 4096)
-                return 4096;
+            // If v is smaller than 2^16, the smallest possible solution
+            // is 2^16.
+            if (v <= 65536)
+                return 65536;
             // If v < 2^24, we round up to 2^n,
             // otherwise we round up to 2^24 * n.
             if (v < 16777216) {
@@ -153,51 +165,81 @@
         };
         // Resize the internal data structures to a new capacity.
         var resize = function (size) {
-            self$2.sizeHint = size;
-            self$2.heap = new ArrayBuffer(ceilHeapSize(padlen(size) + 320));
+            if (size % 64 > 0) {
+                throw new Error('Chunk size must be a multiple of 128 bit');
+            }
+            self$2.maxChunkLen = size;
+            self$2.padMaxChunkLen = padlen(size);
+            // The size of the heap is the sum of:
+            // 1. The padded input message size
+            // 2. The extended space the algorithm needs (320 byte)
+            // 3. The 160 bit state the algoritm uses
+            self$2.heap = new ArrayBuffer(ceilHeapSize(self$2.padMaxChunkLen + 320 + 20));
             self$2.core = RushaCore({
                 Int32Array: Int32Array,
                 DataView: DataView
             }, {}, self$2.heap);
+            self$2.buffer = null;
         };
         // On initialize, resize the datastructures according
         // to an optional size hint.
-        resize(sizeHint || 0);
+        resize(chunkSize || 4 * 1024 * 1024);
+        var initState = function (heap, padMsgLen) {
+            var io = new Int32Array(heap, padMsgLen + 320, 5);
+            io[0] = 1732584193;
+            io[1] = -271733879;
+            io[2] = -1732584194;
+            io[3] = 271733878;
+            io[4] = -1009589776;
+        };
+        var initChunk = function (chunkLen, msgLen, finalize) {
+            var padChunkLen = chunkLen;
+            if (finalize) {
+                padChunkLen = padlen(chunkLen);
+            }
+            var view = new Int32Array(self$2.heap, 0, padChunkLen >> 2);
+            if (finalize) {
+                padZeroes(view, chunkLen);
+            }
+            if (finalize) {
+                padData(view, chunkLen, msgLen);
+            }
+            return padChunkLen;
+        };
         // Initialize and call the RushaCore,
         // assuming an input buffer of length len * 4.
-        var coreCall = function (len) {
-            var h = new Int32Array(self$2.heap, len << 2, 5);
-            h[0] = 1732584193;
-            h[1] = -271733879;
-            h[2] = -1732584194;
-            h[3] = 271733878;
-            h[4] = -1009589776;
-            self$2.core.hash(len);
+        var coreCall = function (data, chunkStart, chunkLen, msgLen, finalize) {
+            var padChunkLen = initChunk(chunkLen, msgLen, finalize);
+            var view = new Int32Array(self$2.heap, 0, padChunkLen >> 2);
+            conv(data, view, chunkStart, chunkLen);
+            self$2.core.hash(padChunkLen, self$2.padMaxChunkLen);
+        };
+        var getRawDigest = function (heap, padMaxChunkLen) {
+            var io = new Int32Array(heap, padMaxChunkLen + 320, 5);
+            var out = new Int32Array(5);
+            var arr = new DataView(out.buffer);
+            arr.setInt32(0, io[0], false);
+            arr.setInt32(4, io[1], false);
+            arr.setInt32(8, io[2], false);
+            arr.setInt32(12, io[3], false);
+            arr.setInt32(16, io[4], false);
+            return out;
         };
         // Calculate the hash digest as an array of 5 32bit integers.
         var rawDigest = this.rawDigest = function (str) {
-                var len = str.byteLength || str.length;
-                if (len > self$2.sizeHint) {
-                    resize(len);
+                var msgLen = str.byteLength || str.length;
+                initState(self$2.heap, self$2.padMaxChunkLen);
+                var chunkOffset = 0, chunkLen = self$2.maxChunkLen, last;
+                for (chunkOffset = 0; msgLen > chunkOffset + chunkLen; chunkOffset += chunkLen) {
+                    coreCall(str, chunkOffset, chunkLen, msgLen, false);
                 }
-                var view = new Int32Array(self$2.heap, 0, padlen(len) >> 2);
-                padZeroes(view, len);
-                conv(str, view, len);
-                padData(view, len);
-                coreCall(view.length);
-                var out = new Int32Array(5);
-                var arr = new DataView(out.buffer);
-                arr.setInt32(0, view[0], false);
-                arr.setInt32(4, view[1], false);
-                arr.setInt32(8, view[2], false);
-                arr.setInt32(12, view[3], false);
-                arr.setInt32(16, view[4], false);
-                return out;
+                coreCall(str, chunkOffset, msgLen - chunkOffset, msgLen, true);
+                return getRawDigest(self$2.heap, self$2.padMaxChunkLen);
             };
         // The digest and digestFrom* interface returns the hash digest
         // as a hex string.
-        this.digest = this.digestFromString = this.digestFromBuffer = this.digestFromArrayBuffer = function (str) {
-            return hex(rawDigest(str).buffer);
+        this.digest = this.digestFromString = this.digestFromBuffer = this.digestFromArrayBuffer = function (str, start) {
+            return hex(rawDigest(str, start).buffer);
         };
     }
     ;
@@ -210,15 +252,16 @@
     function RushaCore(stdlib, foreign, heap) {
         'use asm';
         var H = new stdlib.Int32Array(heap);
-        function hash(k) {
+        function hash(k, x) {
+            // k in bytes
             k = k | 0;
+            x = x | 0;
             var i = 0, j = 0, y0 = 0, z0 = 0, y1 = 0, z1 = 0, y2 = 0, z2 = 0, y3 = 0, z3 = 0, y4 = 0, z4 = 0, t0 = 0, t1 = 0;
-            k = k << 2;
-            y0 = H[k + 0 >> 2] | 0;
-            y1 = H[k + 4 >> 2] | 0;
-            y2 = H[k + 8 >> 2] | 0;
-            y3 = H[k + 12 >> 2] | 0;
-            y4 = H[k + 16 >> 2] | 0;
+            y0 = H[x + 320 >> 2] | 0;
+            y1 = H[x + 324 >> 2] | 0;
+            y2 = H[x + 328 >> 2] | 0;
+            y3 = H[x + 332 >> 2] | 0;
+            y4 = H[x + 336 >> 2] | 0;
             for (i = 0; (i | 0) < (k | 0); i = i + 64 | 0) {
                 z0 = y0;
                 z1 = y1;
@@ -286,11 +329,11 @@
                 y3 = y3 + z3 | 0;
                 y4 = y4 + z4 | 0;
             }
-            H[0] = y0;
-            H[1] = y1;
-            H[2] = y2;
-            H[3] = y3;
-            H[4] = y4;
+            H[x + 320 >> 2] = y0;
+            H[x + 324 >> 2] = y1;
+            H[x + 328 >> 2] = y2;
+            H[x + 332 >> 2] = y3;
+            H[x + 336 >> 2] = y4;
         }
         return { hash: hash };
     }
