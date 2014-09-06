@@ -9,7 +9,7 @@ if (typeof require === 'function') {
       randomBytes = random.randomBytes;
 }
 
-var _rush = new Rusha(10000),
+var _rush = new Rusha(),
     fnRusha = function (bytes) {
   return _rush.digestFromBuffer(bytes);
 };
@@ -26,9 +26,9 @@ var ids = ['Native  ', 'Rusha   ', 'Cifre   '];
 var fns = [fnNative, fnRusha/*, fnCifre*/];
 
 var bench = function () {
-  for (size=0;size<8192;size++) {
+  for (size=0;size<1024*8;size++) {
     // use random test data
-    var bytes = randomBytes(size);
+    var bytes = randomBytes(size);//"Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquy".substr(0, size);
     var ref = "";
     fns.forEach(function (fn, i) {
       var res = fn(bytes);

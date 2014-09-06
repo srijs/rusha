@@ -64,7 +64,7 @@
   // The Rusha object is a wrapper around the low-level RushaCore.
   // It provides means of converting different inputs to the
   // format accepted by RushaCore as well as other utility methods.
-  function Rusha (maxChunkLen) {
+  function Rusha (chunkSize) {
     "use strict";
 
     // Private object structure.
@@ -81,21 +81,27 @@
       for (var i = len >> 2; i < bin.length; i++) bin[i] = 0;
     };
 
-    var padData = function (bin, len) {
-      bin[len>>2] |= 0x80 << (24 - (len % 4 << 3));
-      bin[(((len >> 2) + 2) & ~0x0f) + 15] = len << 3;
+    var padData = function (bin, chunkLen, msgLen) {
+      bin[chunkLen>>2] |= 0x80 << (24 - (chunkLen % 4 << 3));
+      bin[(((chunkLen >> 2) + 2) & ~0x0f) + 15] = msgLen << 3;
     };
 
     // Convert a binary string to a big-endian Int32Array using
     // four characters per slot and pad it per the sha1 spec.
     // A binary string is expected to only contain char codes < 256.
     var convStr = function (str, bin, start, len) {
-      var i;
-      for (i = 0; i < len; i = i + 4 |0) {
+      var i, m = len % 4, j = len - m;
+      for (i = 0; i < j; i = i + 4 |0) {
         bin[i>>2] = str.charCodeAt(start+i)   << 24 |
                     str.charCodeAt(start+i+1) << 16 |
                     str.charCodeAt(start+i+2) <<  8 |
                     str.charCodeAt(start+i+3);
+      }
+      switch (m) {
+        case 0: bin[j>>2] |= str.charCodeAt(start+j+3);
+        case 3: bin[j>>2] |= str.charCodeAt(start+j+2) << 8;
+        case 2: bin[j>>2] |= str.charCodeAt(start+j+1) << 16;
+        case 1: bin[j>>2] |= str.charCodeAt(start+j)   << 24;
       }
     };
 
@@ -167,6 +173,9 @@
 
     // Resize the internal data structures to a new capacity.
     var resize = function (size) {
+      if (size % 64 > 0) {
+        throw new Error('Chunk size must be a multiple of 128 bit');
+      }
       self.maxChunkLen = size;
       self.padMaxChunkLen = padlen(size);
       // The size of the heap is the sum of:
@@ -180,7 +189,7 @@
 
     // On initialize, resize the datastructures according
     // to an optional size hint.
-    resize(maxChunkLen || 0);
+    resize(chunkSize || 4 * 1024 * 1024);
 
     var initState = function (heap, padMsgLen) {
       var io  = new Int32Array(heap, padMsgLen + 320, 5);
@@ -191,14 +200,28 @@
       io[4] = -1009589776;
     };
 
+    var initChunk = function (chunkLen, msgLen, finalize) {
+      var padChunkLen = chunkLen;
+      if (finalize) {
+        padChunkLen = padlen(chunkLen);
+      }
+      var view = new Int32Array(self.heap, 0, padChunkLen >> 2);
+      if (finalize) {
+        padZeroes(view, chunkLen);
+      }
+      if (finalize) {
+        padData(view, chunkLen, msgLen);
+      }
+      return padChunkLen;
+    };
+
     // Initialize and call the RushaCore,
     // assuming an input buffer of length len * 4.
-    var coreCall = function (data, chunkStart, chunkLen, msgLen, padMsgLen) {
-      var view = new Int32Array(self.heap, 0, padMsgLen >> 2);
-      padZeroes(view, chunkLen);
+    var coreCall = function (data, chunkStart, chunkLen, msgLen, finalize) {
+      var padChunkLen = initChunk(chunkLen, msgLen, finalize);
+      var view = new Int32Array(self.heap, 0, padChunkLen >> 2);
       conv(data, view, chunkStart, chunkLen);
-      padData(view, chunkLen);
-      self.core.hash(padMsgLen, self.padMaxChunkLen);
+      self.core.hash(padChunkLen, self.padMaxChunkLen);
     };
 
     var getRawDigest = function (heap, padMaxChunkLen) {
@@ -214,15 +237,14 @@
     };
 
     // Calculate the hash digest as an array of 5 32bit integers.
-    var rawDigest = this.rawDigest = function (str, start) {
-      start = start || 0;
-      var msgLen = (str.byteLength || str.length) - start;
-      if (msgLen > self.maxChunkLen) {
-        throw new Error('Max chunk len exceeded.');
-      }
-      var padMsgLen = padlen(msgLen);
+    var rawDigest = this.rawDigest = function (str) {
+      var msgLen = (str.byteLength || str.length);
       initState(self.heap, self.padMaxChunkLen);
-      coreCall(str, start, msgLen, msgLen, padMsgLen);
+      var chunkOffset = 0, chunkLen = self.maxChunkLen, last;
+      for (chunkOffset = 0; msgLen > chunkOffset + chunkLen; chunkOffset += chunkLen) {
+        coreCall(str, chunkOffset, chunkLen, msgLen, false);
+      }
+      coreCall(str, chunkOffset, msgLen - chunkOffset, msgLen, true);
       return getRawDigest(self.heap, self.padMaxChunkLen);
     };
 
