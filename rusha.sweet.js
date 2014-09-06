@@ -61,6 +61,27 @@
     };
   }
 
+  var util = {
+    getDataType: function (data) {
+      if (typeof data === 'string') {
+        return 'string';
+      }
+      if (data instanceof Array) {
+        return 'array';
+      }
+      if (typeof global !== 'undefined' && global.Buffer && global.Buffer.isBuffer(data)) {
+        return 'buffer';
+      }
+      if (data instanceof ArrayBuffer) {
+        return 'arraybuffer';
+      }
+      if (data.buffer instanceof ArrayBuffer) {
+        return 'view';
+      }
+      throw new Error('Unsupported data type.');
+    }
+  };
+
   // The Rusha object is a wrapper around the low-level RushaCore.
   // It provides means of converting different inputs to the
   // format accepted by RushaCore as well as other utility methods.
@@ -89,56 +110,62 @@
     // Convert a binary string to a big-endian Int32Array using
     // four characters per slot and pad it per the sha1 spec.
     // A binary string is expected to only contain char codes < 256.
-    var convStr = function (str, bin, start, len) {
-      var i, m = len % 4, j = len - m;
+    var convStr = function (bin, start, len, off) {
+      var str = this, i, m = len % 4, j = len - m;
       for (i = 0; i < j; i = i + 4 |0) {
-        bin[i>>2] = str.charCodeAt(start+i)   << 24 |
-                    str.charCodeAt(start+i+1) << 16 |
-                    str.charCodeAt(start+i+2) <<  8 |
-                    str.charCodeAt(start+i+3);
+        bin[off+i>>2] = str.charCodeAt(start+i)   << 24 |
+                        str.charCodeAt(start+i+1) << 16 |
+                        str.charCodeAt(start+i+2) <<  8 |
+                        str.charCodeAt(start+i+3);
       }
       switch (m) {
-        case 0: bin[j>>2] |= str.charCodeAt(start+j+3);
-        case 3: bin[j>>2] |= str.charCodeAt(start+j+2) << 8;
-        case 2: bin[j>>2] |= str.charCodeAt(start+j+1) << 16;
-        case 1: bin[j>>2] |= str.charCodeAt(start+j)   << 24;
+        case 0: bin[off+j>>2] |= str.charCodeAt(start+j+3);
+        case 3: bin[off+j>>2] |= str.charCodeAt(start+j+2) << 8;
+        case 2: bin[off+j>>2] |= str.charCodeAt(start+j+1) << 16;
+        case 1: bin[off+j>>2] |= str.charCodeAt(start+j)   << 24;
       }
     };
 
     // Convert a buffer or array to a big-endian Int32Array using
     // four elements per slot and pad it per the sha1 spec.
     // The buffer or array is expected to only contain elements < 256.
-    var convBuf = function (buf, bin, start, len) {
-      var i, m = len % 4, j = len - m;
+    var convBuf = function (bin, start, len, off) {
+      var buf = this, i, m = len % 4, j = len - m;
       for (i = 0; i < j; i = i + 4 |0) {
-        bin[i>>2] = buf[start+i]   << 24 |
-                    buf[start+i+1] << 16 |
-                    buf[start+i+2] <<  8 |
-                    buf[start+i+3];
+        bin[off+i>>2] = buf[start+i]   << 24 |
+                        buf[start+i+1] << 16 |
+                        buf[start+i+2] <<  8 |
+                        buf[start+i+3];
       }
       switch (m) {
-        case 0: bin[j>>2] |= buf[start+j+3];
-        case 3: bin[j>>2] |= buf[start+j+2] << 8;
-        case 2: bin[j>>2] |= buf[start+j+1] << 16;
-        case 1: bin[j>>2] |= buf[start+j]   << 24;
+        case 0: bin[off+j>>2] |= buf[start+j+3];
+        case 3: bin[off+j>>2] |= buf[start+j+2] << 8;
+        case 2: bin[off+j>>2] |= buf[start+j+1] << 16;
+        case 1: bin[off+j>>2] |= buf[start+j]   << 24;
       }
     };
 
-    // Convert general data to a big-endian Int32Array written on the
-    // heap.
-    var conv = function (data, bin, start, len) {
-      if (typeof data === 'string') {
-        return convStr(data, bin, start, len);
-      } else if (data instanceof Array || (typeof global !== 'undefined' &&
-                                           typeof global.Buffer !== 'undefined' &&
-                                           global.Buffer.isBuffer(data))) {
-        return convBuf(data, bin, start, len);
-      } else if (data instanceof ArrayBuffer) {
-        return convBuf(new Uint8Array(data), bin, start, len);
-      } else if (data.buffer instanceof ArrayBuffer) {
-        return convBuf(new Uint8Array(data.buffer), bin, start, len);
-      } else {
-        throw new Error('Unsupported data type.');
+    var convFn = function (data) {
+      switch (util.getDataType(data)) {
+        case 'string': return convStr.bind(data);
+        case 'array': return convBuf.bind(data);
+        case 'buffer': return convBuf.bind(data);
+        case 'arraybuffer': return convBuf.bind(new Uint8Array(data));
+        case 'view': return convBuf.bind(new Uint8Array(data.buffer));
+      }
+    };
+
+    var conv = function (data, bin, start, len, writeOffset) {
+      var fn = convFn(data)(bin, start, len, writeOffset);
+    };
+
+    var slice = function (data, offset) {
+      switch (util.getDataType(data)) {
+        case 'string': return data.sliced(offset);
+        case 'array': return data.slice(offset);
+        case 'buffer': return data.slice(offset);
+        case 'arraybuffer': return data.slice(offset);
+        case 'view': return data.buffer.slice(offset);
       }
     };
 
@@ -184,13 +211,14 @@
       // 2. The extended space the algorithm needs (320 byte)
       // 3. The 160 bit state the algoritm uses
       self.heap     = new ArrayBuffer(ceilHeapSize(self.padMaxChunkLen + 320 + 20));
+      self.view     = new Int32Array(self.heap);
       self.core     = RushaCore({Int32Array: Int32Array, DataView: DataView}, {}, self.heap);
       self.buffer   = null;
     };
 
     // On initialize, resize the datastructures according
     // to an optional size hint.
-    resize(chunkSize || 4 * 1024 * 1024);
+    resize(chunkSize || 64 * 1024);
 
     var initState = function (heap, padMsgLen) {
       var io  = new Int32Array(heap, padMsgLen + 320, 5);
@@ -216,12 +244,16 @@
       return padChunkLen;
     };
 
+    // Write data to the heap.
+    var write = function (data, chunkOffset, chunkLen) {
+      conv(data, self.view, chunkOffset, chunkLen, 0);
+    };
+
     // Initialize and call the RushaCore,
     // assuming an input buffer of length len * 4.
-    var coreCall = function (data, chunkStart, chunkLen, msgLen, finalize) {
+    var coreCall = function (data, chunkOffset, chunkLen, msgLen, finalize) {
       var padChunkLen = initChunk(chunkLen, msgLen, finalize);
-      var view = new Int32Array(self.heap, 0, padChunkLen >> 2);
-      conv(data, view, chunkStart, chunkLen);
+      write(data, chunkOffset, chunkLen);
       self.core.hash(padChunkLen, self.padMaxChunkLen);
     };
 
