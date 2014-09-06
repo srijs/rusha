@@ -47,9 +47,9 @@ You can send your instance of the web worker messages in the format `{id: jobid,
 
 ## Development
 
-* Download npm dependencies with `npm install .`
-* Source file to be edited is `rusha.pp.js`
-* Build with `make rusha.min.js`
+* Download npm dependencies with `npm install`
+* Source file to be edited is `rusha.sweet.js`
+* Build with `npm run build`
 * Run tests with `npm test`
 
 ## Benchmarks
