@@ -157,10 +157,11 @@
       // The asm.js spec says:
       // The heap object's byteLength must be either
       // 2^n for n in [12, 24) or 2^24 * n for n ≥ 1.
+      // Also, byteLengths smaller than 2^16 are deprecated.
       var p;
-      // If v is smaller than 2^12, the smallest possible solution
-      // is 2^12.
-      if (v <= 4096) return 4096;
+      // If v is smaller than 2^16, the smallest possible solution
+      // is 2^16.
+      if (v <= 65536) return 65536;
       // If v < 2^24, we round up to 2^n,
       // otherwise we round up to 2^24 * n.
       if (v < 16777216) {
