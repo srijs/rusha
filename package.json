@@ -26,7 +26,8 @@
     "grunt-mocha-test": "~0.11.0",
     "blanket": "~1.1.6",
     "benchmark": "^1.0.0",
-    "microtime": "^1.0.1"
+    "microtime": "^1.0.1",
+    "mocha": "^1.21.4"
   },
   "testling": {
     "files": "test/test.js",
