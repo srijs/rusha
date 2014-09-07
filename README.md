@@ -1,6 +1,8 @@
 # Rusha [![Build Status](https://travis-ci.org/srijs/rusha.png?branch=master)](https://travis-ci.org/srijs/rusha)
 *A high-performance pure-javascript SHA1 implementation suitable for large binary data.*
 
+[![NPM](https://nodei.co/npm/rusha.png?downloads=true&downloadRank=true)](https://nodei.co/npm/rusha/)
+
 ## Prologue: The Sad State of Javascript SHA1 implementations
 
 When we started experimenting with alternative upload technologies at [doctape](http://doctape.com) that required creating SHA1 hashes of the data locally on the client, it quickly became obvious that there were no performant pure-js implementations of SHA1 that worked correctly on binary data.
