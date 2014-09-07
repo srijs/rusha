@@ -36,14 +36,33 @@ module.exports = function (grunt) {
         },
         src: ['test/test.js']
       }
+    },
+    connect: { server: { options: { base: "", port: 9999 } } },
+    'saucelabs-mocha': {
+      all: {
+        options: {
+          username: 'rusha',
+          urls: ['http://127.0.0.1:9999/test/test.html'],
+          build: process.env.CI_BUILD_NUMBER,
+          testname: 'Sauce Unit Test for Rusha',
+          browsers: [
+            ["Windows 8", "firefox", 32],
+            ["Windows 8", "chrome", 37]
+          ]
+        }
+      }
     }
   });
 
   grunt.loadNpmTasks('grunt-sweet.js');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-mocha-test');
+  grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-saucelabs');
 
   grunt.registerTask('test', ['sweetjs', 'mochaTest']);
+
+  grunt.registerTask('test-saucelabs', ['sweetjs', 'connect', 'saucelabs-mocha']);
 
   grunt.registerTask('build', ['sweetjs', 'uglify']);
 
