@@ -102,42 +102,60 @@
             bin[chunkLen >> 2] |= 128 << 24 - (chunkLen % 4 << 3);
             bin[((chunkLen >> 2) + 2 & ~15) + 15] = msgLen << 3;
         };
-        // Convert a binary string to a big-endian Int32Array using
-        // four characters per slot and pad it per the sha1 spec.
+        // Convert a binary string and write it to the heap.
         // A binary string is expected to only contain char codes < 256.
-        var convStr = function (bin, start, len, off) {
-            var str = this, i, m = len % 4, j = len - m;
-            for (i = 0; i < j; i = i + 4 | 0) {
-                bin[off + i >> 2] = str.charCodeAt(start + i) << 24 | str.charCodeAt(start + i + 1) << 16 | str.charCodeAt(start + i + 2) << 8 | str.charCodeAt(start + i + 3);
+        var convStr = function (H8, H32, start, len, off) {
+            var str = this, i, om = off % 4, lm = len % 4, j = len - lm;
+            if (j > 0) {
+                switch (om) {
+                case 0:
+                    H8[off + 3 | 0] = str.charCodeAt(start);
+                case 1:
+                    H8[off + 2 | 0] = str.charCodeAt(start + 1);
+                case 2:
+                    H8[off + 1 | 0] = str.charCodeAt(start + 2);
+                case 3:
+                    H8[off | 0] = str.charCodeAt(start + 3);
+                }
             }
-            switch (m) {
-            case 0:
-                bin[off + j >> 2] |= str.charCodeAt(start + j + 3);
+            for (i = om; i < j; i = i + 4 | 0) {
+                H32[off + i >> 2] = str.charCodeAt(start + i) << 24 | str.charCodeAt(start + i + 1) << 16 | str.charCodeAt(start + i + 2) << 8 | str.charCodeAt(start + i + 3);
+            }
+            switch (lm) {
             case 3:
-                bin[off + j >> 2] |= str.charCodeAt(start + j + 2) << 8;
+                H8[off + j + 1 | 0] = str.charCodeAt(start + j + 2);
             case 2:
-                bin[off + j >> 2] |= str.charCodeAt(start + j + 1) << 16;
+                H8[off + j + 2 | 0] = str.charCodeAt(start + j + 1);
             case 1:
-                bin[off + j >> 2] |= str.charCodeAt(start + j) << 24;
+                H8[off + j + 3 | 0] = str.charCodeAt(start + j);
             }
         };
-        // Convert a buffer or array to a big-endian Int32Array using
-        // four elements per slot and pad it per the sha1 spec.
+        // Convert a buffer or array and write it to the heap.
         // The buffer or array is expected to only contain elements < 256.
-        var convBuf = function (bin, start, len, off) {
-            var buf = this, i, m = len % 4, j = len - m;
-            for (i = 0; i < j; i = i + 4 | 0) {
-                bin[off + i >> 2] = buf[start + i] << 24 | buf[start + i + 1] << 16 | buf[start + i + 2] << 8 | buf[start + i + 3];
+        var convBuf = function (H8, H32, start, len, off) {
+            var buf = this, i, om = off % 4, lm = len % 4, j = len - lm;
+            if (j > 0) {
+                switch (om) {
+                case 0:
+                    H8[off + 3 | 0] = buf[start];
+                case 1:
+                    H8[off + 2 | 0] = buf[start + 1];
+                case 2:
+                    H8[off + 1 | 0] = buf[start + 2];
+                case 3:
+                    H8[off | 0] = buf[start + 3];
+                }
             }
-            switch (m) {
-            case 0:
-                bin[off + j >> 2] |= buf[start + j + 3];
+            for (i = 4 - om; i < j; i = i += 4 | 0) {
+                H32[off + i >> 2] = buf[start + i] << 24 | buf[start + i + 1] << 16 | buf[start + i + 2] << 8 | buf[start + i + 3];
+            }
+            switch (lm) {
             case 3:
-                bin[off + j >> 2] |= buf[start + j + 2] << 8;
+                H8[off + j + 1 | 0] = buf[start + j + 2];
             case 2:
-                bin[off + j >> 2] |= buf[start + j + 1] << 16;
+                H8[off + j + 2 | 0] = buf[start + j + 1];
             case 1:
-                bin[off + j >> 2] |= buf[start + j] << 24;
+                H8[off + j + 3 | 0] = buf[start + j];
             }
         };
         var convFn = function (data) {
@@ -154,13 +172,10 @@
                 return convBuf.bind(new Uint8Array(data.buffer));
             }
         };
-        var conv = function (data, bin, start, len, writeOffset) {
-            var fn = convFn(data)(bin, start, len, writeOffset);
-        };
         var slice = function (data, offset) {
             switch (util.getDataType(data)) {
             case 'string':
-                return data.sliced(offset);
+                return data.slice(offset);
             case 'array':
                 return data.slice(offset);
             case 'buffer':
@@ -199,8 +214,8 @@
             }
             return p;
         };
-        // Resize the internal data structures to a new capacity.
-        var resize = function (size) {
+        // Initialize the internal data structures to a new capacity.
+        var init = function (size) {
             if (size % 64 > 0) {
                 throw new Error('Chunk size must be a multiple of 128 bit');
             }
@@ -211,16 +226,17 @@
             // 2. The extended space the algorithm needs (320 byte)
             // 3. The 160 bit state the algoritm uses
             self$2.heap = new ArrayBuffer(ceilHeapSize(self$2.padMaxChunkLen + 320 + 20));
-            self$2.view = new Int32Array(self$2.heap);
+            self$2.h32 = new Int32Array(self$2.heap);
+            self$2.h8 = new Int8Array(self$2.heap);
             self$2.core = RushaCore({
                 Int32Array: Int32Array,
                 DataView: DataView
             }, {}, self$2.heap);
             self$2.buffer = null;
         };
-        // On initialize, resize the datastructures according
-        // to an optional size hint.
-        resize(chunkSize || 64 * 1024);
+        // Iinitializethe datastructures according
+        // to a chunk siyze.
+        init(chunkSize || 64 * 1024);
         var initState = function (heap, padMsgLen) {
             var io = new Int32Array(heap, padMsgLen + 320, 5);
             io[0] = 1732584193;
@@ -229,28 +245,24 @@
             io[3] = 271733878;
             io[4] = -1009589776;
         };
-        var initChunk = function (chunkLen, msgLen, finalize) {
-            var padChunkLen = chunkLen;
-            if (finalize) {
-                padChunkLen = padlen(chunkLen);
-            }
+        var padChunk = function (chunkLen, msgLen) {
+            var padChunkLen = padlen(chunkLen);
             var view = new Int32Array(self$2.heap, 0, padChunkLen >> 2);
-            if (finalize) {
-                padZeroes(view, chunkLen);
-            }
-            if (finalize) {
-                padData(view, chunkLen, msgLen);
-            }
+            padZeroes(view, chunkLen);
+            padData(view, chunkLen, msgLen);
             return padChunkLen;
         };
         // Write data to the heap.
         var write = function (data, chunkOffset, chunkLen) {
-            conv(data, self$2.view, chunkOffset, chunkLen, 0);
+            convFn(data)(self$2.h8, self$2.h32, chunkOffset, chunkLen, 0);
         };
         // Initialize and call the RushaCore,
         // assuming an input buffer of length len * 4.
         var coreCall = function (data, chunkOffset, chunkLen, msgLen, finalize) {
-            var padChunkLen = initChunk(chunkLen, msgLen, finalize);
+            var padChunkLen = chunkLen;
+            if (finalize) {
+                padChunkLen = padChunk(chunkLen, msgLen);
+            }
             write(data, chunkOffset, chunkLen);
             self$2.core.hash(padChunkLen, self$2.padMaxChunkLen);
         };
@@ -278,8 +290,8 @@
             };
         // The digest and digestFrom* interface returns the hash digest
         // as a hex string.
-        this.digest = this.digestFromString = this.digestFromBuffer = this.digestFromArrayBuffer = function (str, start) {
-            return hex(rawDigest(str, start).buffer);
+        this.digest = this.digestFromString = this.digestFromBuffer = this.digestFromArrayBuffer = function (str) {
+            return hex(rawDigest(str).buffer);
         };
     }
     ;

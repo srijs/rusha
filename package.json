@@ -24,7 +24,20 @@
     "grunt-contrib-uglify": "~0.5.1",
     "grunt-sweet.js": "~0.1.5",
     "grunt-mocha-test": "~0.11.0",
-    "blanket": "~1.1.6"
+    "blanket": "~1.1.6",
+    "benchmark": "^1.0.0",
+    "microtime": "^1.0.1"
+  },
+  "testling": {
+    "files": "test/test.js",
+    "harness": "mocha-tdd",
+    "browsers": [
+      "ie/6..latest",
+      "chrome/22..latest",
+      "firefox/16..latest",
+      "safari/latest",
+      "opera/11.0..latest"
+    ]
   },
   "author": "Sam Rijs",
   "license": "MIT",
