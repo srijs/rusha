@@ -107,39 +107,53 @@
       bin[(((chunkLen >> 2) + 2) & ~0x0f) + 15] = msgLen << 3;
     };
 
-    // Convert a binary string to a big-endian Int32Array using
-    // four characters per slot and pad it per the sha1 spec.
+    // Convert a binary string and write it to the heap.
     // A binary string is expected to only contain char codes < 256.
-    var convStr = function (H32, start, len, off) {
-      var str = this, i, m = len % 4, j = len - m;
-      for (i = 0; i < j; i = i + 4 |0) {
+    var convStr = function (H8, H32, start, len, off) {
+      var str = this, i, om = off % 4, lm = len % 4, j = len - lm;
+      if (j > 0) {
+        switch (om) {
+          case 0: H8[off+3|0] = str.charCodeAt(start);
+          case 1: H8[off+2|0] = str.charCodeAt(start+1);
+          case 2: H8[off+1|0] = str.charCodeAt(start+2);
+          case 3: H8[off|0]   = str.charCodeAt(start+3);
+        }
+      }
+      for (i = om; i < j; i = i + 4 |0) {
         H32[off+i>>2] = str.charCodeAt(start+i)   << 24 |
                         str.charCodeAt(start+i+1) << 16 |
                         str.charCodeAt(start+i+2) <<  8 |
                         str.charCodeAt(start+i+3);
       }
-      switch (m) {
-        case 3: H32[off+j>>2] |= str.charCodeAt(start+j+2) << 8;
-        case 2: H32[off+j>>2] |= str.charCodeAt(start+j+1) << 16;
-        case 1: H32[off+j>>2] |= str.charCodeAt(start+j)   << 24;
+      switch (lm) {
+        case 3: H8[off+j+1|0] = str.charCodeAt(start+j+2);
+        case 2: H8[off+j+2|0] = str.charCodeAt(start+j+1);
+        case 1: H8[off+j+3|0] = str.charCodeAt(start+j);
       }
     };
 
-    // Convert a buffer or array to a big-endian Int32Array using
-    // four elements per slot and pad it per the sha1 spec.
+    // Convert a buffer or array and write it to the heap.
     // The buffer or array is expected to only contain elements < 256.
-    var convBuf = function (H32, start, len, off) {
-      var buf = this, i, m = len % 4, j = len - m;
-      for (i = 0; i < j; i = i + 4 |0) {
+    var convBuf = function (H8, H32, start, len, off) {
+      var buf = this, i, om = off % 4, lm = len % 4, j = len - lm;
+      if (j > 0) {
+        switch (om) {
+          case 0: H8[off+3|0] = buf[start];
+          case 1: H8[off+2|0] = buf[start+1];
+          case 2: H8[off+1|0] = buf[start+2];
+          case 3: H8[off|0]   = buf[start+3];
+        }
+      }
+      for (i = 4 - om; i < j; i = i += 4 |0) {
         H32[off+i>>2] = buf[start+i]   << 24 |
                         buf[start+i+1] << 16 |
                         buf[start+i+2] <<  8 |
                         buf[start+i+3];
       }
-      switch (m) {
-        case 3: H32[off+j>>2] |= buf[start+j+2] << 8;
-        case 2: H32[off+j>>2] |= buf[start+j+1] << 16;
-        case 1: H32[off+j>>2] |= buf[start+j]   << 24;
+      switch (lm) {
+        case 3: H8[off+j+1|0] = buf[start+j+2];
+        case 2: H8[off+j+2|0] = buf[start+j+1];
+        case 1: H8[off+j+3|0] = buf[start+j];
       }
     };
 
@@ -155,7 +169,7 @@
 
     var slice = function (data, offset) {
       switch (util.getDataType(data)) {
-        case 'string': return data.sliced(offset);
+        case 'string': return data.slice(offset);
         case 'array': return data.slice(offset);
         case 'buffer': return data.slice(offset);
         case 'arraybuffer': return data.slice(offset);
@@ -205,7 +219,8 @@
       // 2. The extended space the algorithm needs (320 byte)
       // 3. The 160 bit state the algoritm uses
       self.heap     = new ArrayBuffer(ceilHeapSize(self.padMaxChunkLen + 320 + 20));
-      self.view     = new Int32Array(self.heap);
+      self.h32      = new Int32Array(self.heap);
+      self.h8       = new Int8Array(self.heap);
       self.core     = RushaCore({Int32Array: Int32Array, DataView: DataView}, {}, self.heap);
       self.buffer   = null;
     };
@@ -233,7 +248,7 @@
 
     // Write data to the heap.
     var write = function (data, chunkOffset, chunkLen) {
-      convFn(data)(self.view, chunkOffset, chunkLen, 0);
+      convFn(data)(self.h8, self.h32, chunkOffset, chunkLen, 0);
     };
 
     // Initialize and call the RushaCore,
