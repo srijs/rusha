@@ -110,38 +110,36 @@
     // Convert a binary string to a big-endian Int32Array using
     // four characters per slot and pad it per the sha1 spec.
     // A binary string is expected to only contain char codes < 256.
-    var convStr = function (bin, start, len, off) {
+    var convStr = function (H32, start, len, off) {
       var str = this, i, m = len % 4, j = len - m;
       for (i = 0; i < j; i = i + 4 |0) {
-        bin[off+i>>2] = str.charCodeAt(start+i)   << 24 |
+        H32[off+i>>2] = str.charCodeAt(start+i)   << 24 |
                         str.charCodeAt(start+i+1) << 16 |
                         str.charCodeAt(start+i+2) <<  8 |
                         str.charCodeAt(start+i+3);
       }
       switch (m) {
-        case 0: bin[off+j>>2] |= str.charCodeAt(start+j+3);
-        case 3: bin[off+j>>2] |= str.charCodeAt(start+j+2) << 8;
-        case 2: bin[off+j>>2] |= str.charCodeAt(start+j+1) << 16;
-        case 1: bin[off+j>>2] |= str.charCodeAt(start+j)   << 24;
+        case 3: H32[off+j>>2] |= str.charCodeAt(start+j+2) << 8;
+        case 2: H32[off+j>>2] |= str.charCodeAt(start+j+1) << 16;
+        case 1: H32[off+j>>2] |= str.charCodeAt(start+j)   << 24;
       }
     };
 
     // Convert a buffer or array to a big-endian Int32Array using
     // four elements per slot and pad it per the sha1 spec.
     // The buffer or array is expected to only contain elements < 256.
-    var convBuf = function (bin, start, len, off) {
+    var convBuf = function (H32, start, len, off) {
       var buf = this, i, m = len % 4, j = len - m;
       for (i = 0; i < j; i = i + 4 |0) {
-        bin[off+i>>2] = buf[start+i]   << 24 |
+        H32[off+i>>2] = buf[start+i]   << 24 |
                         buf[start+i+1] << 16 |
                         buf[start+i+2] <<  8 |
                         buf[start+i+3];
       }
       switch (m) {
-        case 0: bin[off+j>>2] |= buf[start+j+3];
-        case 3: bin[off+j>>2] |= buf[start+j+2] << 8;
-        case 2: bin[off+j>>2] |= buf[start+j+1] << 16;
-        case 1: bin[off+j>>2] |= buf[start+j]   << 24;
+        case 3: H32[off+j>>2] |= buf[start+j+2] << 8;
+        case 2: H32[off+j>>2] |= buf[start+j+1] << 16;
+        case 1: H32[off+j>>2] |= buf[start+j]   << 24;
       }
     };
 
@@ -195,8 +193,8 @@
       return p;
     };
 
-    // Resize the internal data structures to a new capacity.
-    var resize = function (size) {
+    // Initialize the internal data structures to a new capacity.
+    var init = function (size) {
       if (size % 64 > 0) {
         throw new Error('Chunk size must be a multiple of 128 bit');
       }
@@ -212,9 +210,9 @@
       self.buffer   = null;
     };
 
-    // On initialize, resize the datastructures according
-    // to an optional size hint.
-    resize(chunkSize || 64 * 1024);
+    // Iinitializethe datastructures according
+    // to a chunk siyze.
+    init(chunkSize || 64 * 1024);
 
     var initState = function (heap, padMsgLen) {
       var io  = new Int32Array(heap, padMsgLen + 320, 5);
@@ -225,18 +223,11 @@
       io[4] = -1009589776;
     };
 
-    var initChunk = function (chunkLen, msgLen, finalize) {
-      var padChunkLen = chunkLen;
-      if (finalize) {
-        padChunkLen = padlen(chunkLen);
-      }
+    var padChunk = function (chunkLen, msgLen) {
+      var padChunkLen = padlen(chunkLen);
       var view = new Int32Array(self.heap, 0, padChunkLen >> 2);
-      if (finalize) {
-        padZeroes(view, chunkLen);
-      }
-      if (finalize) {
-        padData(view, chunkLen, msgLen);
-      }
+      padZeroes(view, chunkLen);
+      padData(view, chunkLen, msgLen);
       return padChunkLen;
     };
 
@@ -248,7 +239,10 @@
     // Initialize and call the RushaCore,
     // assuming an input buffer of length len * 4.
     var coreCall = function (data, chunkOffset, chunkLen, msgLen, finalize) {
-      var padChunkLen = initChunk(chunkLen, msgLen, finalize);
+      var padChunkLen = chunkLen;
+      if (finalize) {
+        padChunkLen = padChunk(chunkLen, msgLen);
+      }
       write(data, chunkOffset, chunkLen);
       self.core.hash(padChunkLen, self.padMaxChunkLen);
     };
@@ -281,8 +275,8 @@
     // as a hex string.
     this.digest = this.digestFromString =
     this.digestFromBuffer = this.digestFromArrayBuffer =
-    function (str, start) {
-      return hex(rawDigest(str, start).buffer);
+    function (str) {
+      return hex(rawDigest(str).buffer);
     };
 
   };
