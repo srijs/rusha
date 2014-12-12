@@ -159,7 +159,7 @@
     var convBlob = function (H8, H32, start, len, off) {
       var blob = this, i, om = off % 4, lm = len % 4, j = len - lm;
       var buf = new Uint8Array(
-        reader.readAsBinaryString(blob.slice(start, start+len))
+        reader.readAsArrayBuffer(blob.slice(start, start+len))
       );
       if (j > 0) {
         switch (om) {
