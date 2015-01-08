@@ -188,7 +188,7 @@
         case 'array': return convBuf.bind(data);
         case 'buffer': return convBuf.bind(data);
         case 'arraybuffer': return convBuf.bind(new Uint8Array(data));
-        case 'view': return convBuf.bind(new Uint8Array(data.buffer));
+        case 'view': return convBuf.bind(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
         case 'blob': return convBlob.bind(data);
       }
     };
