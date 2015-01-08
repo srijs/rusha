@@ -43,22 +43,18 @@
         var reader = new FileReaderSync(), hasher = new Rusha(4 * 1024 * 1024);
         self.onmessage = function onMessage(event) {
             var hash, data = event.data.data;
-            if (data instanceof Blob) {
-                try {
-                    data = reader.readAsBinaryString(data);
-                } catch (e) {
-                    self.postMessage({
-                        id: event.data.id,
-                        error: e.name
-                    });
-                    return;
-                }
+            try {
+                hash = hasher.digest(data);
+                self.postMessage({
+                    id: event.data.id,
+                    hash: hash
+                });
+            } catch (e) {
+                self.postMessage({
+                    id: event.data.id,
+                    error: e.name
+                });
             }
-            hash = hasher.digest(data);
-            self.postMessage({
-                id: event.data.id,
-                hash: hash
-            });
         };
     }
     var util = {
@@ -77,6 +73,9 @@
                 }
                 if (data.buffer instanceof ArrayBuffer) {
                     return 'view';
+                }
+                if (data instanceof Blob) {
+                    return 'blob';
                 }
                 throw new Error('Unsupported data type.');
             }
@@ -158,6 +157,33 @@
                 H8[off + j + 3 | 0] = buf[start + j];
             }
         };
+        var convBlob = function (H8, H32, start, len, off) {
+            var blob = this, i, om = off % 4, lm = len % 4, j = len - lm;
+            var buf = new Uint8Array(reader.readAsArrayBuffer(blob.slice(start, start + len)));
+            if (j > 0) {
+                switch (om) {
+                case 0:
+                    H8[off + 3 | 0] = buf[0];
+                case 1:
+                    H8[off + 2 | 0] = buf[1];
+                case 2:
+                    H8[off + 1 | 0] = buf[2];
+                case 3:
+                    H8[off | 0] = buf[3];
+                }
+            }
+            for (i = 4 - om; i < j; i = i += 4 | 0) {
+                H32[off + i >> 2] = buf[i] << 24 | buf[i + 1] << 16 | buf[i + 2] << 8 | buf[i + 3];
+            }
+            switch (lm) {
+            case 3:
+                H8[off + j + 1 | 0] = buf[j + 2];
+            case 2:
+                H8[off + j + 2 | 0] = buf[j + 1];
+            case 1:
+                H8[off + j + 3 | 0] = buf[j];
+            }
+        };
         var convFn = function (data) {
             switch (util.getDataType(data)) {
             case 'string':
@@ -169,7 +195,9 @@
             case 'arraybuffer':
                 return convBuf.bind(new Uint8Array(data));
             case 'view':
-                return convBuf.bind(new Uint8Array(data.buffer));
+                return convBuf.bind(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+            case 'blob':
+                return convBlob.bind(data);
             }
         };
         var slice = function (data, offset) {
@@ -279,7 +307,7 @@
         };
         // Calculate the hash digest as an array of 5 32bit integers.
         var rawDigest = this.rawDigest = function (str) {
-                var msgLen = str.byteLength || str.length;
+                var msgLen = str.byteLength || str.length || str.size;
                 initState(self$2.heap, self$2.padMaxChunkLen);
                 var chunkOffset = 0, chunkLen = self$2.maxChunkLen, last;
                 for (chunkOffset = 0; msgLen > chunkOffset + chunkLen; chunkOffset += chunkLen) {
