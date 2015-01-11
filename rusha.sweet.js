@@ -36,7 +36,7 @@
 
   // If we're running in a DOM context, export
   // the Rusha object to toplevel.
-  if (typeof window !== 'undefined') {
+  else if (typeof window !== 'undefined') {
     window.Rusha = Rusha;
   }
 

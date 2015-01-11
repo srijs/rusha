@@ -30,10 +30,7 @@
     // If we'e running in Node.JS, export a module.
     if (typeof module !== 'undefined') {
         module.exports = Rusha;
-    }
-    // If we're running in a DOM context, export
-    // the Rusha object to toplevel.
-    else if (typeof window !== 'undefined') {
+    } else if (typeof window !== 'undefined') {
         window.Rusha = Rusha;
     }
     // If we're running in a webworker, accept
