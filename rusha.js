@@ -96,6 +96,7 @@
         };
         var padData = function (bin, chunkLen, msgLen) {
             bin[chunkLen >> 2] |= 128 << 24 - (chunkLen % 4 << 3);
+            bin[((chunkLen >> 2) + 2 & ~15) + 14] = msgLen >> 29;
             bin[((chunkLen >> 2) + 2 & ~15) + 15] = msgLen << 3;
         };
         // Convert a binary string and write it to the heap.
