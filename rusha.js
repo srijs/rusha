@@ -96,6 +96,7 @@
         };
         var padData = function (bin, chunkLen, msgLen) {
             bin[chunkLen >> 2] |= 128 << 24 - (chunkLen % 4 << 3);
+            bin[((chunkLen >> 2) + 2 & ~15) + 14] = msgLen >> 29;
             bin[((chunkLen >> 2) + 2 & ~15) + 15] = msgLen << 3;
         };
         // Convert a binary string and write it to the heap.
@@ -304,7 +305,7 @@
         };
         // Calculate the hash digest as an array of 5 32bit integers.
         var rawDigest = this.rawDigest = function (str) {
-                var msgLen = str.byteLength || str.length || str.size;
+                var msgLen = str.byteLength || str.length || str.size || 0;
                 initState(self$2.heap, self$2.padMaxChunkLen);
                 var chunkOffset = 0, chunkLen = self$2.maxChunkLen, last;
                 for (chunkOffset = 0; msgLen > chunkOffset + chunkLen; chunkOffset += chunkLen) {
