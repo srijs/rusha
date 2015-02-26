@@ -302,7 +302,7 @@
 
     // Calculate the hash digest as an array of 5 32bit integers.
     var rawDigest = this.rawDigest = function (str) {
-      var msgLen = (str.byteLength || str.length) || str.size;
+      var msgLen = str.byteLength || str.length || str.size || 0;
       initState(self.heap, self.padMaxChunkLen);
       var chunkOffset = 0, chunkLen = self.maxChunkLen, last;
       for (chunkOffset = 0; msgLen > chunkOffset + chunkLen; chunkOffset += chunkLen) {
