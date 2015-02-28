@@ -257,6 +257,7 @@
     init(chunkSize || 64 * 1024);
 
     var initState = function (heap, padMsgLen) {
+      self.chunkOffset = 0;
       var io  = new Int32Array(heap, padMsgLen + 320, 5);
       io[0] =  1732584193;
       io[1] =  -271733879;
@@ -320,7 +321,24 @@
     function (str) {
       return hex(rawDigest(str).buffer);
     };
-
+    this.updateInit = function() {
+      initState(self.heap, self.padMaxChunkLen);
+    };
+    this.update = function(str) {
+      var chunkLen = str.byteLength || str.length || str.size || 0;
+      var accumulatedMsgSize = self.chunkOffset + chunkLen;
+      coreCall(str, 0, chunkLen, accumulatedMsgSize, chunkLen != self.maxChunkLen);
+      self.chunkOffset = accumulatedMsgSize; // chunkOffset is the the total size of the received message after calling upload()
+    };
+    var rawFinalize = this.rawFinalize = function () {
+      if (self.chunkOffset % self.maxChunkLen === 0) {
+        coreCall([], 0, 0, self.chunkOffset, true);
+      }
+      return getRawDigest(self.heap, self.padMaxChunkLen).buffer;
+    };
+    this.hexFinalize = function () {
+      return hex(rawFinalize());
+    };
   };
 
   macro rol1  { rule { ($v:expr) } => { ($v <<  1 | $v >>> 31) } }

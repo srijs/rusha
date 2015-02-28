@@ -264,6 +264,7 @@
         // to a chunk siyze.
         init(chunkSize || 64 * 1024);
         var initState = function (heap, padMsgLen) {
+            self$2.chunkOffset = 0;
             var io = new Int32Array(heap, padMsgLen + 320, 5);
             io[0] = 1732584193;
             io[1] = -271733879;
@@ -318,6 +319,25 @@
         // as a hex string.
         this.digest = this.digestFromString = this.digestFromBuffer = this.digestFromArrayBuffer = function (str) {
             return hex(rawDigest(str).buffer);
+        };
+        this.updateInit = function () {
+            initState(self$2.heap, self$2.padMaxChunkLen);
+        };
+        this.update = function (str) {
+            var chunkLen = str.byteLength || str.length || str.size || 0;
+            var accumulatedMsgSize = self$2.chunkOffset + chunkLen;
+            coreCall(str, 0, chunkLen, accumulatedMsgSize, chunkLen != self$2.maxChunkLen);
+            self$2.chunkOffset = accumulatedMsgSize;
+        }    // chunkOffset is the the total size of the received message after calling upload()
+;
+        var rawFinalize = this.rawFinalize = function () {
+                if (self$2.chunkOffset % self$2.maxChunkLen === 0) {
+                    coreCall([], 0, 0, self$2.chunkOffset, true);
+                }
+                return getRawDigest(self$2.heap, self$2.padMaxChunkLen).buffer;
+            };
+        this.hexFinalize = function () {
+            return hex(rawFinalize());
         };
     }
     ;

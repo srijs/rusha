@@ -88,5 +88,15 @@
         assertBytesEqual(abcHashedInt32Array, r.rawDigest(abcArrayBuffer));
       });
     });
+
+    describe('chunked', function() {
+      it('returns the correct hash for two small updates', function() {
+        r.updateInit();
+        r.update('a');
+        r.update('bc');
+        assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', r.hexFinalize());
+      });
+    });
+
   });
 })();
