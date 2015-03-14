@@ -254,7 +254,7 @@
             self$2.heap = new ArrayBuffer(ceilHeapSize(self$2.padMaxChunkLen + 320 + 20));
             self$2.h32 = new Int32Array(self$2.heap);
             self$2.h8 = new Int8Array(self$2.heap);
-            self$2.core = RushaCore({
+            self$2.core = new Rusha._core({
                 Int32Array: Int32Array,
                 DataView: DataView
             }, {}, self$2.heap);
@@ -327,7 +327,7 @@
     // with the SHA1 spec at hand, it is obvious this almost a textbook
     // implementation that has a few functions hand-inlined and a few loops
     // hand-unrolled.
-    function RushaCore(stdlib, foreign, heap) {
+    Rusha._core = function RushaCore(stdlib, foreign, heap) {
         'use asm';
         var H = new stdlib.Int32Array(heap);
         function hash(k, x) {
@@ -354,7 +354,6 @@
                     y2 = y1 << 30 | y1 >>> 2;
                     y1 = y0;
                     y0 = t0;
-                    ;
                     H[k + j >> 2] = t1;
                 }
                 for (j = k + 64 | 0; (j | 0) < (k + 80 | 0); j = j + 4 | 0) {
@@ -365,7 +364,6 @@
                     y2 = y1 << 30 | y1 >>> 2;
                     y1 = y0;
                     y0 = t0;
-                    ;
                     H[j >> 2] = t1;
                 }
                 for (j = k + 80 | 0; (j | 0) < (k + 160 | 0); j = j + 4 | 0) {
@@ -376,7 +374,6 @@
                     y2 = y1 << 30 | y1 >>> 2;
                     y1 = y0;
                     y0 = t0;
-                    ;
                     H[j >> 2] = t1;
                 }
                 for (j = k + 160 | 0; (j | 0) < (k + 240 | 0); j = j + 4 | 0) {
@@ -387,7 +384,6 @@
                     y2 = y1 << 30 | y1 >>> 2;
                     y1 = y0;
                     y0 = t0;
-                    ;
                     H[j >> 2] = t1;
                 }
                 for (j = k + 240 | 0; (j | 0) < (k + 320 | 0); j = j + 4 | 0) {
@@ -398,7 +394,6 @@
                     y2 = y1 << 30 | y1 >>> 2;
                     y1 = y0;
                     y0 = t0;
-                    ;
                     H[j >> 2] = t1;
                 }
                 y0 = y0 + z0 | 0;
@@ -414,5 +409,5 @@
             H[x + 336 >> 2] = y4;
         }
         return { hash: hash };
-    }
+    };
 }());
