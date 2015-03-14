@@ -4,35 +4,50 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Rusha by srijs</title>
-
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="javascripts/scale.fix.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
     <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
   </head>
   <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/srijs/rusha">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/srijs/rusha/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/srijs/rusha/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
     <div class="wrapper">
-      <header>
-        <h1 class="header">Rusha</h1>
-        <p class="header">High-performance pure-javascript SHA1 implementation suitable for large binary data, reaching up to half the native speed.</p>
 
-        <ul>
-          <li class="download"><a class="buttons" href="https://github.com/srijs/rusha/zipball/master">Download ZIP</a></li>
-          <li class="download"><a class="buttons" href="https://github.com/srijs/rusha/tarball/master">Download TAR</a></li>
-          <li><a class="buttons github" href="https://github.com/srijs/rusha">View On GitHub</a></li>
-        </ul>
-
-        <p class="header">This project is maintained by <a class="header name" href="https://github.com/srijs">srijs</a></p>
-
-
-      </header>
       <section>
-        <p><img src="https://docs.google.com/spreadsheet/oimg?key=0Ag9CYh5kHpegdDB1ZG16WU1xVFgxdjRuQUVwQXRnWVE&amp;oid=1&amp;zx=pcatr2aits9" alt="performance chart"></p>
+        <div id="title">
+          <h1>Rusha</h1>
+          <p>High-performance pure-javascript SHA1 implementation suitable for large binary data, reaching up to half the native speed.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/srijs">srijs</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
 
-<h2>Prologue: The Sad State of Javascript SHA1 implementations</h2>
+        <h1>
+<a id="rusha-" class="anchor" href="#rusha-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Rusha <a href="https://travis-ci.org/srijs/rusha"><img src="https://travis-ci.org/srijs/rusha.png?branch=master" alt="Build Status"></a>
+</h1>
+
+<p><em>A high-performance pure-javascript SHA1 implementation suitable for large binary data.</em></p>
+
+<p><a href="https://nodei.co/npm/rusha/"><img src="https://nodei.co/npm/rusha.png?downloads=true&amp;downloadRank=true" alt="NPM"></a></p>
+
+<h2>
+<a id="prologue-the-sad-state-of-javascript-sha1-implementations" class="anchor" href="#prologue-the-sad-state-of-javascript-sha1-implementations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Prologue: The Sad State of Javascript SHA1 implementations</h2>
 
 <p>When we started experimenting with alternative upload technologies at <a href="http://doctape.com">doctape</a> that required creating SHA1 hashes of the data locally on the client, it quickly became obvious that there were no performant pure-js implementations of SHA1 that worked correctly on binary data.</p>
 
@@ -44,9 +59,11 @@
 
 <p>The result of this process is Rusha, a SHA1 hash function that works flawlessly on large amounts binary data, such as binary strings or ArrayBuffers returned by the HTML5 File API, and leverages the soon-to-be-landed-in-firefox <a href="http://asmjs.org/spec/latest/">asm.js</a> with whose support its within <em>half of native speed</em>!</p>
 
-<h2>Installing</h2>
+<h2>
+<a id="installing" class="anchor" href="#installing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installing</h2>
 
-<h3>Node.JS</h3>
+<h3>
+<a id="nodejs" class="anchor" href="#nodejs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Node.JS</h3>
 
 <p>There is really no point in doing this, since Node.JS already has a wonderful <code>crypto</code> module that is leveraging low-level hardware instructions to perform really nice. Your can see the comparison below in the benchmarks.</p>
 
@@ -54,7 +71,8 @@
 
 <p>If you still want to do this, anyhow, just <code>require()</code> the <code>rusha.js</code> file, follow the instructions on <em>Using the Rusha Object</em>.</p>
 
-<h3>Browser</h3>
+<h3>
+<a id="browser" class="anchor" href="#browser" aria-hidden="true"><span class="octicon octicon-link"></span></a>Browser</h3>
 
 <p>Rusha is available on <a href="http://twitter.github.com/bower/">bower</a> via <code>bower install rusha</code>.</p>
 
@@ -62,7 +80,8 @@
 
 <p>If you can't, for any reason, use Web Workers, include the <code>rusha.js</code> file in a <code>&lt;script&gt;</code> tag and follow the instructions on <em>Using the Rusha Object</em>.</p>
 
-<h2>Using the Rusha Object</h2>
+<h2>
+<a id="using-the-rusha-object" class="anchor" href="#using-the-rusha-object" aria-hidden="true"><span class="octicon octicon-link"></span></a>Using the Rusha Object</h2>
 
 <p>Your instantiate a new Rusha object by doing <code>var r = new Rusha(optionalSizeHint)</code>. When created, it provides the following methods:</p>
 
@@ -75,30 +94,48 @@
 <code>Rusha#digestFromBuffer(b)</code>: Create a hex digest from a <code>Buffer</code> or <code>Array</code>. Both are expected to only contain elements &lt; 256.</li>
 <li>
 <code>Rusha#digestFromArrayBuffer(a)</code>: Create a hex digest from an <code>ArrayBuffer</code> object.</li>
-</ul><h2>Using the Rusha Worker</h2>
+<li>
+<code>Rusha#rawDigest(d)</code>: Behaves just like #digest(d), except that it returns the digest as an Int32Array of size 5.</li>
+</ul>
+
+<h2>
+<a id="using-the-rusha-worker" class="anchor" href="#using-the-rusha-worker" aria-hidden="true"><span class="octicon octicon-link"></span></a>Using the Rusha Worker</h2>
 
 <p>You can send your instance of the web worker messages in the format <code>{id: jobid, data: dataobject}</code>. The worker then sends back a message in the format <code>{id: jobid, hash: hash}</code>, were jobid is the id of the job previously received and hash is the hash of the data-object you passed, be it a <code>Blob</code>, <code>Array</code>, <code>Buffer</code>, <code>ArrayBuffer</code> or <code>String</code>.</p>
 
-<h2>Benchmarks</h2>
+<h2>
+<a id="development" class="anchor" href="#development" aria-hidden="true"><span class="octicon octicon-link"></span></a>Development</h2>
+
+<ul>
+<li>Download npm dependencies with <code>npm install</code>
+</li>
+<li>Source file to be edited is <code>rusha.sweet.js</code>
+</li>
+<li>Build with <code>npm run build</code>
+</li>
+<li>Run tests with <code>npm test</code>
+</li>
+</ul>
+
+<h2>
+<a id="benchmarks" class="anchor" href="#benchmarks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Benchmarks</h2>
 
 <p>Tested were my Rusha implementation, the sha1.js implementation by <a href="http://pajhome.org.uk/crypt/md5/sha1.html">P. A. Johnston</a>, Tim Caswell's <a href="http://github.com/openpeer/cifre">Cifre</a> and the Node.JS native implementation.</p>
 
-<p>If you want to check the performance for yourself in your own browser, I compiled a <a href="http://jsperf.com/rusha/2">JSPerf Page</a>.</p>
+<p>If you want to check the performance for yourself in your own browser, I compiled a <a href="http://jsperf.com/rusha/13">JSPerf Page</a>.</p>
 
 <p>A normalized estimation based on the best results for each implementation, smaller is better:
-<img src="http://awesam.de/rusha/bench/unscientific01.png" alt="rough performance graph"></p>
+<img src="http://srijs.github.io/rusha/bench/unscientific01.png" alt="rough performance graph"></p>
 
 <p>Results per Implementation and Platform:
 <img src="https://docs.google.com/spreadsheet/oimg?key=0Ag9CYh5kHpegdDB1ZG16WU1xVFgxdjRuQUVwQXRnWVE&amp;oid=1&amp;zx=pcatr2aits9" alt="performance chart"></p>
 
 <p>All tests were performed on a MacBook Air 1.7 GHz Intel Core i5 and 4 GB 1333 MHz DDR3.</p>
       </section>
-      <footer>
-        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
-      </footer>
+
     </div>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-		          <script type="text/javascript">
+              <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
