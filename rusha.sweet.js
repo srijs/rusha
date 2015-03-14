@@ -248,7 +248,7 @@
       self.heap     = new ArrayBuffer(ceilHeapSize(self.padMaxChunkLen + 320 + 20));
       self.h32      = new Int32Array(self.heap);
       self.h8       = new Int8Array(self.heap);
-      self.core     = RushaCore({Int32Array: Int32Array, DataView: DataView}, {}, self.heap);
+      self.core     = new Rusha._core({Int32Array: Int32Array, DataView: DataView}, {}, self.heap);
       self.buffer   = null;
     };
 
@@ -356,7 +356,7 @@
   // with the SHA1 spec at hand, it is obvious this almost a textbook
   // implementation that has a few functions hand-inlined and a few loops
   // hand-unrolled.
-  function RushaCore (stdlib, foreign, heap) {
+  Rusha._core = function RushaCore (stdlib, foreign, heap) {
     "use asm";
 
     var H = new stdlib.Int32Array(heap);
@@ -387,35 +387,35 @@
         for (j = 0; (j|0) < 64; j = j + 4 |0) {
           t1 = H[i+j>>2]|0;
           t0 = roundL(y0, F0(y1, y2, y3)) + (roundR(y4, t1) + 1518500249 |0) |0;
-          swap(y0, y1, y2, y3, y4, t0);
+          swap(y0, y1, y2, y3, y4, t0)
           H[k+j>>2] = t1;
         }
 
         for (j = k + 64 |0; (j|0) < (k + 80 |0); j = j + 4 |0) {
           t1 = extended(H, j);
           t0 = roundL(y0, F0(y1, y2, y3)) + (roundR(y4, t1) + 1518500249 |0) |0;
-          swap(y0, y1, y2, y3, y4, t0);
+          swap(y0, y1, y2, y3, y4, t0)
           H[j>>2] = t1;
         }
 
         for (j = k + 80 |0; (j|0) < (k + 160 |0); j = j + 4 |0) {
           t1 = extended(H, j);
           t0 = roundL(y0, F1(y1, y2, y3)) + (roundR(y4, t1) + 1859775393 |0) |0;
-          swap(y0, y1, y2, y3, y4, t0);
+          swap(y0, y1, y2, y3, y4, t0)
           H[j>>2] = t1;
         }
 
         for (j = k + 160 |0; (j|0) < (k + 240 |0); j = j + 4 |0) {
           t1 = extended(H, j);
           t0 = roundL(y0, F2(y1, y2, y3)) + (roundR(y4, t1) - 1894007588 |0) |0;
-          swap(y0, y1, y2, y3, y4, t0);
+          swap(y0, y1, y2, y3, y4, t0)
           H[j>>2] = t1;
         }
 
         for (j = k + 240 |0; (j|0) < (k + 320 |0); j = j + 4 |0) {
           t1 = extended(H, j);
           t0 = roundL(y0, F1(y1, y2, y3)) + (roundR(y4, t1) - 899497514 |0) |0;
-          swap(y0, y1, y2, y3, y4, t0);
+          swap(y0, y1, y2, y3, y4, t0)
           H[j>>2] = t1;
         }
 

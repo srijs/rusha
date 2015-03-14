@@ -21,6 +21,12 @@ module.exports = function (grunt) {
         dest: '<%= pkg.name %>.min.js'
       }
     },
+    browserify: {
+      test: {
+        src: ['<%= pkg.name %>.min.js', 'test/test.js'],
+        dest: 'test/bundle.js'
+      }
+    },
     mochaTest: {
       test: {
         options: {
@@ -57,13 +63,22 @@ module.exports = function (grunt) {
 
   grunt.loadNpmTasks('grunt-sweet.js');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-saucelabs');
 
-  grunt.registerTask('test', ['sweetjs', 'mochaTest']);
+  grunt.registerTask('test', [
+    'sweetjs', 'uglify',
+    'browserify',
+    'mochaTest'
+  ]);
 
-  grunt.registerTask('test-saucelabs', ['sweetjs', 'connect', 'saucelabs-mocha']);
+  grunt.registerTask('test-saucelabs', [
+    'sweetjs', 'uglify',
+    'browserify',
+    'connect', 'saucelabs-mocha'
+  ]);
 
   grunt.registerTask('build', ['sweetjs', 'uglify']);
 
