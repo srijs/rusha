@@ -58,7 +58,7 @@ You can send your instance of the web worker messages in the format `{id: jobid,
 
 Tested were my Rusha implementation, the sha1.js implementation by [P. A. Johnston](http://pajhome.org.uk/crypt/md5/sha1.html), Tim Caswell's [Cifre](http://github.com/openpeer/cifre) and the Node.JS native implementation.
 
-If you want to check the performance for yourself in your own browser, I compiled a [JSPerf Page](http://jsperf.com/rusha/2).
+If you want to check the performance for yourself in your own browser, I compiled a [JSPerf Page](http://jsperf.com/rusha/13).
 
 A normalized estimation based on the best results for each implementation, smaller is better:
 ![rough performance graph](http://awesam.de/rusha/bench/unscientific01.png)
