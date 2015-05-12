@@ -58,16 +58,16 @@
 
     describe('digestFromBuffer', function() {
       it('returns hex string from buffer', function() {
-        assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', r.digest(abcBuffer));
+        assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', r.digestFromBuffer(abcBuffer));
       });
       it('returns hex string from array', function() {
-        assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', r.digest(abcArray));
+        assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', r.digestFromBuffer(abcArray));
       });
     });
 
     describe('digestFromArrayBuffer', function() {
       it('returns hex string from ArrayBuffer', function() {
-        assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', r.digest(abcArrayBuffer));
+        assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', r.digestFromArrayBuffer(abcArrayBuffer));
       });
     });
 
