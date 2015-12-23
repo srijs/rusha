@@ -176,13 +176,18 @@
       }
     };
 
+    // Precompute 00 - ff strings
+    var precomputedHex = new Array(256);
+    for (var i = 0; i < 256; i++) {
+      precomputedHex[i] = (i < 0x10 ? '0' : '') + i.toString(16);
+    }
+
     // Convert an ArrayBuffer into its hexadecimal string representation.
     var hex = function (arrayBuffer) {
-      var i, x, hex_tab = "0123456789abcdef", res = [], binarray = new Uint8Array(arrayBuffer);
-      for (i = 0; i < binarray.length; i++) {
-        x = binarray[i];
-        res[i] = hex_tab.charAt((x >>  4) & 0xF) +
-                 hex_tab.charAt((x >>  0) & 0xF);
+      var binarray = new Uint8Array(arrayBuffer);
+      var res = new Array(arrayBuffer.byteLength);
+      for (var i = 0; i < res.length; i++) {
+        res[i] = precomputedHex[binarray[i]];
       }
       return res.join('');
     };
