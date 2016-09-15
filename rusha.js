@@ -1,4 +1,5 @@
-/*
+(function () {
+    var /*
  * Rusha, a JavaScript implementation of the Secure Hash Algorithm, SHA-1,
  * as defined in FIPS PUB 180-1, tuned for high performance with large inputs.
  * (http://github.com/srijs/rusha)
@@ -26,56 +27,52 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-(function () {
-    var util = {
-            getDataType: function (data) {
-                if (typeof data === 'string') {
-                    return 'string';
-                }
-                if (data instanceof Array) {
-                    return 'array';
-                }
-                if (typeof global !== 'undefined' && global.Buffer && global.Buffer.isBuffer(data)) {
-                    return 'buffer';
-                }
-                if (data instanceof ArrayBuffer) {
-                    return 'arraybuffer';
-                }
-                if (data.buffer instanceof ArrayBuffer) {
-                    return 'view';
-                }
-                if (data instanceof Blob) {
-                    return 'blob';
-                }
-                throw new Error('Unsupported data type.');
+    util = {
+        getDataType: function (data) {
+            if (typeof data === 'string') {
+                return 'string';
             }
-        };
-    // The Rusha object is a wrapper around the low-level RushaCore.
-    // It provides means of converting different inputs to the
-    // format accepted by RushaCore as well as other utility methods.
+            if (data instanceof Array) {
+                return 'array';
+            }
+            if (typeof global !== 'undefined' && global.Buffer && global.Buffer.isBuffer(data)) {
+                return 'buffer';
+            }
+            if (data instanceof ArrayBuffer) {
+                return 'arraybuffer';
+            }
+            if (data.buffer instanceof ArrayBuffer) {
+                return 'view';
+            }
+            if (data instanceof Blob) {
+                return 'blob';
+            }
+            throw new Error('Unsupported data type.');
+        }
+    };
     function Rusha(chunkSize) {
         'use strict';
-        // Private object structure.
-        var self$2 = { fill: 0 };
-        // Calculate the length of buffer that the sha1 routine uses
+        var // Private object structure.
+        self$2 = { fill: 0 };
+        var // Calculate the length of buffer that the sha1 routine uses
         // including the padding.
-        var padlen = function (len) {
+        padlen = function (len) {
             for (len += 9; len % 64 > 0; len += 1);
             return len;
         };
         var padZeroes = function (bin, len) {
-            for (var i = len >> 2; i < bin.length; i++)
-                bin[i] = 0;
+            for (var i$2 = len >> 2; i$2 < bin.length; i$2++)
+                bin[i$2] = 0;
         };
         var padData = function (bin, chunkLen, msgLen) {
             bin[chunkLen >> 2] |= 128 << 24 - (chunkLen % 4 << 3);
             bin[((chunkLen >> 2) + 2 & ~15) + 14] = msgLen >> 29;
             bin[((chunkLen >> 2) + 2 & ~15) + 15] = msgLen << 3;
         };
-        // Convert a binary string and write it to the heap.
+        var // Convert a binary string and write it to the heap.
         // A binary string is expected to only contain char codes < 256.
-        var convStr = function (H8, H32, start, len, off) {
-            var str = this, i, om = off % 4, lm = len % 4, j = len - lm;
+        convStr = function (H8, H32, start, len, off) {
+            var str = this, i$2, om = off % 4, lm = len % 4, j = len - lm;
             if (j > 0) {
                 switch (om) {
                 case 0:
@@ -88,8 +85,8 @@
                     H8[off | 0] = str.charCodeAt(start + 3);
                 }
             }
-            for (i = om; i < j; i = i + 4 | 0) {
-                H32[off + i >> 2] = str.charCodeAt(start + i) << 24 | str.charCodeAt(start + i + 1) << 16 | str.charCodeAt(start + i + 2) << 8 | str.charCodeAt(start + i + 3);
+            for (i$2 = om; i$2 < j; i$2 = i$2 + 4 | 0) {
+                H32[off + i$2 >> 2] = str.charCodeAt(start + i$2) << 24 | str.charCodeAt(start + i$2 + 1) << 16 | str.charCodeAt(start + i$2 + 2) << 8 | str.charCodeAt(start + i$2 + 3);
             }
             switch (lm) {
             case 3:
@@ -100,10 +97,10 @@
                 H8[off + j + 3 | 0] = str.charCodeAt(start + j);
             }
         };
-        // Convert a buffer or array and write it to the heap.
+        var // Convert a buffer or array and write it to the heap.
         // The buffer or array is expected to only contain elements < 256.
-        var convBuf = function (H8, H32, start, len, off) {
-            var buf = this, i, om = off % 4, lm = len % 4, j = len - lm;
+        convBuf = function (H8, H32, start, len, off) {
+            var buf = this, i$2, om = off % 4, lm = len % 4, j = len - lm;
             if (j > 0) {
                 switch (om) {
                 case 0:
@@ -116,8 +113,8 @@
                     H8[off | 0] = buf[start + 3];
                 }
             }
-            for (i = 4 - om; i < j; i = i += 4 | 0) {
-                H32[off + i >> 2] = buf[start + i] << 24 | buf[start + i + 1] << 16 | buf[start + i + 2] << 8 | buf[start + i + 3];
+            for (i$2 = 4 - om; i$2 < j; i$2 = i$2 += 4 | 0) {
+                H32[off + i$2 >> 2] = buf[start + i$2] << 24 | buf[start + i$2 + 1] << 16 | buf[start + i$2 + 2] << 8 | buf[start + i$2 + 3];
             }
             switch (lm) {
             case 3:
@@ -129,7 +126,7 @@
             }
         };
         var convBlob = function (H8, H32, start, len, off) {
-            var blob = this, i, om = off % 4, lm = len % 4, j = len - lm;
+            var blob = this, i$2, om = off % 4, lm = len % 4, j = len - lm;
             var buf = new Uint8Array(reader.readAsArrayBuffer(blob.slice(start, start + len)));
             if (j > 0) {
                 switch (om) {
@@ -143,8 +140,8 @@
                     H8[off | 0] = buf[3];
                 }
             }
-            for (i = 4 - om; i < j; i = i += 4 | 0) {
-                H32[off + i >> 2] = buf[i] << 24 | buf[i + 1] << 16 | buf[i + 2] << 8 | buf[i + 3];
+            for (i$2 = 4 - om; i$2 < j; i$2 = i$2 += 4 | 0) {
+                H32[off + i$2 >> 2] = buf[i$2] << 24 | buf[i$2 + 1] << 16 | buf[i$2 + 2] << 8 | buf[i$2 + 3];
             }
             switch (lm) {
             case 3:
@@ -185,12 +182,17 @@
                 return data.buffer.slice(offset);
             }
         };
-        // Convert an ArrayBuffer into its hexadecimal string representation.
-        var hex = function (arrayBuffer) {
-            var i, x, hex_tab = '0123456789abcdef', res = [], binarray = new Uint8Array(arrayBuffer);
-            for (i = 0; i < binarray.length; i++) {
-                x = binarray[i];
-                res[i] = hex_tab.charAt(x >> 4 & 15) + hex_tab.charAt(x >> 0 & 15);
+        var // Precompute 00 - ff strings
+        precomputedHex = new Array(256);
+        for (var i = 0; i < 256; i++) {
+            precomputedHex[i] = (i < 16 ? '0' : '') + i.toString(16);
+        }
+        var // Convert an ArrayBuffer into its hexadecimal string representation.
+        hex = function (arrayBuffer) {
+            var binarray = new Uint8Array(arrayBuffer);
+            var res = new Array(arrayBuffer.byteLength);
+            for (var i$2 = 0; i$2 < res.length; i$2++) {
+                res[i$2] = precomputedHex[binarray[i$2]];
             }
             return res.join('');
         };
@@ -200,21 +202,21 @@
             // 2^n for n in [12, 24) or 2^24 * n for n ≥ 1.
             // Also, byteLengths smaller than 2^16 are deprecated.
             var p;
-            // If v is smaller than 2^16, the smallest possible solution
-            // is 2^16.
-            if (v <= 65536)
+            if (// If v is smaller than 2^16, the smallest possible solution
+                // is 2^16.
+                v <= 65536)
                 return 65536;
-            // If v < 2^24, we round up to 2^n,
-            // otherwise we round up to 2^24 * n.
-            if (v < 16777216) {
+            if (// If v < 2^24, we round up to 2^n,
+                // otherwise we round up to 2^24 * n.
+                v < 16777216) {
                 for (p = 1; p < v; p = p << 1);
             } else {
                 for (p = 16777216; p < v; p += 16777216);
             }
             return p;
         };
-        // Initialize the internal data structures to a new capacity.
-        var init = function (size) {
+        var // Initialize the internal data structures to a new capacity.
+        init = function (size) {
             if (size % 64 > 0) {
                 throw new Error('Chunk size must be a multiple of 128 bit');
             }
@@ -251,13 +253,13 @@
             padData(view, chunkLen, msgLen);
             return padChunkLen;
         };
-        // Write data to the heap.
-        var write = function (data, chunkOffset, chunkLen) {
+        var // Write data to the heap.
+        write = function (data, chunkOffset, chunkLen) {
             convFn(data)(self$2.h8, self$2.h32, chunkOffset, chunkLen, 0);
         };
-        // Initialize and call the RushaCore,
+        var // Initialize and call the RushaCore,
         // assuming an input buffer of length len * 4.
-        var coreCall = function (data, chunkOffset, chunkLen, msgLen, finalize) {
+        coreCall = function (data, chunkOffset, chunkLen, msgLen, finalize) {
             var padChunkLen = chunkLen;
             if (finalize) {
                 padChunkLen = padChunk(chunkLen, msgLen);
@@ -276,17 +278,17 @@
             arr.setInt32(16, io[4], false);
             return out;
         };
-        // Calculate the hash digest as an array of 5 32bit integers.
-        var rawDigest = this.rawDigest = function (str) {
-                var msgLen = str.byteLength || str.length || str.size || 0;
-                initState(self$2.heap, self$2.padMaxChunkLen);
-                var chunkOffset = 0, chunkLen = self$2.maxChunkLen, last;
-                for (chunkOffset = 0; msgLen > chunkOffset + chunkLen; chunkOffset += chunkLen) {
-                    coreCall(str, chunkOffset, chunkLen, msgLen, false);
-                }
-                coreCall(str, chunkOffset, msgLen - chunkOffset, msgLen, true);
-                return getRawDigest(self$2.heap, self$2.padMaxChunkLen);
-            };
+        var // Calculate the hash digest as an array of 5 32bit integers.
+        rawDigest = this.rawDigest = function (str) {
+            var msgLen = str.byteLength || str.length || str.size || 0;
+            initState(self$2.heap, self$2.padMaxChunkLen);
+            var chunkOffset = 0, chunkLen = self$2.maxChunkLen, last;
+            for (chunkOffset = 0; msgLen > chunkOffset + chunkLen; chunkOffset += chunkLen) {
+                coreCall(str, chunkOffset, chunkLen, msgLen, false);
+            }
+            coreCall(str, chunkOffset, msgLen - chunkOffset, msgLen, true);
+            return getRawDigest(self$2.heap, self$2.padMaxChunkLen);
+        };
         // The digest and digestFrom* interface returns the hash digest
         // as a hex string.
         this.digest = this.digestFromString = this.digestFromBuffer = this.digestFromArrayBuffer = function (str) {
@@ -383,16 +385,18 @@
         }
         return { hash: hash };
     };
-    // If we'e running in Node.JS, export a module.
-    if (typeof module !== 'undefined') {
+    if (// If we'e running in Node.JS, export a module.
+        typeof module !== 'undefined') {
         module.exports = Rusha;
-    } else if (typeof window !== 'undefined') {
+    } else if (// If we're running in a DOM context, export
+        // the Rusha object to toplevel.
+        typeof window !== 'undefined') {
         window.Rusha = Rusha;
     }
-    // If we're running in a webworker, accept
-    // messages containing a jobid and a buffer
-    // or blob object, and return the hash result.
-    if (typeof FileReaderSync !== 'undefined') {
+    if (// If we're running in a webworker, accept
+        // messages containing a jobid and a buffer
+        // or blob object, and return the hash result.
+        typeof FileReaderSync !== 'undefined') {
         var reader = new FileReaderSync(), hasher = new Rusha(4 * 1024 * 1024);
         self.onmessage = function onMessage(event) {
             var hash, data = event.data.data;
