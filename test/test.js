@@ -50,6 +50,69 @@
       });
     });
 
+    // To execute the tests, run `npm test`, then open `test/test.html` in
+    // Safari.  The tests work in Firefox when loaded via HTTP, e.g. from
+    // `localhost`.  The 1 and 2 GiB tests fail in Chrome with `NotFoundError`
+    // when loaded via HTTP.
+    if (typeof Worker !== 'undefined') {
+      describe('webworker', function () {
+        it('1 kiB', function(done) {
+          var rw = new Worker('../rusha.min.js')
+          var zero1k = new Int8Array(1024);
+          var blob = new Blob([zero1k]);
+          rw.onmessage = function (e) {
+            if (e.data.error) {
+              throw e.data.error;
+            }
+            assert.strictEqual('60cacbf3d72e1e7834203da608037b1bf83b40e8', e.data.hash);
+            done();
+          }
+          rw.postMessage({ id: 0, data: blob })
+        });
+        it('1 MiB', function(done) {
+          var rw = new Worker('../rusha.min.js')
+          var zero1M = new Int8Array(1024 * 1024);
+          var blob = new Blob([zero1M]);
+          rw.onmessage = function (e) {
+            if (e.data.error) {
+              throw e.data.error;
+            }
+            assert.strictEqual('3b71f43ff30f4b15b5cd85dd9e95ebc7e84eb5a3', e.data.hash);
+            done();
+          }
+          rw.postMessage({ id: 0, data: blob })
+        });
+        it('1 GiB', function(done) {
+          this.timeout(30 * 1000);
+          var rw = new Worker('../rusha.min.js')
+          var zero1M = new Int8Array(1024 * 1024);
+          var blob = new Blob(Array(1024).fill(zero1M));
+          rw.onmessage = function (e) {
+            if (e.data.error) {
+              throw e.data.error;
+            }
+            assert.strictEqual('2a492f15396a6768bcbca016993f4b4c8b0b5307', e.data.hash);
+            done();
+          }
+          rw.postMessage({ id: 0, data: blob })
+        });
+        it('2 GiB', function(done) {
+          this.timeout(60 * 1000);
+          var rw = new Worker('../rusha.min.js')
+          var zero1M = new Int8Array(1024 * 1024);
+          var blob = new Blob(Array(2 * 1024).fill(zero1M));
+          rw.onmessage = function (e) {
+            if (e.data.error) {
+              throw e.data.error;
+            }
+            assert.strictEqual('91d50642dd930e9542c39d36f0516d45f4e1af0d', e.data.hash);
+            done();
+          }
+          rw.postMessage({ id: 0, data: blob })
+        });
+      });
+    }
+
     describe('digestFromString', function() {
       it('returns hex string from string', function() {
         assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', r.digestFromString(abcString));
