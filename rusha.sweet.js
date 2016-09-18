@@ -75,7 +75,9 @@
 
     var padData = function (bin, chunkLen, msgLen) {
       bin[chunkLen>>2] |= 0x80 << (24 - (chunkLen % 4 << 3));
-      bin[(((chunkLen >> 2) + 2) & ~0x0f) + 14] = msgLen >> 29;
+      // To support msgLen >= 2 GiB, use a float division when computing the
+      // high 32-bits of the big-endian message length in bits.
+      bin[(((chunkLen >> 2) + 2) & ~0x0f) + 14] = (msgLen / (1 << 29)) |0;
       bin[(((chunkLen >> 2) + 2) & ~0x0f) + 15] = msgLen << 3;
     };
 
