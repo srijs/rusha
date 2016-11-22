@@ -228,7 +228,7 @@
       if (size % 64 > 0) {
         throw new Error('Chunk size must be a multiple of 128 bit');
       }
-      self$2.offset = 0;
+      self.offset = 0;
       self.maxChunkLen = size;
       self.padMaxChunkLen = padlen(size);
       // The size of the heap is the sum of:
@@ -247,7 +247,7 @@
     init(chunkSize || 64 * 1024);
 
     var initState = function (heap, padMsgLen) {
-      self$2.offset = 0;
+      self.offset = 0;
       var io  = new Int32Array(heap, padMsgLen + 320, 5);
       io[0] =  1732584193;
       io[1] =  -271733879;
@@ -313,23 +313,23 @@
     };
 
     this.start = function () {
-      initState(self$2.heap, self$2.padMaxChunkLen);
+      initState(self.heap, self.padMaxChunkLen);
       return this;
     };
 
     this.append = function (chunk) {
       var chunkOffset = 0;
       var chunkLen = chunk.byteLength || chunk.length || chunk.size || 0;
-      var turnOffset = self$2.offset % self$2.maxChunkLen;
+      var turnOffset = self.offset % self.maxChunkLen;
       
-      self$2.offset += chunkLen;
+      self.offset += chunkLen;
       while (chunkOffset < chunkLen) {
-          var inputLen = Math.min(chunkLen - chunkOffset, self$2.maxChunkLen - turnOffset);
+          var inputLen = Math.min(chunkLen - chunkOffset, self.maxChunkLen - turnOffset);
           write(chunk, chunkOffset, inputLen, turnOffset);
           turnOffset += inputLen;
           chunkOffset += inputLen;
-          if (turnOffset === self$2.maxChunkLen) {
-              self$2.core.hash(self$2.maxChunkLen, self$2.padMaxChunkLen);
+          if (turnOffset === self.maxChunkLen) {
+              self.core.hash(self.maxChunkLen, self.padMaxChunkLen);
               turnOffset = 0;
           }
       }
@@ -337,38 +337,38 @@
     };
 
     this.getState = function () {
-      var turnOffset = self$2.offset % self$2.maxChunkLen,
+      var turnOffset = self.offset % self.maxChunkLen,
           heap;
       if(!turnOffset){
-          var io = new Int32Array(self$2.heap, self$2.padMaxChunkLen + 320, 5);
+          var io = new Int32Array(self.heap, self.padMaxChunkLen + 320, 5);
           heap = io.buffer.slice(io.byteOffset, io.byteOffset+io.byteLength)
       }else{
-          heap = self$2.heap.slice(0);
+          heap = self.heap.slice(0);
       }
       return {
-          offset: self$2.offset,
+          offset: self.offset,
           heap: heap
       };
     };
 
     this.setState = function (state) {
-      self$2.offset = state.offset;
+      self.offset = state.offset;
       if(state.heap.byteLength === 20){
-          var io = new Int32Array(self$2.heap, self$2.padMaxChunkLen + 320, 5);
+          var io = new Int32Array(self.heap, self.padMaxChunkLen + 320, 5);
           io.set(new Int32Array(state.heap));
       }else{
-          self$2.h32.set(new Int32Array(state.heap));  
+          self.h32.set(new Int32Array(state.heap));  
       }
       return this;
     };
 
     var rawEnd = this.rawEnd = function () {
-      var msgLen = self$2.offset;
-      var chunkLen = msgLen % self$2.maxChunkLen;
+      var msgLen = self.offset;
+      var chunkLen = msgLen % self.maxChunkLen;
       var padChunkLen = padChunk(chunkLen, msgLen);
-      self$2.core.hash(padChunkLen, self$2.padMaxChunkLen);
-      var result = getRawDigest(self$2.heap, self$2.padMaxChunkLen);
-      initState(self$2.heap, self$2.padMaxChunkLen);
+      self.core.hash(padChunkLen, self.padMaxChunkLen);
+      var result = getRawDigest(self.heap, self.padMaxChunkLen);
+      initState(self.heap, self.padMaxChunkLen);
       return result;
     };
 
