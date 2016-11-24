@@ -312,7 +312,7 @@
       return hex(rawDigest(str).buffer);
     };
 
-    this.start = function () {
+    this.resetState = function () {
       initState(self.heap, self.padMaxChunkLen);
       return this;
     };
@@ -321,43 +321,44 @@
       var chunkOffset = 0;
       var chunkLen = chunk.byteLength || chunk.length || chunk.size || 0;
       var turnOffset = self.offset % self.maxChunkLen;
+      var inputLen;
       
       self.offset += chunkLen;
       while (chunkOffset < chunkLen) {
-          var inputLen = Math.min(chunkLen - chunkOffset, self.maxChunkLen - turnOffset);
-          write(chunk, chunkOffset, inputLen, turnOffset);
-          turnOffset += inputLen;
-          chunkOffset += inputLen;
-          if (turnOffset === self.maxChunkLen) {
-              self.core.hash(self.maxChunkLen, self.padMaxChunkLen);
-              turnOffset = 0;
-          }
+        inputLen = Math.min(chunkLen - chunkOffset, self.maxChunkLen - turnOffset);
+        write(chunk, chunkOffset, inputLen, turnOffset);
+        turnOffset += inputLen;
+        chunkOffset += inputLen;
+        if (turnOffset === self.maxChunkLen) {
+          self.core.hash(self.maxChunkLen, self.padMaxChunkLen);
+          turnOffset = 0;
+        }
       }
       return this;
     };
 
     this.getState = function () {
-      var turnOffset = self.offset % self.maxChunkLen,
-          heap;
-      if(!turnOffset){
-          var io = new Int32Array(self.heap, self.padMaxChunkLen + 320, 5);
-          heap = io.buffer.slice(io.byteOffset, io.byteOffset+io.byteLength)
-      }else{
-          heap = self.heap.slice(0);
+      var turnOffset = self.offset % self.maxChunkLen;
+      var heap;
+      if (!turnOffset) {
+        var io = new Int32Array(self.heap, self.padMaxChunkLen + 320, 5);
+        heap = io.buffer.slice(io.byteOffset, io.byteOffset + io.byteLength)
+      } else {
+        heap = self.heap.slice(0);
       }
       return {
-          offset: self.offset,
-          heap: heap
+        offset: self.offset,
+        heap: heap
       };
     };
 
     this.setState = function (state) {
       self.offset = state.offset;
-      if(state.heap.byteLength === 20){
-          var io = new Int32Array(self.heap, self.padMaxChunkLen + 320, 5);
-          io.set(new Int32Array(state.heap));
-      }else{
-          self.h32.set(new Int32Array(state.heap));  
+      if (state.heap.byteLength === 20) {
+        var io = new Int32Array(self.heap, self.padMaxChunkLen + 320, 5);
+        io.set(new Int32Array(state.heap));
+      } else {
+        self.h32.set(new Int32Array(state.heap));  
       }
       return this;
     };

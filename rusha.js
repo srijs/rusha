@@ -313,7 +313,7 @@
         this.digest = this.digestFromString = this.digestFromBuffer = this.digestFromArrayBuffer = function (str) {
             return hex(rawDigest(str).buffer);
         };
-        this.start = function () {
+        this.resetState = function () {
             initState(self$2.heap, self$2.padMaxChunkLen);
             return this;
         };
@@ -321,9 +321,10 @@
             var chunkOffset = 0;
             var chunkLen = chunk.byteLength || chunk.length || chunk.size || 0;
             var turnOffset = self$2.offset % self$2.maxChunkLen;
+            var inputLen;
             self$2.offset += chunkLen;
             while (chunkOffset < chunkLen) {
-                var inputLen = Math.min(chunkLen - chunkOffset, self$2.maxChunkLen - turnOffset);
+                inputLen = Math.min(chunkLen - chunkOffset, self$2.maxChunkLen - turnOffset);
                 write(chunk, chunkOffset, inputLen, turnOffset);
                 turnOffset += inputLen;
                 chunkOffset += inputLen;
@@ -335,7 +336,8 @@
             return this;
         };
         this.getState = function () {
-            var turnOffset = self$2.offset % self$2.maxChunkLen, heap;
+            var turnOffset = self$2.offset % self$2.maxChunkLen;
+            var heap;
             if (!turnOffset) {
                 var io = new Int32Array(self$2.heap, self$2.padMaxChunkLen + 320, 5);
                 heap = io.buffer.slice(io.byteOffset, io.byteOffset + io.byteLength);

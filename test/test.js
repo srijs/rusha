@@ -14,17 +14,16 @@
     }
   }
 
-  function digestAppendOneByOne(input){
+  function digestAppendOneByOne(input) {
     var middleState;   
-    for(var i=0,len=(input.byteLength||input.length); i<len; i++){
-        if (i !== 0){
-            r.setState(middleState);
-        }else{
-            r.start();
-        }
-        middleState = r.append(input.slice(i, i+1)).getState();
+    for (var i = 0, len = (input.byteLength || input.length); i < len; i++) {
+      if (i !== 0){
+        r.setState(middleState);
+      } else {
+        r.resetState();
+      }
+      middleState = r.append(input.slice(i, i + 1)).getState();
     }
-
     return r.setState(middleState).end();
   }
 
