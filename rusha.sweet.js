@@ -70,7 +70,16 @@
     };
 
     var padZeroes = function (bin, len) {
-      for (var i = len >> 2; i < bin.length; i++) bin[i] = 0;
+      var h8 = new Uint8Array(bin.buffer);
+      var om = len % 4, align = len - om;
+      switch (om) {
+        case 0: h8[align + 3] = 0;
+        case 1: h8[align + 2] = 0;
+        case 2: h8[align + 1] = 0;
+        case 3: h8[align + 0] = 0;
+      }
+      for (var i = (len >> 2) + 1; i < bin.length; i++)
+        bin[i] = 0;
     };
 
     var padData = function (bin, chunkLen, msgLen) {
@@ -84,16 +93,17 @@
     // Convert a binary string and write it to the heap.
     // A binary string is expected to only contain char codes < 256.
     var convStr = function (H8, H32, start, len, off) {
-      var str = this, i, om = off % 4, lm = len % 4, j = len - lm;
-      if (j > 0) {
-        switch (om) {
-          case 0: H8[off+3|0] = str.charCodeAt(start);
-          case 1: H8[off+2|0] = str.charCodeAt(start+1);
-          case 2: H8[off+1|0] = str.charCodeAt(start+2);
-          case 3: H8[off|0]   = str.charCodeAt(start+3);
-        }
+      var str = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
+      switch (om) {
+        case 0: H8[off] = str.charCodeAt(start+3);
+        case 1: H8[off+1-(om<<1)|0] = str.charCodeAt(start+2);
+        case 2: H8[off+2-(om<<1)|0] = str.charCodeAt(start+1);
+        case 3: H8[off+3-(om<<1)|0] = str.charCodeAt(start);
       }
-      for (i = om; i < j; i = i + 4 |0) {
+      if (len < lm + om) {
+        return;
+      }
+      for (i = 4 - om; i < j; i = i + 4 | 0) {
         H32[off+i>>2] = str.charCodeAt(start+i)   << 24 |
                         str.charCodeAt(start+i+1) << 16 |
                         str.charCodeAt(start+i+2) <<  8 |
@@ -109,51 +119,51 @@
     // Convert a buffer or array and write it to the heap.
     // The buffer or array is expected to only contain elements < 256.
     var convBuf = function (H8, H32, start, len, off) {
-      var buf = this, i, om = off % 4, lm = len % 4, j = len - lm;
-      if (j > 0) {
-        switch (om) {
-          case 0: H8[off+3|0] = buf[start];
-          case 1: H8[off+2|0] = buf[start+1];
-          case 2: H8[off+1|0] = buf[start+2];
-          case 3: H8[off|0]   = buf[start+3];
-        }
+      var buf = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
+      switch (om) {
+        case 0: H8[off] = buf[start + 3];
+        case 1: H8[off+1-(om<<1)|0] = buf[start+2];
+        case 2: H8[off+2-(om<<1)|0] = buf[start+1];
+        case 3: H8[off+3-(om<<1)|0] = buf[start];
       }
-      for (i = 4 - om; i < j; i = i += 4 |0) {
-        H32[off+i>>2] = buf[start+i]   << 24 |
-                        buf[start+i+1] << 16 |
-                        buf[start+i+2] <<  8 |
-                        buf[start+i+3];
+      if (len < lm + om) {
+        return;
+      }
+      for (i = 4 - om; i < j; i = i + 4 | 0) {
+        H32[off+i>>2|0] = buf[start+i]   << 24 |
+                          buf[start+i+1] << 16 | 
+                          buf[start+i+2] <<  8 | 
+                          buf[start+i+3];
       }
       switch (lm) {
-        case 3: H8[off+j+1|0] = buf[start+j+2];
-        case 2: H8[off+j+2|0] = buf[start+j+1];
-        case 1: H8[off+j+3|0] = buf[start+j];
+          case 3: H8[off+j+1|0] = buf[start+j+2];
+          case 2: H8[off+j+2|0] = buf[start+j+1];
+          case 1: H8[off+j+3|0] = buf[start+j];
       }
     };
 
     var convBlob = function (H8, H32, start, len, off) {
-      var blob = this, i, om = off % 4, lm = len % 4, j = len - lm;
-      var buf = new Uint8Array(
-        reader.readAsArrayBuffer(blob.slice(start, start+len))
-      );
-      if (j > 0) {
-        switch (om) {
-          case 0: H8[off + 3 | 0] = buf[0];
-          case 1: H8[off + 2 | 0] = buf[1];
-          case 2: H8[off + 1 | 0] = buf[2];
-          case 3: H8[off | 0] = buf[3];
-        }
+      var blob = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
+      var buf = new Uint8Array(reader.readAsArrayBuffer(blob.slice(start, start + len)));
+      switch (om) {
+        case 0: H8[off] = buf[3];
+        case 1: H8[off+1-(om<<1)|0] = buf[2];
+        case 2: H8[off+2-(om<<1)|0] = buf[1];
+        case 3: H8[off+3-(om<<1)|0] = buf[0];
       }
-      for (i = 4 - om; i < j; i = i += 4 | 0) {
-        H32[off + i >> 2] = buf[i] << 24 |
-                            buf[i + 1] << 16 |
-                            buf[i + 2] << 8 |
-                            buf[i + 3];
+      if (len < lm + om) {
+        return;
+      }
+      for (i = 4 - om; i < j; i = i + 4 | 0) {
+        H32[off+i>>2|0] = buf[i]   << 24 | 
+                          buf[i+1] << 16 |
+                          buf[i+2] <<  8 |
+                          buf[i+3];
       }
       switch (lm) {
-        case 3: H8[off + j + 1 | 0] = buf[j + 2];
-        case 2: H8[off + j + 2 | 0] = buf[j + 1];
-        case 1: H8[off + j + 3 | 0] = buf[j];
+        case 3: H8[off+j+1|0] = buf[j + 2];
+        case 2: H8[off+j+2|0] = buf[j + 1];
+        case 1: H8[off+j+3|0] = buf[j];
       }
     };
 
@@ -218,6 +228,7 @@
       if (size % 64 > 0) {
         throw new Error('Chunk size must be a multiple of 128 bit');
       }
+      self.offset = 0;
       self.maxChunkLen = size;
       self.padMaxChunkLen = padlen(size);
       // The size of the heap is the sum of:
@@ -236,6 +247,7 @@
     init(chunkSize || 64 * 1024);
 
     var initState = function (heap, padMsgLen) {
+      self.offset = 0;
       var io  = new Int32Array(heap, padMsgLen + 320, 5);
       io[0] =  1732584193;
       io[1] =  -271733879;
@@ -253,18 +265,18 @@
     };
 
     // Write data to the heap.
-    var write = function (data, chunkOffset, chunkLen) {
-      convFn(data)(self.h8, self.h32, chunkOffset, chunkLen, 0);
+    var write = function (data, chunkOffset, chunkLen, off) {
+      convFn(data)(self.h8, self.h32, chunkOffset, chunkLen, off || 0);
     };
 
     // Initialize and call the RushaCore,
     // assuming an input buffer of length len * 4.
     var coreCall = function (data, chunkOffset, chunkLen, msgLen, finalize) {
       var padChunkLen = chunkLen;
+      write(data, chunkOffset, chunkLen);
       if (finalize) {
         padChunkLen = padChunk(chunkLen, msgLen);
       }
-      write(data, chunkOffset, chunkLen);
       self.core.hash(padChunkLen, self.padMaxChunkLen);
     };
 
@@ -300,6 +312,70 @@
       return hex(rawDigest(str).buffer);
     };
 
+    this.resetState = function () {
+      initState(self.heap, self.padMaxChunkLen);
+      return this;
+    };
+
+    this.append = function (chunk) {
+      var chunkOffset = 0;
+      var chunkLen = chunk.byteLength || chunk.length || chunk.size || 0;
+      var turnOffset = self.offset % self.maxChunkLen;
+      var inputLen;
+      
+      self.offset += chunkLen;
+      while (chunkOffset < chunkLen) {
+        inputLen = Math.min(chunkLen - chunkOffset, self.maxChunkLen - turnOffset);
+        write(chunk, chunkOffset, inputLen, turnOffset);
+        turnOffset += inputLen;
+        chunkOffset += inputLen;
+        if (turnOffset === self.maxChunkLen) {
+          self.core.hash(self.maxChunkLen, self.padMaxChunkLen);
+          turnOffset = 0;
+        }
+      }
+      return this;
+    };
+
+    this.getState = function () {
+      var turnOffset = self.offset % self.maxChunkLen;
+      var heap;
+      if (!turnOffset) {
+        var io = new Int32Array(self.heap, self.padMaxChunkLen + 320, 5);
+        heap = io.buffer.slice(io.byteOffset, io.byteOffset + io.byteLength)
+      } else {
+        heap = self.heap.slice(0);
+      }
+      return {
+        offset: self.offset,
+        heap: heap
+      };
+    };
+
+    this.setState = function (state) {
+      self.offset = state.offset;
+      if (state.heap.byteLength === 20) {
+        var io = new Int32Array(self.heap, self.padMaxChunkLen + 320, 5);
+        io.set(new Int32Array(state.heap));
+      } else {
+        self.h32.set(new Int32Array(state.heap));  
+      }
+      return this;
+    };
+
+    var rawEnd = this.rawEnd = function () {
+      var msgLen = self.offset;
+      var chunkLen = msgLen % self.maxChunkLen;
+      var padChunkLen = padChunk(chunkLen, msgLen);
+      self.core.hash(padChunkLen, self.padMaxChunkLen);
+      var result = getRawDigest(self.heap, self.padMaxChunkLen);
+      initState(self.heap, self.padMaxChunkLen);
+      return result;
+    };
+
+    this.end = function () {
+      return hex(rawEnd().buffer);
+    };
   };
 
   macro rol1  { rule { ($v:expr) } => { ($v <<  1 | $v >>> 31) } }

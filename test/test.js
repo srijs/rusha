@@ -14,6 +14,20 @@
     }
   }
 
+  function digestAppendOneByOne(input) {
+    var middleState;   
+    for (var i = 0, len = (input.byteLength || input.length); i < len; i++) {
+      if (i !== 0){
+        r.setState(middleState);
+      } else {
+        r.resetState();
+      }
+      middleState = r.append(input.slice(i, i + 1)).getState();
+    }
+    return r.setState(middleState).end();
+  }
+
+
   var r = new Rusha();
 
   var abcString = 'abc';
@@ -33,6 +47,21 @@
 
     it('is valid asm.js', function() {
       assert(asm.validate(Rusha._core.toString()));
+    });
+
+    describe('digestAppendOneByOne', function() {
+      it('returns hex string from string', function() {
+        assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', digestAppendOneByOne(abcString));
+      });
+      it('returns hex string from buffer', function() {
+        assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', digestAppendOneByOne(abcBuffer));
+      });
+      it('returns hex string from array', function() {
+        assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', digestAppendOneByOne(abcArray));
+      });
+      it('returns hex string from ArrayBuffer', function() {
+        assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', digestAppendOneByOne(abcArrayBuffer));
+      });
     });
 
     describe('digest', function() {
