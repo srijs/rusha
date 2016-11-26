@@ -50,7 +50,7 @@ rusha.resetState();
 rusha.append('I am');
 rusha.append(' Rusha');
 var hexHash = rusha.end();
-
+```
 
 ## Using the Rusha Object
 
