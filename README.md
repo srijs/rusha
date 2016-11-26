@@ -66,6 +66,7 @@ Your instantiate a new Rusha object by doing `var r = new Rusha(optionalSizeHint
 - `Rusha#setState(state)`: Sets the internal computation state. See: getState().
 - `Rusha#getState()`: Returns an object representing the internal computation state. You can pass this state to setState(). This feature is useful to resume an incremental sha.
 - `Rusha#end()`: Finishes the computation of the sha, returning a hex digest.
+- `Rusha#rawEnd()`: Behaves just like #end(), except that it returns the digest as an Int32Array of size 5.
 
 
 ## Using the Rusha Worker
