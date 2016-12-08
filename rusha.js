@@ -469,8 +469,7 @@
         // the Rusha object to toplevel.
         typeof window !== 'undefined') {
         window.Rusha = Rusha;
-    }
-    if (// If we're running in a webworker, accept
+    } else if (// If we're running in a webworker, accept
         // messages containing a jobid and a buffer
         // or blob object, and return the hash result.
         typeof FileReaderSync !== 'undefined') {
