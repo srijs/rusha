@@ -508,7 +508,7 @@
   // If we're running in a webworker, accept
   // messages containing a jobid and a buffer
   // or blob object, and return the hash result.
-  if (typeof FileReaderSync !== 'undefined') {
+  else if (typeof FileReaderSync !== 'undefined') {
     var reader = new FileReaderSync(),
         hasher = new Rusha(4 * 1024 * 1024);
     self.onmessage = function onMessage (event) {
