@@ -301,7 +301,7 @@
         rawDigest = this.rawDigest = function (str) {
             var msgLen = str.byteLength || str.length || str.size || 0;
             initState(self$2.heap, self$2.padMaxChunkLen);
-            var chunkOffset = 0, chunkLen = self$2.maxChunkLen, last;
+            var chunkOffset = 0, chunkLen = self$2.maxChunkLen;
             for (chunkOffset = 0; msgLen > chunkOffset + chunkLen; chunkOffset += chunkLen) {
                 coreCall(str, chunkOffset, chunkLen, msgLen, false);
             }
@@ -474,21 +474,59 @@
         // messages containing a jobid and a buffer
         // or blob object, and return the hash result.
         typeof FileReaderSync !== 'undefined') {
-        var reader = new FileReaderSync(), hasher = new Rusha(4 * 1024 * 1024);
-        self.onmessage = function onMessage(event) {
-            var hash, data = event.data.data;
+        var reader = new FileReaderSync();
+        var hashData = function hash(hasher, data, cb) {
             try {
-                hash = hasher.digest(data);
-                self.postMessage({
-                    id: event.data.id,
-                    hash: hash
-                });
+                return cb(null, hasher.digest(data));
             } catch (e) {
-                self.postMessage({
-                    id: event.data.id,
-                    error: e.name
-                });
+                return cb(e);
             }
+        };
+        var hashFile = function hashArrayBuffer(hasher, readTotal, blockSize, file, cb) {
+            var reader$2 = new self.FileReader();
+            reader$2.onloadend = function onloadend() {
+                var buffer = reader$2.result;
+                readTotal += reader$2.result.byteLength;
+                try {
+                    hasher.append(buffer);
+                } catch (e) {
+                    cb(e);
+                    return;
+                }
+                if (readTotal < file.size) {
+                    hashFile(hasher, readTotal, blockSize, file, cb);
+                } else {
+                    cb(null, hasher.end());
+                }
+            };
+            reader$2.readAsArrayBuffer(file.slice(readTotal, readTotal + blockSize));
+        };
+        self.onmessage = function onMessage(event) {
+            var data = event.data.data, file = event.data.file, id = event.data.id;
+            if (typeof id === 'undefined')
+                return;
+            if (!file && !data)
+                return;
+            var blockSize = event.data.blockSize || 4 * 1024 * 1024;
+            var hasher = new Rusha(blockSize);
+            hasher.resetState();
+            var done = function done$2(err, hash) {
+                if (!err) {
+                    self.postMessage({
+                        id: id,
+                        hash: hash
+                    });
+                } else {
+                    self.postMessage({
+                        id: id,
+                        error: err.name
+                    });
+                }
+            };
+            if (data)
+                hashData(hasher, data, done);
+            if (file)
+                hashFile(hasher, 0, blockSize, file, done);
         };
     }
 }());
