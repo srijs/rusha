@@ -139,6 +139,60 @@
           }
           rw.postMessage({ id: 0, data: blob })
         });
+        it('1 kiB file', function(done) {
+          var rw = new Worker('../rusha.min.js')
+          var zero1k = new Int8Array(1024);
+          var blob = new Blob([zero1k]);
+          rw.onmessage = function (e) {
+            if (e.data.error) {
+              throw e.data.error;
+            }
+            assert.strictEqual('60cacbf3d72e1e7834203da608037b1bf83b40e8', e.data.hash);
+            done();
+          }
+          rw.postMessage({ id: 0, file: blob })
+        });
+        it('1 MiB file', function(done) {
+          var rw = new Worker('../rusha.min.js')
+          var zero1M = new Int8Array(1024 * 1024);
+          var blob = new Blob([zero1M]);
+          rw.onmessage = function (e) {
+            if (e.data.error) {
+              throw e.data.error;
+            }
+            assert.strictEqual('3b71f43ff30f4b15b5cd85dd9e95ebc7e84eb5a3', e.data.hash);
+            done();
+          }
+          rw.postMessage({ id: 0, file: blob })
+        });
+        it('1 GiB file', function(done) {
+          this.timeout(30 * 1000);
+          var rw = new Worker('../rusha.min.js')
+          var zero1M = new Int8Array(1024 * 1024);
+          var blob = new Blob(Array(1024).fill(zero1M));
+          rw.onmessage = function (e) {
+            if (e.data.error) {
+              throw e.data.error;
+            }
+            assert.strictEqual('2a492f15396a6768bcbca016993f4b4c8b0b5307', e.data.hash);
+            done();
+          }
+          rw.postMessage({ id: 0, file: blob })
+        });
+        it('2 GiB file', function(done) {
+          this.timeout(60 * 1000);
+          var rw = new Worker('../rusha.min.js')
+          var zero1M = new Int8Array(1024 * 1024);
+          var blob = new Blob(Array(2 * 1024).fill(zero1M));
+          rw.onmessage = function (e) {
+            if (e.data.error) {
+              throw e.data.error;
+            }
+            assert.strictEqual('91d50642dd930e9542c39d36f0516d45f4e1af0d', e.data.hash);
+            done();
+          }
+          rw.postMessage({ id: 0, file: blob })
+        });
       });
     }
 
