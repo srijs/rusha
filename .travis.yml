@@ -1,4 +1,8 @@
+dist: trusty
 language: node_js
 node_js:
-  - "0.11"
-  - "0.10"
+  - "6"
+  - "8"
+addons:
+  chrome: stable
+  firefox: latest

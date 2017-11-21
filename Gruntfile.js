@@ -21,64 +21,39 @@ module.exports = function (grunt) {
         dest: '<%= pkg.name %>.min.js'
       }
     },
-    browserify: {
-      test: {
-        src: ['<%= pkg.name %>.min.js', 'test/test.js'],
-        dest: 'test/bundle.js'
-      }
-    },
-    mochaTest: {
-      test: {
-        options: {
-          reporter: 'spec',
-          require: 'coverage/blanket'
+    karma: {
+      options: {
+        basePath: '',
+        frameworks: ['browserify', 'mocha'],
+        files: [
+          'test.js'
+        ],
+        preprocessors: {
+          'test.js': ['browserify']
         },
-        src: ['test/test.js'],
+        browserify: {
+          transform: ['brfs']
+        },
+        reporters: ['dots'],
+        singleRun: true,
+        customLaunchers: {
+          FirefoxHeadless: {
+            base: 'Firefox',
+            flags: [ '-headless' ],
+          },
+        },
       },
-      coverage: {
-        options: {
-          reporter: 'html-cov',
-          quiet: true,
-          captureFile: 'coverage/report.html'
-        },
-        src: ['test/test.js']
-      }
-    },
-    connect: { server: { options: { base: "", port: 9999 } } },
-    'saucelabs-mocha': {
-      all: {
-        options: {
-          username: 'rusha',
-          urls: ['http://127.0.0.1:9999/test/test.html'],
-          build: process.env.CI_BUILD_NUMBER,
-          testname: 'Sauce Unit Test for Rusha',
-          browsers: [
-            ["Windows 8", "firefox", 32],
-            ["Windows 8", "chrome", 37]
-          ]
-        }
+      test: {
+        browsers: ['PhantomJS', 'ChromeHeadless', 'FirefoxHeadless']
       }
     }
   });
 
   grunt.loadNpmTasks('grunt-sweet.js');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-browserify');
-  grunt.loadNpmTasks('grunt-mocha-test');
-  grunt.loadNpmTasks('grunt-contrib-connect');
-  grunt.loadNpmTasks('grunt-saucelabs');
+  grunt.loadNpmTasks('grunt-karma');
 
-  grunt.registerTask('test', [
-    'sweetjs', 'uglify',
-    'browserify',
-    'mochaTest'
-  ]);
-
-  grunt.registerTask('test-saucelabs', [
-    'sweetjs', 'uglify',
-    'browserify',
-    'connect', 'saucelabs-mocha'
-  ]);
+  grunt.registerTask('test', ['sweetjs', 'uglify', 'karma']);
 
   grunt.registerTask('build', ['sweetjs', 'uglify']);
 
