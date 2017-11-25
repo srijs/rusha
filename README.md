@@ -3,46 +3,46 @@
 
 [![NPM](https://nodei.co/npm/rusha.png?downloads=true&downloadRank=true)](https://nodei.co/npm/rusha/)
 
-## Prologue: The Sad State of Javascript SHA1 implementations
-
-When we started experimenting with alternative upload technologies at [doctape](http://doctape.com) that required creating SHA1 hashes of the data locally on the client, it quickly became obvious that there were no performant pure-js implementations of SHA1 that worked correctly on binary data.
-
-Jeff Mott's [CryptoJS](http://code.google.com/p/crypto-js/) and Brian Turek's [jsSHA](http://caligatio.github.com/jsSHA/) were both hash functions that worked correctly on ASCII strings of a small size, but didn't scale to large data and/or didn't work correctly with binary data.
-
-(On a sidenode, as of now Tim Caswell's [Cifre](http://github.com/openpeer/cifre) actually works with large binary data, as opposed to previously statet.)
-
-By modifying Paul Johnston's [sha1.js](http://pajhome.org.uk/crypt/md5/sha1.html) slightly, it worked correctly on binary data but was unfortunately very slow, especially on V8. So a few days were invested on my side to implement a Johnston-inspired SHA1 hashing function with a heavy focus on performance.
-
-The result of this process is Rusha, a SHA1 hash function that works flawlessly on large amounts binary data, such as binary strings or ArrayBuffers returned by the HTML5 File API, and leverages the soon-to-be-landed-in-firefox [asm.js](http://asmjs.org/spec/latest/) with whose support its within *half of native speed*!
-
 ## Installing
 
-### Node.JS
+### NPM
 
-There is really no point in doing this, since Node.JS already has a wonderful `crypto` module that is leveraging low-level hardware instructions to perform really nice. Your can see the comparison below in the benchmarks.
+Rusha is available va [npm](http://npmjs.org/):
 
-Rusha is available on [npm](http://npmjs.org/) via `npm install rusha`.
+```
+npm install rusha
+```
 
-If you still want to do this, anyhow, just `require()` the `rusha.js` file, follow the instructions on _Using the Rusha Object_.
+### Bower
 
-### Browser
+Rusha is available via [bower](http://twitter.github.com/bower/):
 
-Rusha is available on [bower](http://twitter.github.com/bower/) via `bower install rusha`.
+```
+bower install rusha
+```
+
+## Usage
 
 It is highly recommended to run CPU-intensive tasks in a [Web Worker](http://developer.mozilla.org/en-US/docs/DOM/Using_web_workers). To do so, just start a worker with `var worker = new Worker('rusha.js')` and start sending it jobs. Follow the instructions on _Using the Rusha Worker_.
 
 If you can't, for any reason, use Web Workers, include the `rusha.js` file in a `<script>` tag and follow the instructions on _Using the Rusha Object_.
 
-## Usage
+### Using the Rusha Worker
 
-### Normal usage
+You can send your instance of the web worker messages in the format `{id: jobid, data: dataobject}`. The worker then sends back a message in the format `{id: jobid, hash: hash}`, were jobid is the id of the job previously received and hash is the hash of the data-object you passed, be it a `Blob`, `Array`, `Buffer`, `ArrayBuffer` or `String`
+
+### Using the Rusha Object
+
+### Examples
+
+#### Normal usage
 
 ```js
 var rusha = new Rusha();
 var hexHash = rusha.digest('I am Rusha'); 
 ```
 
-### Incremental usage
+#### Incremental usage
 
 ```js
 var rusha = new Rusha();
@@ -52,7 +52,7 @@ rusha.append(' Rusha');
 var hexHash = rusha.end();
 ```
 
-## Using the Rusha Object
+### Reference
 
 Your instantiate a new Rusha object by doing `var r = new Rusha(optionalSizeHint)`. When created, it provides the following methods:
 
@@ -67,11 +67,6 @@ Your instantiate a new Rusha object by doing `var r = new Rusha(optionalSizeHint
 - `Rusha#getState()`: Returns an object representing the internal computation state. You can pass this state to setState(). This feature is useful to resume an incremental sha.
 - `Rusha#end()`: Finishes the computation of the sha, returning a hex digest.
 - `Rusha#rawEnd()`: Behaves just like #end(), except that it returns the digest as an Int32Array of size 5.
-
-
-## Using the Rusha Worker
-
-You can send your instance of the web worker messages in the format `{id: jobid, data: dataobject}`. The worker then sends back a message in the format `{id: jobid, hash: hash}`, were jobid is the id of the job previously received and hash is the hash of the data-object you passed, be it a `Blob`, `Array`, `Buffer`, `ArrayBuffer` or `String`.
 
 ## Development
 
