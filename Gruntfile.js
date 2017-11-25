@@ -7,7 +7,7 @@ module.exports = function (grunt) {
         readableNames: true
       },
       build: {
-        src: '<%= pkg.name %>.sweet.js',
+        src: 'src/<%= pkg.name %>.sweet.js',
         dest: 'dist/<%= pkg.name %>.js'
       },
     },

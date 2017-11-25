@@ -71,7 +71,7 @@ Your instantiate a new Rusha object by doing `var r = new Rusha(optionalSizeHint
 ## Development
 
 * Download npm dependencies with `npm install`
-* Source file to be edited is `rusha.sweet.js`
+* Source file to be edited is `src/rusha.sweet.js`
 * Build with `npm run build`
 * Run tests with `npm test`
 
