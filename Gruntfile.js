@@ -26,10 +26,10 @@ module.exports = function (grunt) {
         basePath: '',
         frameworks: ['browserify', 'mocha'],
         files: [
-          'test.js'
+          'test/*.js'
         ],
         preprocessors: {
-          'test.js': ['browserify']
+          'test/*.js': ['browserify']
         },
         browserify: {
           transform: ['brfs']
