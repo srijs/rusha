@@ -2,7 +2,7 @@
   "name": "rusha",
   "version": "0.8.7",
   "description": "A high-performance pure-javascript SHA1 implementation suitable for large binary data.",
-  "main": "rusha.js",
+  "main": "dist/rusha.js",
   "keywords": [
     "sha1",
     "binary",
@@ -34,7 +34,8 @@
     "karma-mocha": "^1.3.0",
     "microtime": "^2.1.1",
     "mocha": "^4.0.1",
-    "sweet.js": "^0.7.1"
+    "sweet.js": "^0.7.1",
+    "watchify": "^3.9.0"
   },
   "author": "Sam Rijs",
   "license": "MIT",

@@ -1,9 +1,11 @@
 {
   "name": "Rusha",
-  "version": "0.7.2",
-  "main": "rusha.js",
-  "scripts": [
-    "rusha.js"
-  ],
-  "ignore": ["rusha.pp.js", "examples/", "package.json", ".npmignore", "Makefile", "node_modules"]
+  "main": "dist/rusha.js",
+  "ignore": [
+    "rusha.sweet.js",
+    "examples/",
+    "package.json",
+    ".npmignore",
+    "node_modules"
+  ]
 }

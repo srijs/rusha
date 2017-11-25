@@ -4,9 +4,9 @@
   var assert = require('assert');
   var asm = require('asm.js');
   var fs = require('fs');
-  var Rusha  = require('./rusha.min.js');
+  var Rusha  = require('./dist/rusha.min.js');
   
-  var workerSource = require('fs').readFileSync(__dirname + '/rusha.min.js', 'utf8');
+  var workerSource = fs.readFileSync(__dirname + '/dist/rusha.min.js', 'utf8');
   var workerBlob = new Blob([workerSource], {type: "application/javascript"});
   var workerURL = URL.createObjectURL(workerBlob);
 

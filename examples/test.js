@@ -1,7 +1,7 @@
 if (typeof require === 'function') {
   var crypto = require('crypto');
   var johnston = require('./bench/johnston');
-  var Rusha = require('../rusha');
+  var Rusha = require('../dist/rusha.js');
   var cifre_utils = require('./bench/cifre/utils.js');
   var cifre_sha1 = require('./bench/cifre/sha1.js');
   var random = require('./random');

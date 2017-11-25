@@ -8,7 +8,7 @@ module.exports = function (grunt) {
       },
       build: {
         src: '<%= pkg.name %>.sweet.js',
-        dest: '<%= pkg.name %>.js'
+        dest: 'dist/<%= pkg.name %>.js'
       },
     },
     uglify: {
@@ -17,8 +17,8 @@ module.exports = function (grunt) {
         compress: false
       },
       build: {
-        src: '<%= pkg.name %>.js',
-        dest: '<%= pkg.name %>.min.js'
+        src: 'dist/<%= pkg.name %>.js',
+        dest: 'dist/<%= pkg.name %>.min.js'
       }
     },
     karma: {

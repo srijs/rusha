@@ -23,9 +23,9 @@ bower install rusha
 
 ## Usage
 
-It is highly recommended to run CPU-intensive tasks in a [Web Worker](http://developer.mozilla.org/en-US/docs/DOM/Using_web_workers). To do so, just start a worker with `var worker = new Worker('rusha.js')` and start sending it jobs. Follow the instructions on _Using the Rusha Worker_.
+It is highly recommended to run CPU-intensive tasks in a [Web Worker](http://developer.mozilla.org/en-US/docs/DOM/Using_web_workers). To do so, just start a worker with `var worker = new Worker('dist/rusha.js')` and start sending it jobs. Follow the instructions on _Using the Rusha Worker_.
 
-If you can't, for any reason, use Web Workers, include the `rusha.js` file in a `<script>` tag and follow the instructions on _Using the Rusha Object_.
+If you can't, for any reason, use Web Workers, include the `dist/rusha.js` file in a `<script>` tag and follow the instructions on _Using the Rusha Object_.
 
 ### Using the Rusha Worker
 

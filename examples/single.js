@@ -1,5 +1,5 @@
 if (typeof require === 'function') {
-  var Rusha = require('../rusha');
+  var Rusha = require('../dist/rusha.js');
   var randomBytes = require('crypto').pseudoRandomBytes;
 }
 
