@@ -44,7 +44,7 @@ module.exports = function (grunt) {
         },
       },
       test: {
-        browsers: ['PhantomJS', 'ChromeHeadless', 'FirefoxHeadless']
+        browsers: ['ChromeHeadless', 'FirefoxHeadless']
       }
     }
   });
