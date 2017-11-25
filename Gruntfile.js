@@ -42,6 +42,7 @@ module.exports = function (grunt) {
             flags: [ '-headless' ],
           },
         },
+        browserNoActivityTimeout: 60000
       },
       test: {
         browsers: ['ChromeHeadless', 'FirefoxHeadless']

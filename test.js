@@ -7,10 +7,11 @@
   var Rusha  = require('./rusha.min.js');
   
   var workerSource = require('fs').readFileSync(__dirname + '/rusha.min.js', 'utf8');
+  var workerBlob = new Blob([workerSource], {type: "application/javascript"});
+  var workerURL = URL.createObjectURL(workerBlob);
 
   function spawnWorker() {
-    var blob = new Blob([workerSource], {type: "application/javascript"});
-    return new Worker(URL.createObjectURL(blob));
+    return new Worker(workerURL);
   }
 
   function assertBytesEqual(buffer1, buffer2) {
@@ -87,16 +88,13 @@
       });
     });
 
-    // To execute the tests, run `npm test`, then open `test/test.html` in
-    // Safari.  The tests work in Firefox when loaded via HTTP, e.g. from
-    // `localhost`.  The 1 and 2 GiB tests fail in Chrome with `NotFoundError`
-    // when loaded via HTTP.
-    if (typeof Worker !== 'undefined') {
+    describe('WebWorker', () => {
       it('1 kiB', function(done) {
         var rw = spawnWorker();
         var zero1k = new Int8Array(1024);
         var blob = new Blob([zero1k]);
         rw.onmessage = function (e) {
+          rw.terminate();
           if (e.data.error) {
             throw e.data.error;
           }
@@ -110,6 +108,7 @@
         var zero1k = new Int8Array(1024);
         var blob = new Blob([zero1k]);
         rw.onmessage = function (e) {
+          rw.terminate();
           if (e.data.error) {
             throw e.data.error;
           }
@@ -123,6 +122,7 @@
         var zero1M = new Int8Array(1024 * 1024);
         var blob = new Blob([zero1M]);
         rw.onmessage = function (e) {
+          rw.terminate();
           if (e.data.error) {
             throw e.data.error;
           }
@@ -136,6 +136,7 @@
         var zero1M = new Int8Array(1024 * 1024);
         var blob = new Blob([zero1M]);
         rw.onmessage = function (e) {
+          rw.terminate();
           if (e.data.error) {
             throw e.data.error;
           }
@@ -144,7 +145,35 @@
         }
         rw.postMessage({ id: 0, file: blob })
       });
-    }
+      it('10 MiB', function(done) {
+        var rw = spawnWorker();
+        var zero1M = new Int8Array(1024 * 1024);
+        var blob = new Blob(new Array(8).fill(zero1M));
+        rw.onmessage = function (e) {
+          rw.terminate();
+          if (e.data.error) {
+            throw e.data.error;
+          }
+          assert.strictEqual('5fde1cce603e6566d20da811c9c8bcccb044d4ae', e.data.hash);
+          done();
+        }
+        rw.postMessage({ id: 0, data: blob })
+      });
+      it('10 MiB file', function(done) {
+        var rw = spawnWorker();
+        var zero1M = new Int8Array(1024 * 1024);
+        var blob = new Blob(new Array(8).fill(zero1M));
+        rw.onmessage = function (e) {
+          rw.terminate();
+          if (e.data.error) {
+            throw e.data.error;
+          }
+          assert.strictEqual('5fde1cce603e6566d20da811c9c8bcccb044d4ae', e.data.hash);
+          done();
+        }
+        rw.postMessage({ id: 0, file: blob })
+      });
+    });
 
     describe('digestFromString', function() {
       it('returns hex string from string', function() {

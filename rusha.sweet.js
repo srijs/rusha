@@ -520,6 +520,9 @@
     var hashFile = function hashArrayBuffer (hasher, readTotal, blockSize, file, cb) {
       var reader = new self.FileReader()
       reader.onloadend = function onloadend () {
+        if (reader.error) {
+          return cb(reader.error);
+        }
         var buffer = reader.result
         readTotal += reader.result.byteLength
         try {
@@ -534,7 +537,7 @@
         } else {
           cb(null, hasher.end());
         }
-      }
+      };
       reader.readAsArrayBuffer(file.slice(readTotal, readTotal + blockSize))
     };
 

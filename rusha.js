@@ -457,6 +457,9 @@
         var hashFile = function hashArrayBuffer(hasher, readTotal, blockSize, file, cb) {
             var reader$2 = new self.FileReader();
             reader$2.onloadend = function onloadend() {
+                if (reader$2.error) {
+                    return cb(reader$2.error);
+                }
                 var buffer = reader$2.result;
                 readTotal += reader$2.result.byteLength;
                 try {
