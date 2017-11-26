@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = function worker() {
   var Rusha = require('./rusha.js');
 

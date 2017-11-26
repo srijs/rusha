@@ -1,3 +1,5 @@
+'use strict';
+
 var webworkify = require('webworkify');
 
 var Rusha = require('./rusha.js');

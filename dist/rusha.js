@@ -172,6 +172,8 @@ module.exports = function RushaCore(stdlib$1186, foreign$1187, heap$1188) {
 };
 
 },{}],3:[function(require,module,exports){
+'use strict';
+
 var webworkify = require('webworkify');
 
 var Rusha = require('./rusha.js');
@@ -195,42 +197,41 @@ Rusha.createWorker = function createWorker() {
   return worker;
 };
 
-},{"./rusha.js":4,"./worker":5,"webworkify":1}],4:[function(require,module,exports){
+},{"./rusha.js":4,"./worker":6,"webworkify":1}],4:[function(require,module,exports){
 (function (global){
 'use strict';
 
 var RushaCore = require('./core.sjs');
+var utils = require('./utils');
 
 // The Rusha object is a wrapper around the low-level RushaCore.
 // It provides means of converting different inputs to the
 // format accepted by RushaCore as well as other utility methods.
 module.exports = function Rusha (chunkSize) {
-  var util = {
-    getDataType: function (data) {
-      if (typeof data === 'string') {
-        return 'string';
-      }
-      if (data instanceof Array) {
-        return 'array';
-      }
-      if (typeof global !== 'undefined' && global.Buffer && global.Buffer.isBuffer(data)) {
-        return 'buffer';
-      }
-      if (data instanceof ArrayBuffer) {
-        return 'arraybuffer';
-      }
-      if (data.buffer instanceof ArrayBuffer) {
-        return 'view';
-      }
-      if (data instanceof Blob) {
-        return 'blob';
-      }
-      throw new Error('Unsupported data type.');
+  var getDataType = function (data) {
+    if (typeof data === 'string') {
+      return 'string';
     }
+    if (data instanceof Array) {
+      return 'array';
+    }
+    if (typeof global !== 'undefined' && global.Buffer && global.Buffer.isBuffer(data)) {
+      return 'buffer';
+    }
+    if (data instanceof ArrayBuffer) {
+      return 'arraybuffer';
+    }
+    if (data.buffer instanceof ArrayBuffer) {
+      return 'view';
+    }
+    if (data instanceof Blob) {
+      return 'blob';
+    }
+    throw new Error('Unsupported data type.');
   };
 
   // Private object structure.
-  var self = {fill: 0};
+  var self = {};
 
   // Calculate the length of buffer that the sha1 routine uses
   // including the padding.
@@ -338,7 +339,7 @@ module.exports = function Rusha (chunkSize) {
   };
 
   var convFn = function (data) {
-    switch (util.getDataType(data)) {
+    switch (getDataType(data)) {
       case 'string': return convStr.bind(data);
       case 'array': return convBuf.bind(data);
       case 'buffer': return convBuf.bind(data);
@@ -349,48 +350,13 @@ module.exports = function Rusha (chunkSize) {
   };
 
   var slice = function (data, offset) {
-    switch (util.getDataType(data)) {
+    switch (getDataType(data)) {
       case 'string': return data.slice(offset);
       case 'array': return data.slice(offset);
       case 'buffer': return data.slice(offset);
       case 'arraybuffer': return data.slice(offset);
       case 'view': return data.buffer.slice(offset);
     }
-  };
-
-  // Precompute 00 - ff strings
-  var precomputedHex = new Array(256);
-  for (var i = 0; i < 256; i++) {
-    precomputedHex[i] = (i < 0x10 ? '0' : '') + i.toString(16);
-  }
-
-  // Convert an ArrayBuffer into its hexadecimal string representation.
-  var hex = function (arrayBuffer) {
-    var binarray = new Uint8Array(arrayBuffer);
-    var res = new Array(arrayBuffer.byteLength);
-    for (var i = 0; i < res.length; i++) {
-      res[i] = precomputedHex[binarray[i]];
-    }
-    return res.join('');
-  };
-
-  var ceilHeapSize = function (v) {
-    // The asm.js spec says:
-    // The heap object's byteLength must be either
-    // 2^n for n in [12, 24) or 2^24 * n for n ≥ 1.
-    // Also, byteLengths smaller than 2^16 are deprecated.
-    var p;
-    // If v is smaller than 2^16, the smallest possible solution
-    // is 2^16.
-    if (v <= 65536) return 65536;
-    // If v < 2^24, we round up to 2^n,
-    // otherwise we round up to 2^24 * n.
-    if (v < 16777216) {
-      for (p = 1; p < v; p = p << 1);
-    } else {
-      for (p = 16777216; p < v; p += 16777216);
-    }
-    return p;
   };
 
   // Initialize the internal data structures to a new capacity.
@@ -405,7 +371,7 @@ module.exports = function Rusha (chunkSize) {
     // 1. The padded input message size
     // 2. The extended space the algorithm needs (320 byte)
     // 3. The 160 bit state the algoritm uses
-    self.heap     = new ArrayBuffer(ceilHeapSize(self.padMaxChunkLen + 320 + 20));
+    self.heap     = new ArrayBuffer(utils.ceilHeapSize(self.padMaxChunkLen + 320 + 20));
     self.h32      = new Int32Array(self.heap);
     self.h8       = new Int8Array(self.heap);
     self.core     = new RushaCore({Int32Array: Int32Array, DataView: DataView}, {}, self.heap);
@@ -479,7 +445,7 @@ module.exports = function Rusha (chunkSize) {
   this.digest = this.digestFromString =
   this.digestFromBuffer = this.digestFromArrayBuffer =
   function (str) {
-    return hex(rawDigest(str).buffer);
+    return utils.toHex(rawDigest(str).buffer);
   };
 
   this.resetState = function () {
@@ -544,7 +510,7 @@ module.exports = function Rusha (chunkSize) {
   };
 
   this.end = function () {
-    return hex(rawEnd().buffer);
+    return utils.toHex(rawEnd().buffer);
   };
 };
 
@@ -558,7 +524,53 @@ if (typeof FileReaderSync !== 'undefined') {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./core.sjs":2}],5:[function(require,module,exports){
+},{"./core.sjs":2,"./utils":5}],5:[function(require,module,exports){
+'use strict';
+
+//
+// toHex
+//
+
+var precomputedHex = new Array(256);
+for (var i = 0; i < 256; i++) {
+  precomputedHex[i] = (i < 0x10 ? '0' : '') + i.toString(16);
+}
+
+module.exports.toHex = function (arrayBuffer) {
+  var binarray = new Uint8Array(arrayBuffer);
+  var res = new Array(arrayBuffer.byteLength);
+  for (var i = 0; i < res.length; i++) {
+    res[i] = precomputedHex[binarray[i]];
+  }
+  return res.join('');
+};
+
+//
+// ceilHeapSize
+//
+
+module.exports.ceilHeapSize = function (v) {
+  // The asm.js spec says:
+  // The heap object's byteLength must be either
+  // 2^n for n in [12, 24) or 2^24 * n for n ≥ 1.
+  // Also, byteLengths smaller than 2^16 are deprecated.
+  var p;
+  // If v is smaller than 2^16, the smallest possible solution
+  // is 2^16.
+  if (v <= 65536) return 65536;
+  // If v < 2^24, we round up to 2^n,
+  // otherwise we round up to 2^24 * n.
+  if (v < 16777216) {
+    for (p = 1; p < v; p = p << 1);
+  } else {
+    for (p = 16777216; p < v; p += 16777216);
+  }
+  return p;
+};
+
+},{}],6:[function(require,module,exports){
+'use strict';
+
 module.exports = function worker() {
   var Rusha = require('./rusha.js');
 

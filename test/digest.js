@@ -6,7 +6,14 @@ const asm = require('asm.js');
 
 const Rusha = require('../dist/rusha.min.js');
 
-const utils = require('./utils');
+const assertBytesEqual = (buffer1, buffer2) => {
+  const v1 = new Int8Array(buffer1);
+  const v2 = new Int8Array(buffer2);
+  assert.strictEqual(v1.length, v2.length, 'Buffers do not have the same length');
+  for (let i = 0; i < v1.length; i++) {
+    assert.strictEqual(v1[i], v2[i], 'Item at ' + i + ' differs: ' + v1[i] + ' vs ' + v2[i]);
+  }
+};
 
 const digestAppendOneByOne = (input) => {
   let middleState;   
@@ -97,16 +104,16 @@ describe('Rusha', () => {
       assert.strictEqual(20, r.rawDigest(abcString).buffer.byteLength);
     });
     it('returns Int32Array from string', () => {
-      utils.assertBytesEqual(abcHashedInt32Array, r.rawDigest(abcString));
+      assertBytesEqual(abcHashedInt32Array, r.rawDigest(abcString));
     });
     it('returns Int32Array from buffer', () => {
-      utils.assertBytesEqual(abcHashedInt32Array, r.rawDigest(abcBuffer));
+      assertBytesEqual(abcHashedInt32Array, r.rawDigest(abcBuffer));
     });
     it('returns Int32Array from array', () => {
-      utils.assertBytesEqual(abcHashedInt32Array, r.rawDigest(abcArray));
+      assertBytesEqual(abcHashedInt32Array, r.rawDigest(abcArray));
     });
     it('returns Int32Array from ArrayBuffer', () => {
-      utils.assertBytesEqual(abcHashedInt32Array, r.rawDigest(abcArrayBuffer));
+      assertBytesEqual(abcHashedInt32Array, r.rawDigest(abcArrayBuffer));
     });
   });
 });
