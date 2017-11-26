@@ -1,5 +1,7 @@
 'use strict';
 
+/* eslint-env commonjs, browser */
+
 var webworkify = require('webworkify');
 
 var Rusha = require('./rusha.js');

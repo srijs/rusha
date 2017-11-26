@@ -1,3 +1,7 @@
+'use strict';
+
+/* eslint-env commonjs, browser */
+
 var Rusha = require('./rusha.js');
 var utils = require('./utils.js');
 

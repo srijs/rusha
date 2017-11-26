@@ -26,6 +26,7 @@
     "grunt-browserify": "^5.2.0",
     "grunt-cli": "^1.2.0",
     "grunt-contrib-uglify": "^3.1.0",
+    "grunt-eslint": "^20.1.0",
     "grunt-karma": "^2.0.0",
     "karma": "^1.7.1",
     "karma-browserify": "^5.1.2",

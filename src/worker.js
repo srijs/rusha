@@ -1,5 +1,7 @@
 'use strict';
 
+/* eslint-env commonjs, worker */
+
 module.exports = function worker() {
   var Rusha = require('./rusha.js');
 
@@ -12,13 +14,13 @@ module.exports = function worker() {
   };
 
   var hashFile = function hashFile (hasher, readTotal, blockSize, file, cb) {
-    var reader = new self.FileReader()
+    var reader = new self.FileReader();
     reader.onloadend = function onloadend () {
       if (reader.error) {
         return cb(reader.error);
       }
-      var buffer = reader.result
-      readTotal += reader.result.byteLength
+      var buffer = reader.result;
+      readTotal += reader.result.byteLength;
       try {
         hasher.append(buffer);
       }
@@ -32,7 +34,7 @@ module.exports = function worker() {
         cb(null, hasher.end());
       }
     };
-    reader.readAsArrayBuffer(file.slice(readTotal, readTotal + blockSize))
+    reader.readAsArrayBuffer(file.slice(readTotal, readTotal + blockSize));
   };
 
   var workerBehaviourEnabled = true;

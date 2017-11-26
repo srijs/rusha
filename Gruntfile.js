@@ -51,15 +51,21 @@ module.exports = function (grunt) {
       test: {
         browsers: ['ChromeHeadless', 'FirefoxHeadless']
       }
+    },
+    eslint: {
+      target: [
+        'src/*.js'
+      ]
     }
   });
 
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
 
-  grunt.registerTask('test', ['browserify', 'uglify', 'karma']);
+  grunt.registerTask('test', ['eslint', 'browserify', 'uglify', 'karma']);
 
-  grunt.registerTask('build', ['browserify', 'uglify']);
+  grunt.registerTask('build', ['eslint', 'browserify', 'uglify']);
 
 };

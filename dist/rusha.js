@@ -172,6 +172,10 @@ module.exports = function RushaCore(stdlib$1186, foreign$1187, heap$1188) {
 };
 
 },{}],3:[function(require,module,exports){
+'use strict';
+
+/* eslint-env commonjs, browser */
+
 var Rusha = require('./rusha.js');
 var utils = require('./utils.js');
 
@@ -202,6 +206,8 @@ module.exports = function createHash() {
 
 },{"./rusha.js":5,"./utils.js":6}],4:[function(require,module,exports){
 'use strict';
+
+/* eslint-env commonjs, browser */
 
 var webworkify = require('webworkify');
 
@@ -234,6 +240,8 @@ module.exports = Rusha;
 },{"./hash.js":3,"./rusha.js":5,"./worker":7,"webworkify":1}],5:[function(require,module,exports){
 (function (global){
 'use strict';
+
+/* eslint-env commonjs, browser */
 
 var RushaCore = require('./core.sjs');
 var utils = require('./utils');
@@ -278,10 +286,10 @@ module.exports = function Rusha (chunkSize) {
     var h8 = new Uint8Array(bin.buffer);
     var om = len % 4, align = len - om;
     switch (om) {
-      case 0: h8[align + 3] = 0;
-      case 1: h8[align + 2] = 0;
-      case 2: h8[align + 1] = 0;
-      case 3: h8[align + 0] = 0;
+    case 0: h8[align + 3] = 0;
+    case 1: h8[align + 2] = 0;
+    case 2: h8[align + 1] = 0;
+    case 3: h8[align + 0] = 0;
     }
     for (var i = (len >> 2) + 1; i < bin.length; i++)
       bin[i] = 0;
@@ -300,10 +308,10 @@ module.exports = function Rusha (chunkSize) {
   var convStr = function (H8, H32, start, len, off) {
     var str = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
     switch (om) {
-      case 0: H8[off] = str.charCodeAt(start+3);
-      case 1: H8[off+1-(om<<1)|0] = str.charCodeAt(start+2);
-      case 2: H8[off+2-(om<<1)|0] = str.charCodeAt(start+1);
-      case 3: H8[off+3-(om<<1)|0] = str.charCodeAt(start);
+    case 0: H8[off] = str.charCodeAt(start+3);
+    case 1: H8[off+1-(om<<1)|0] = str.charCodeAt(start+2);
+    case 2: H8[off+2-(om<<1)|0] = str.charCodeAt(start+1);
+    case 3: H8[off+3-(om<<1)|0] = str.charCodeAt(start);
     }
     if (len < lm + om) {
       return;
@@ -315,9 +323,9 @@ module.exports = function Rusha (chunkSize) {
                       str.charCodeAt(start+i+3);
     }
     switch (lm) {
-      case 3: H8[off+j+1|0] = str.charCodeAt(start+j+2);
-      case 2: H8[off+j+2|0] = str.charCodeAt(start+j+1);
-      case 1: H8[off+j+3|0] = str.charCodeAt(start+j);
+    case 3: H8[off+j+1|0] = str.charCodeAt(start+j+2);
+    case 2: H8[off+j+2|0] = str.charCodeAt(start+j+1);
+    case 1: H8[off+j+3|0] = str.charCodeAt(start+j);
     }
   };
 
@@ -326,10 +334,10 @@ module.exports = function Rusha (chunkSize) {
   var convBuf = function (H8, H32, start, len, off) {
     var buf = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
     switch (om) {
-      case 0: H8[off] = buf[start + 3];
-      case 1: H8[off+1-(om<<1)|0] = buf[start+2];
-      case 2: H8[off+2-(om<<1)|0] = buf[start+1];
-      case 3: H8[off+3-(om<<1)|0] = buf[start];
+    case 0: H8[off] = buf[start + 3];
+    case 1: H8[off+1-(om<<1)|0] = buf[start+2];
+    case 2: H8[off+2-(om<<1)|0] = buf[start+1];
+    case 3: H8[off+3-(om<<1)|0] = buf[start];
     }
     if (len < lm + om) {
       return;
@@ -341,9 +349,9 @@ module.exports = function Rusha (chunkSize) {
                         buf[start+i+3];
     }
     switch (lm) {
-        case 3: H8[off+j+1|0] = buf[start+j+2];
-        case 2: H8[off+j+2|0] = buf[start+j+1];
-        case 1: H8[off+j+3|0] = buf[start+j];
+    case 3: H8[off+j+1|0] = buf[start+j+2];
+    case 2: H8[off+j+2|0] = buf[start+j+1];
+    case 1: H8[off+j+3|0] = buf[start+j];
     }
   };
 
@@ -351,10 +359,10 @@ module.exports = function Rusha (chunkSize) {
     var blob = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
     var buf = new Uint8Array(reader.readAsArrayBuffer(blob.slice(start, start + len)));
     switch (om) {
-      case 0: H8[off] = buf[3];
-      case 1: H8[off+1-(om<<1)|0] = buf[2];
-      case 2: H8[off+2-(om<<1)|0] = buf[1];
-      case 3: H8[off+3-(om<<1)|0] = buf[0];
+    case 0: H8[off] = buf[3];
+    case 1: H8[off+1-(om<<1)|0] = buf[2];
+    case 2: H8[off+2-(om<<1)|0] = buf[1];
+    case 3: H8[off+3-(om<<1)|0] = buf[0];
     }
     if (len < lm + om) {
       return;
@@ -366,30 +374,20 @@ module.exports = function Rusha (chunkSize) {
                         buf[i+3];
     }
     switch (lm) {
-      case 3: H8[off+j+1|0] = buf[j + 2];
-      case 2: H8[off+j+2|0] = buf[j + 1];
-      case 1: H8[off+j+3|0] = buf[j];
+    case 3: H8[off+j+1|0] = buf[j + 2];
+    case 2: H8[off+j+2|0] = buf[j + 1];
+    case 1: H8[off+j+3|0] = buf[j];
     }
   };
 
   var convFn = function (data) {
     switch (getDataType(data)) {
-      case 'string': return convStr.bind(data);
-      case 'array': return convBuf.bind(data);
-      case 'buffer': return convBuf.bind(data);
-      case 'arraybuffer': return convBuf.bind(new Uint8Array(data));
-      case 'view': return convBuf.bind(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
-      case 'blob': return convBlob.bind(data);
-    }
-  };
-
-  var slice = function (data, offset) {
-    switch (getDataType(data)) {
-      case 'string': return data.slice(offset);
-      case 'array': return data.slice(offset);
-      case 'buffer': return data.slice(offset);
-      case 'arraybuffer': return data.slice(offset);
-      case 'view': return data.buffer.slice(offset);
+    case 'string': return convStr.bind(data);
+    case 'array': return convBuf.bind(data);
+    case 'buffer': return convBuf.bind(data);
+    case 'arraybuffer': return convBuf.bind(new Uint8Array(data));
+    case 'view': return convBuf.bind(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+    case 'blob': return convBlob.bind(data);
     }
   };
 
@@ -512,7 +510,7 @@ module.exports = function Rusha (chunkSize) {
     var heap;
     if (!turnOffset) {
       var io = new Int32Array(self.heap, self.padMaxChunkLen + 320, 5);
-      heap = io.buffer.slice(io.byteOffset, io.byteOffset + io.byteLength)
+      heap = io.buffer.slice(io.byteOffset, io.byteOffset + io.byteLength);
     } else {
       heap = self.heap.slice(0);
     }
@@ -553,13 +551,15 @@ module.exports._core = RushaCore;
 // If we're running in a webworker, accept
 // messages containing a jobid and a buffer
 // or blob object, and return the hash result.
-if (typeof FileReaderSync !== 'undefined') {
-  var reader = new FileReaderSync();
+if (typeof self.FileReaderSync !== 'undefined') {
+  var reader = new self.FileReaderSync();
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./core.sjs":2,"./utils":6}],6:[function(require,module,exports){
 'use strict';
+
+/* eslint-env commonjs, browser */
 
 //
 // toHex
@@ -605,6 +605,8 @@ module.exports.ceilHeapSize = function (v) {
 },{}],7:[function(require,module,exports){
 'use strict';
 
+/* eslint-env commonjs, worker */
+
 module.exports = function worker() {
   var Rusha = require('./rusha.js');
 
@@ -617,13 +619,13 @@ module.exports = function worker() {
   };
 
   var hashFile = function hashFile (hasher, readTotal, blockSize, file, cb) {
-    var reader = new self.FileReader()
+    var reader = new self.FileReader();
     reader.onloadend = function onloadend () {
       if (reader.error) {
         return cb(reader.error);
       }
-      var buffer = reader.result
-      readTotal += reader.result.byteLength
+      var buffer = reader.result;
+      readTotal += reader.result.byteLength;
       try {
         hasher.append(buffer);
       }
@@ -637,7 +639,7 @@ module.exports = function worker() {
         cb(null, hasher.end());
       }
     };
-    reader.readAsArrayBuffer(file.slice(readTotal, readTotal + blockSize))
+    reader.readAsArrayBuffer(file.slice(readTotal, readTotal + blockSize));
   };
 
   var workerBehaviourEnabled = true;
