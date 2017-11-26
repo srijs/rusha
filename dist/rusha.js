@@ -172,11 +172,41 @@ module.exports = function RushaCore(stdlib$1186, foreign$1187, heap$1188) {
 };
 
 },{}],3:[function(require,module,exports){
+var Rusha = require('./rusha.js');
+var utils = require('./utils.js');
+
+function Hash() {
+  this._rusha = new Rusha();
+  this._rusha.resetState();
+}
+
+Hash.prototype.update = function update(data) {
+  this._rusha.append(data);
+  return this;
+};
+
+Hash.prototype.digest = function digest(encoding) {
+  var digest = this._rusha.rawEnd().buffer;
+  if (!encoding) {
+    return digest;
+  }
+  if (encoding === 'hex') {
+    return utils.toHex(digest);
+  }
+  throw new Error('unsupported digest encoding');
+};
+
+module.exports = function createHash() {
+  return new Hash();
+};
+
+},{"./rusha.js":5,"./utils.js":6}],4:[function(require,module,exports){
 'use strict';
 
 var webworkify = require('webworkify');
 
 var Rusha = require('./rusha.js');
+var createHash = require('./hash.js');
 
 // If we're running in a webworker, accept
 // messages containing a jobid and a buffer
@@ -195,9 +225,11 @@ Rusha.createWorker = function createWorker() {
   return worker;
 };
 
+Rusha.createHash = createHash;
+
 module.exports = Rusha;
 
-},{"./rusha.js":4,"./worker":6,"webworkify":1}],4:[function(require,module,exports){
+},{"./hash.js":3,"./rusha.js":5,"./worker":7,"webworkify":1}],5:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -524,7 +556,7 @@ if (typeof FileReaderSync !== 'undefined') {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./core.sjs":2,"./utils":5}],5:[function(require,module,exports){
+},{"./core.sjs":2,"./utils":6}],6:[function(require,module,exports){
 'use strict';
 
 //
@@ -568,7 +600,7 @@ module.exports.ceilHeapSize = function (v) {
   return p;
 };
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 module.exports = function worker() {
@@ -635,5 +667,5 @@ module.exports = function worker() {
   };
 };
 
-},{"./rusha.js":4}]},{},[3])(3)
+},{"./rusha.js":5}]},{},[4])(4)
 });

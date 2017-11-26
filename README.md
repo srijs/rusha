@@ -51,7 +51,39 @@ when it finds itself inside a worker context. This can lead to problems when you
 
 You can send your instance of the web worker messages in the format `{id: jobid, data: dataobject}`. The worker then sends back a message in the format `{id: jobid, hash: hash}`, were jobid is the id of the job previously received and hash is the hash of the data-object you passed, be it a `Blob`, `Array`, `Buffer`, `ArrayBuffer` or `String`
 
+### Using the Rusha Hash
+
+The Rusha `Hash` API is inspired by the [Node.js `Hash` API](https://nodejs.org/api/crypto.html#crypto_class_hash).
+
+#### Examples
+
+##### Simple usage
+
+```js
+var hexHash = Rusha.createHash().update('I am Rusha').digest('hex'); 
+```
+
+##### Incremental usage
+
+```js
+var hash = Rusha.createHash(); 
+hash.update('I am');
+hash.update(' Rusha');
+var hexHash = rusha.digest('hex');
+```
+
+#### Reference
+
+You instantiate a new Hash object by calling `Rusha.createHash`. When created, it provides the following methods:
+
+- `Hash#update(data)`: Update the hash state with the given `data`, which can be a binary `String`, `Buffer`, `Array`, `ArrayBuffer` or `Blob`.
+- `Hash#digest([encoding])`: Calculates the digest of all of the data passed to be hashed. The `encoding` can be `'hex'` or undefined. If `encoding` is provided a string will be returned; otherwise an `ArrayBuffer` is returned.
+
 ### Using the Rusha Object
+
+The Rusha Object API is deprecated, and is only documented here for older code bases that might still be using it.
+
+**You should be using the `Hash` API instead**, which is documented above.
 
 #### Examples
 

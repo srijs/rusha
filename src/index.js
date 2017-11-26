@@ -3,6 +3,7 @@
 var webworkify = require('webworkify');
 
 var Rusha = require('./rusha.js');
+var createHash = require('./hash.js');
 
 // If we're running in a webworker, accept
 // messages containing a jobid and a buffer
@@ -20,5 +21,7 @@ Rusha.createWorker = function createWorker() {
   };
   return worker;
 };
+
+Rusha.createHash = createHash;
 
 module.exports = Rusha;
