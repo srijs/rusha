@@ -20,13 +20,12 @@
   "devDependencies": {
     "asm.js": "^0.0.2",
     "benchmark": "^1.0.0",
-    "brfs": "^1.4.3",
     "browserify": "^14.5.0",
     "grunt": "^1.0.1",
+    "grunt-browserify": "^5.2.0",
     "grunt-cli": "^1.2.0",
     "grunt-contrib-uglify": "^3.1.0",
     "grunt-karma": "^2.0.0",
-    "grunt-sweet.js": "^0.1.5",
     "karma": "^1.7.1",
     "karma-browserify": "^5.1.2",
     "karma-chrome-launcher": "^2.2.0",
@@ -34,8 +33,9 @@
     "karma-mocha": "^1.3.0",
     "microtime": "^2.1.1",
     "mocha": "^4.0.1",
-    "sweet.js": "^0.7.1",
-    "watchify": "^3.9.0"
+    "sweetify": "^0.4.0",
+    "watchify": "^3.9.0",
+    "webworkify": "^1.5.0"
   },
   "author": "Sam Rijs",
   "license": "MIT",

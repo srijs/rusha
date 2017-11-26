@@ -3,15 +3,11 @@
 const assert = require('assert');
 const fs = require('fs');
 
-const workerSource = fs.readFileSync(__dirname + '/../dist/rusha.min.js', 'utf8');
-const workerBlob = new Blob([workerSource], {type: "application/javascript"});
-const workerURL = URL.createObjectURL(workerBlob);
-
-const spawnWorker = () => new Worker(workerURL);
+const Rusha = require('../dist/rusha.min.js');
 
 describe('Rusha Worker', () => {
   it('1 kiB', (done) => {
-    const rw = spawnWorker();
+    const rw = Rusha.createWorker();
     const zero1k = new Int8Array(1024);
     const blob = new Blob([zero1k]);
     rw.onmessage = (e) => {
@@ -26,7 +22,7 @@ describe('Rusha Worker', () => {
   });
 
   it('1 kiB file', (done) => {
-    const rw = spawnWorker();
+    const rw = Rusha.createWorker();
     const zero1k = new Int8Array(1024);
     const blob = new Blob([zero1k]);
     rw.onmessage = (e) => {
@@ -41,7 +37,7 @@ describe('Rusha Worker', () => {
   });
 
   it('1 MiB', (done) => {
-    const rw = spawnWorker();
+    const rw = Rusha.createWorker();
     const zero1M = new Int8Array(1024 * 1024);
     const blob = new Blob([zero1M]);
     rw.onmessage = (e) => {
@@ -56,7 +52,7 @@ describe('Rusha Worker', () => {
   });
 
   it('1 MiB file', (done) => {
-    const rw = spawnWorker();
+    const rw = Rusha.createWorker();
     const zero1M = new Int8Array(1024 * 1024);
     const blob = new Blob([zero1M]);
     rw.onmessage = (e) => {
@@ -71,7 +67,7 @@ describe('Rusha Worker', () => {
   });
 
   it('10 MiB', (done) => {
-    const rw = spawnWorker();
+    const rw = Rusha.createWorker();
     const zero1M = new Int8Array(1024 * 1024);
     const blob = new Blob(new Array(8).fill(zero1M));
     rw.onmessage = (e) => {
@@ -86,7 +82,7 @@ describe('Rusha Worker', () => {
   });
 
   it('10 MiB file', (done) => {
-    const rw = spawnWorker();
+    const rw = Rusha.createWorker();
     const zero1M = new Int8Array(1024 * 1024);
     const blob = new Blob(new Array(8).fill(zero1M));
     rw.onmessage = (e) => {

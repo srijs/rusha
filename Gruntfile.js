@@ -2,15 +2,6 @@ module.exports = function (grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    sweetjs: {
-      options: {
-        readableNames: true
-      },
-      build: {
-        src: 'src/<%= pkg.name %>.sweet.js',
-        dest: 'dist/<%= pkg.name %>.js'
-      },
-    },
     uglify: {
       options: {
         banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n',
@@ -19,6 +10,19 @@ module.exports = function (grunt) {
       build: {
         src: 'dist/<%= pkg.name %>.js',
         dest: 'dist/<%= pkg.name %>.min.js'
+      }
+    },
+    browserify: {
+      options: {
+        transform: ['sweetify'],
+        browserifyOptions: {
+          standalone: 'Rusha'
+        }
+      },
+      build: {
+        files: {
+          'dist/rusha.js': ['src/index.js']
+        }
       }
     },
     karma: {
@@ -31,15 +35,12 @@ module.exports = function (grunt) {
         preprocessors: {
           'test/*.js': ['browserify']
         },
-        browserify: {
-          transform: ['brfs']
-        },
         reporters: ['dots'],
         singleRun: true,
         customLaunchers: {
           FirefoxHeadless: {
             base: 'Firefox',
-            flags: [ '-headless' ],
+            flags: ['-headless'],
           },
         },
         browserNoActivityTimeout: 60000
@@ -50,12 +51,12 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.loadNpmTasks('grunt-sweet.js');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-karma');
 
-  grunt.registerTask('test', ['sweetjs', 'uglify', 'karma']);
+  grunt.registerTask('test', ['browserify', 'uglify', 'karma']);
 
-  grunt.registerTask('build', ['sweetjs', 'uglify']);
+  grunt.registerTask('build', ['browserify', 'uglify']);
 
 };
