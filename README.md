@@ -25,7 +25,7 @@ bower install rusha
 
 It is highly recommended to run CPU-intensive tasks in a [Web Worker](http://developer.mozilla.org/en-US/docs/DOM/Using_web_workers). To do so, just follow the instructions on _Using the Rusha Worker_.
 
-If you can't, for any reason, use Web Workers, include the `dist/rusha.js` file in a `<script>` tag and follow the instructions on _Using the Rusha Object_.
+If you have a good reason not to use Web Workers, follow the instructions on _Using the Rusha Hash API_ instead.
 
 ### Using the Rusha Worker
 
@@ -51,7 +51,7 @@ when it finds itself inside a worker context. This can lead to problems when you
 
 You can send your instance of the web worker messages in the format `{id: jobid, data: dataobject}`. The worker then sends back a message in the format `{id: jobid, hash: hash}`, were jobid is the id of the job previously received and hash is the hash of the data-object you passed, be it a `Blob`, `Array`, `Buffer`, `ArrayBuffer` or `String`
 
-### Using the Rusha Hash
+### Using the Rusha Hash API
 
 The Rusha `Hash` API is inspired by the [Node.js `Hash` API](https://nodejs.org/api/crypto.html#crypto_class_hash).
 
@@ -79,11 +79,11 @@ You instantiate a new Hash object by calling `Rusha.createHash`. When created, i
 - `Hash#update(data)`: Update the hash state with the given `data`, which can be a binary `String`, `Buffer`, `Array`, `ArrayBuffer` or `Blob`.
 - `Hash#digest([encoding])`: Calculates the digest of all of the data passed to be hashed. The `encoding` can be `'hex'` or undefined. If `encoding` is provided a string will be returned; otherwise an `ArrayBuffer` is returned.
 
-### Using the Rusha Object
+### Using the Rusha Object (DEPRECATED)
 
 The Rusha Object API is deprecated, and is only documented here for older code bases that might still be using it.
 
-**You should be using the `Hash` API instead**, which is documented above.
+You should be using the `Hash` API instead, which is documented above.
 
 #### Examples
 
