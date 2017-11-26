@@ -213,6 +213,8 @@ var createHash = require('./hash.js');
 // or blob object, and return the hash result.
 if (typeof FileReaderSync !== 'undefined' && typeof DedicatedWorkerGlobalScope !== 'undefined') {
   Rusha.disableWorkerBehaviour = require('./worker')();
+} else {
+  Rusha.disableWorkerBehaviour = function () {};
 }
 
 Rusha.createWorker = function createWorker() {
