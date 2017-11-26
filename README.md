@@ -1,7 +1,8 @@
-# Rusha [![Build Status](https://travis-ci.org/srijs/rusha.svg?branch=master)](https://travis-ci.org/srijs/rusha)
+# Rusha
+
 *A high-performance pure-javascript SHA1 implementation suitable for large binary data.*
 
-[![NPM](https://nodei.co/npm/rusha.png?downloads=true&downloadRank=true)](https://nodei.co/npm/rusha/)
+[![npm](https://img.shields.io/npm/v/rusha.svg)](https://www.npmjs.com/package/rusha) [![npm](https://img.shields.io/npm/dm/rusha.svg)](https://www.npmjs.com/package/rusha) [![Build Status](https://travis-ci.org/srijs/rusha.svg?branch=master)](https://travis-ci.org/srijs/rusha)
 
 ## Installing
 
