@@ -50,16 +50,16 @@ You can send your instance of the web worker messages in the format `{id: jobid,
 
 ### Using the Rusha Object
 
-### Examples
+#### Examples
 
-#### Normal usage
+##### Normal usage
 
 ```js
 var rusha = new Rusha();
 var hexHash = rusha.digest('I am Rusha'); 
 ```
 
-#### Incremental usage
+##### Incremental usage
 
 ```js
 var rusha = new Rusha();
@@ -69,7 +69,7 @@ rusha.append(' Rusha');
 var hexHash = rusha.end();
 ```
 
-### Reference
+#### Reference
 
 Your instantiate a new Rusha object by doing `var r = new Rusha(optionalSizeHint)`. When created, it provides the following methods:
 
