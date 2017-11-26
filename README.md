@@ -44,8 +44,8 @@ at `rusha.js` or `rusha.min.js`, like so:
 var worker = new Worker("dist/rusha.min.js");
 ```
 
-**Note**: In order to make the latter work, Rusha will by default subscribe to incoming messages
-when it finds itself inside a worker context. This can lead to problems when you would like to use Rusha as a library inside a web worker, but still have control over the messaging. To disable this behaviour, you can call `Rusha.disableWorkerBehaviour()` from within the worker.
+_**Note**: In order to make the latter work, Rusha will by default subscribe to incoming messages
+when it finds itself inside a worker context. This can lead to problems when you would like to use Rusha as a library inside a web worker, but still have control over the messaging. To disable this behaviour, you can call `Rusha.disableWorkerBehaviour()` from within the worker._
 
 #### Using the worker
 
