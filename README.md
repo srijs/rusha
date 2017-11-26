@@ -23,11 +23,28 @@ bower install rusha
 
 ## Usage
 
-It is highly recommended to run CPU-intensive tasks in a [Web Worker](http://developer.mozilla.org/en-US/docs/DOM/Using_web_workers). To do so, just start a worker with `var worker = new Worker('dist/rusha.js')` and start sending it jobs. Follow the instructions on _Using the Rusha Worker_.
+It is highly recommended to run CPU-intensive tasks in a [Web Worker](http://developer.mozilla.org/en-US/docs/DOM/Using_web_workers). To do so, just follow the instructions on _Using the Rusha Worker_.
 
 If you can't, for any reason, use Web Workers, include the `dist/rusha.js` file in a `<script>` tag and follow the instructions on _Using the Rusha Object_.
 
 ### Using the Rusha Worker
+
+#### Spawning workers
+
+You can create a new worker in two ways. The preferred way is using `Rusha.createWorker()`, which spawns a webworker containing the hashing logic, and returns back a `Worker` object:
+
+```
+var worker = Rusha.createWorker();
+```
+
+If for some reason this does not work for you, you can also just point the `Worker` constructor
+at `rusha.js` or `rusha.min.js`, like so:
+
+```
+var worker = new Worker("dist/rusha.min.js");
+```
+
+#### Using the worker
 
 You can send your instance of the web worker messages in the format `{id: jobid, data: dataobject}`. The worker then sends back a message in the format `{id: jobid, hash: hash}`, were jobid is the id of the job previously received and hash is the hash of the data-object you passed, be it a `Blob`, `Array`, `Buffer`, `ArrayBuffer` or `String`
 
@@ -71,7 +88,7 @@ Your instantiate a new Rusha object by doing `var r = new Rusha(optionalSizeHint
 ## Development
 
 * Download npm dependencies with `npm install`
-* Source file to be edited is `src/rusha.sweet.js`
+* Make changes to the files in `src/`
 * Build with `npm run build`
 * Run tests with `npm test`
 
