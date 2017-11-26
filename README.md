@@ -23,9 +23,9 @@ bower install rusha
 
 ## Usage
 
-It is highly recommended to run CPU-intensive tasks in a [Web Worker](http://developer.mozilla.org/en-US/docs/DOM/Using_web_workers). To do so, just follow the instructions on _Using the Rusha Worker_.
+It is highly recommended to run CPU-intensive tasks in a [Web Worker](http://developer.mozilla.org/en-US/docs/DOM/Using_web_workers). To do so, just follow the instructions on [_Using the Rusha Worker_](#using-the-rusha-worker).
 
-If you have a good reason not to use Web Workers, follow the instructions on _Using the Rusha Hash API_ instead.
+If you have a good reason not to use Web Workers, follow the instructions on [_Using the Rusha Hash API_](#using-the-rusha-hash-api) instead.
 
 ### Using the Rusha Worker
 
