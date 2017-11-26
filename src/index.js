@@ -7,7 +7,7 @@ var Rusha = require('./rusha.js');
 // If we're running in a webworker, accept
 // messages containing a jobid and a buffer
 // or blob object, and return the hash result.
-if (typeof FileReaderSync !== 'undefined') {
+if (typeof FileReaderSync !== 'undefined' && typeof DedicatedWorkerGlobalScope !== 'undefined') {
   Rusha.disableWorkerBehaviour = require('./worker')();
 }
 
