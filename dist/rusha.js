@@ -257,7 +257,7 @@ module.exports = function Rusha (chunkSize) {
     if (data instanceof Array) {
       return 'array';
     }
-    if (typeof global !== 'undefined' && global.Buffer && global.Buffer.isBuffer(data)) {
+    if (global.Buffer && global.Buffer.isBuffer(data)) {
       return 'buffer';
     }
     if (data instanceof ArrayBuffer) {
