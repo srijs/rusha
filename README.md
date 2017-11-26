@@ -33,14 +33,14 @@ If you can't, for any reason, use Web Workers, include the `dist/rusha.js` file 
 
 You can create a new worker in two ways. The preferred way is using `Rusha.createWorker()`, which spawns a webworker containing the hashing logic, and returns back a `Worker` object:
 
-```
+```js
 var worker = Rusha.createWorker();
 ```
 
 If for some reason this does not work for you, you can also just point the `Worker` constructor
 at `rusha.js` or `rusha.min.js`, like so:
 
-```
+```js
 var worker = new Worker("dist/rusha.min.js");
 ```
 
