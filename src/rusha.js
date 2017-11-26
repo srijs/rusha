@@ -173,7 +173,7 @@ module.exports = function Rusha (chunkSize) {
     self.heap     = new ArrayBuffer(utils.ceilHeapSize(self.padMaxChunkLen + 320 + 20));
     self.h32      = new Int32Array(self.heap);
     self.h8       = new Int8Array(self.heap);
-    self.core     = new RushaCore({Int32Array: Int32Array, DataView: DataView}, {}, self.heap);
+    self.core     = new RushaCore({Int32Array: Int32Array}, {}, self.heap);
     self.buffer   = null;
   };
 
