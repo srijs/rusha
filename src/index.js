@@ -8,10 +8,8 @@ var Rusha = require('./rusha.js');
 // messages containing a jobid and a buffer
 // or blob object, and return the hash result.
 if (typeof FileReaderSync !== 'undefined') {
-  require('./worker')();
+  Rusha.disableWorkerBehaviour = require('./worker')();
 }
-
-module.exports = Rusha;
 
 Rusha.createWorker = function createWorker() {
   var worker = webworkify(require('./worker'));
@@ -22,3 +20,5 @@ Rusha.createWorker = function createWorker() {
   };
   return worker;
 };
+
+module.exports = Rusha;

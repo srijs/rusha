@@ -182,10 +182,8 @@ var Rusha = require('./rusha.js');
 // messages containing a jobid and a buffer
 // or blob object, and return the hash result.
 if (typeof FileReaderSync !== 'undefined') {
-  require('./worker')();
+  Rusha.disableWorkerBehaviour = require('./worker')();
 }
-
-module.exports = Rusha;
 
 Rusha.createWorker = function createWorker() {
   var worker = webworkify(require('./worker'));
@@ -196,6 +194,8 @@ Rusha.createWorker = function createWorker() {
   };
   return worker;
 };
+
+module.exports = Rusha;
 
 },{"./rusha.js":4,"./worker":6,"webworkify":1}],4:[function(require,module,exports){
 (function (global){
@@ -606,7 +606,13 @@ module.exports = function worker() {
     reader.readAsArrayBuffer(file.slice(readTotal, readTotal + blockSize))
   };
 
+  var workerBehaviourEnabled = true;
+
   self.onmessage = function onMessage (event) {
+    if (!workerBehaviourEnabled) {
+      return;
+    }
+
     var data = event.data.data, file = event.data.file, id = event.data.id;
     if (typeof id === 'undefined') return;
     if (!file && !data) return;
@@ -622,6 +628,10 @@ module.exports = function worker() {
     };
     if (data) hashData(hasher, data, done);
     if (file) hashFile(hasher, 0, blockSize, file, done);
+  };
+
+  return function disableWorkerBehaviour() {
+    workerBehaviourEnabled = false;
   };
 };
 

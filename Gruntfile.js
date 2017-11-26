@@ -35,6 +35,9 @@ module.exports = function (grunt) {
         preprocessors: {
           'test/*.js': ['browserify']
         },
+        browserify: {
+          transform: ['brfs']
+        },
         reporters: ['dots'],
         singleRun: true,
         customLaunchers: {

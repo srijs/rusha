@@ -35,7 +35,13 @@ module.exports = function worker() {
     reader.readAsArrayBuffer(file.slice(readTotal, readTotal + blockSize))
   };
 
+  var workerBehaviourEnabled = true;
+
   self.onmessage = function onMessage (event) {
+    if (!workerBehaviourEnabled) {
+      return;
+    }
+
     var data = event.data.data, file = event.data.file, id = event.data.id;
     if (typeof id === 'undefined') return;
     if (!file && !data) return;
@@ -51,5 +57,9 @@ module.exports = function worker() {
     };
     if (data) hashData(hasher, data, done);
     if (file) hashFile(hasher, 0, blockSize, file, done);
+  };
+
+  return function disableWorkerBehaviour() {
+    workerBehaviourEnabled = false;
   };
 };

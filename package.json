@@ -20,6 +20,7 @@
   "devDependencies": {
     "asm.js": "^0.0.2",
     "benchmark": "^1.0.0",
+    "brfs": "^1.4.3",
     "browserify": "^14.5.0",
     "grunt": "^1.0.1",
     "grunt-browserify": "^5.2.0",

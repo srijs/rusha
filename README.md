@@ -44,6 +44,9 @@ at `rusha.js` or `rusha.min.js`, like so:
 var worker = new Worker("dist/rusha.min.js");
 ```
 
+**Note**: In order to make the latter work, Rusha will by default subscribe to incoming messages
+when it finds itself inside a worker context. This can lead to problems when you would like to use Rusha as a library inside a web worker, but still have control over the messaging. To disable this behaviour, you can call `Rusha.disableWorkerBehaviour()` from within the worker.
+
 #### Using the worker
 
 You can send your instance of the web worker messages in the format `{id: jobid, data: dataobject}`. The worker then sends back a message in the format `{id: jobid, hash: hash}`, were jobid is the id of the job previously received and hash is the hash of the data-object you passed, be it a `Blob`, `Array`, `Buffer`, `ArrayBuffer` or `String`
