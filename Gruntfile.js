@@ -63,6 +63,28 @@ module.exports = function (grunt) {
           browsers: ['ChromeHeadless', 'FirefoxHeadless']
         }
       },
+      compatibilityWithVanillaScript: {
+        options: {
+          frameworks: ['mocha', 'sinon-chai'],
+          reporters: ['dots'],
+          files: [
+            'test/compat/vanilla_script.js',
+            'dist/rusha.min.js'
+          ],
+          browsers: ['ChromeHeadless', 'FirefoxHeadless'] 
+        }
+      },
+      compatibilityWithVanillaWorker: {
+        options: {
+          frameworks: ['mocha', 'sinon-chai'],
+          reporters: ['dots'],
+          files: [
+            'test/compat/vanilla_worker.js',
+            {pattern: 'dist/rusha.min.js', included: false, served: true}
+          ],
+          browsers: ['ChromeHeadless', 'FirefoxHeadless'] 
+        }
+      },
       benchmark: {
         options: {
           frameworks: ['browserify', 'benchmark'],
@@ -87,7 +109,16 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-uglify');
 
-  grunt.registerTask('test', ['eslint', 'browserify', 'uglify', 'karma:unit', 'karma:functional']);
+  grunt.registerTask('test', [
+    'eslint',
+    'browserify',
+    'uglify',
+    'karma:unit',
+    'karma:functional',
+    'karma:compatibilityWithVanillaScript',
+    'karma:compatibilityWithVanillaWorker'
+  ]);
+
   grunt.registerTask('benchmark', ['browserify', 'uglify', 'karma:benchmark']);
 
   grunt.registerTask('build', ['eslint', 'browserify', 'uglify']);
