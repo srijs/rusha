@@ -39,10 +39,8 @@
     "microtime": "^2.1.1",
     "mocha": "^4.0.1",
     "node-forge": "^0.7.1",
-    "node-inspector": "^1.1.1",
     "sha.js": "^2.4.9",
     "sweetify": "^0.4.0",
-    "v8-profiler": "^5.7.0",
     "watchify": "^3.9.0",
     "webworkify": "^1.5.0"
   },
