@@ -310,6 +310,6 @@ module.exports._core = RushaCore;
 // If we're running in a webworker, accept
 // messages containing a jobid and a buffer
 // or blob object, and return the hash result.
-if (typeof self.FileReaderSync !== 'undefined') {
+if (typeof self !== 'undefined' && typeof self.FileReaderSync !== 'undefined') {
   var reader = new self.FileReaderSync();
 }

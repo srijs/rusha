@@ -11,7 +11,7 @@
         }
         return bytes;
       }
-      console.log((new Rusha()).digestFromBuffer(randomBytes(8 * 1024 * 1024)));
+      console.log(Rusha.createHash().update(randomBytes(8 * 1024 * 1024)).digest('hex'));
     </script>
   </head>
 </html>
