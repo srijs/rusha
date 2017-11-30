@@ -38,13 +38,24 @@ module.exports = function (grunt) {
         },
         browserNoActivityTimeout: 60000
       },
-      test: {
+      unit: {
         options: {
           frameworks: ['browserify', 'mocha'],
           reporters: ['dots'],
-          files: ['test/*.js'],
+          files: ['test/unit/*.js'],
           preprocessors: {
-            'test/*.js': ['browserify']
+            'test/unit/*.js': ['browserify']
+          },
+          browsers: ['ChromeHeadless', 'FirefoxHeadless']
+        }
+      },
+      functional: {
+        options: {
+          frameworks: ['browserify', 'mocha'],
+          reporters: ['dots'],
+          files: ['test/functional/*.js'],
+          preprocessors: {
+            'test/functional/*.js': ['browserify']
           },
           browserify: {
             transform: ['brfs']
@@ -76,7 +87,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-uglify');
 
-  grunt.registerTask('test', ['eslint', 'browserify', 'uglify', 'karma:test']);
+  grunt.registerTask('test', ['eslint', 'browserify', 'uglify', 'karma:unit', 'karma:functional']);
   grunt.registerTask('benchmark', ['browserify', 'uglify', 'karma:benchmark']);
 
   grunt.registerTask('build', ['eslint', 'browserify', 'uglify']);

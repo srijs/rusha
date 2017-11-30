@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const utils = require('../src/utils');
+const utils = require('../../src/utils');
 
 describe('toHex', () => {
   it('converts an array buffer full of zeroes', () => {

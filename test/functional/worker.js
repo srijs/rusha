@@ -3,7 +3,7 @@
 const assert = require('assert');
 const fs = require('fs');
 
-const Rusha = require('../dist/rusha.min.js');
+const Rusha = require('../../dist/rusha.min.js');
 
 describe('Rusha Worker', () => {
   describe('createWorker', () => {
@@ -24,7 +24,7 @@ describe('Rusha Worker', () => {
 
   describe('automagic worker behaviour', () => {
     it('spawns when used by Worker constructor', (done) => {
-      const workerSource = fs.readFileSync(__dirname + '/../dist/rusha.min.js', 'utf8');
+      const workerSource = fs.readFileSync(__dirname + '/../../dist/rusha.min.js', 'utf8');
       const workerBlob = new Blob([workerSource]);
       const workerURL = URL.createObjectURL(workerBlob);
       const rw = new Worker(workerURL);
@@ -41,7 +41,7 @@ describe('Rusha Worker', () => {
     });
 
     it('can be disabled', (done) => {
-      const workerSource = fs.readFileSync(__dirname + '/../dist/rusha.min.js', 'utf8');
+      const workerSource = fs.readFileSync(__dirname + '/../../dist/rusha.min.js', 'utf8');
       const workerBlob = new Blob([workerSource, 'Rusha.disableWorkerBehaviour();']);
       const workerURL = URL.createObjectURL(workerBlob);
       const rw = new Worker(workerURL);
