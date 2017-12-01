@@ -51,7 +51,7 @@ module.exports = function (grunt) {
       },
       functional: {
         options: {
-          frameworks: ['browserify', 'mocha'],
+          frameworks: ['browserify', 'mocha', 'chai-as-promised', 'chai'],
           reporters: ['dots'],
           files: ['test/functional/*.js'],
           preprocessors: {
@@ -65,7 +65,7 @@ module.exports = function (grunt) {
       },
       compatibilityWithVanillaScript: {
         options: {
-          frameworks: ['mocha', 'sinon-chai'],
+          frameworks: ['mocha', 'chai-as-promised', 'chai'],
           reporters: ['dots'],
           files: [
             'test/compat/vanilla_script.js',
@@ -76,7 +76,7 @@ module.exports = function (grunt) {
       },
       compatibilityWithVanillaWorker: {
         options: {
-          frameworks: ['mocha', 'sinon-chai'],
+          frameworks: ['mocha', 'chai-as-promised', 'chai'],
           reporters: ['dots'],
           files: [
             'test/compat/vanilla_worker.js',
