@@ -85,6 +85,32 @@ module.exports = function (grunt) {
           browsers: ['ChromeHeadless', 'FirefoxHeadless'] 
         }
       },
+      compatibilityWithBrowserify: {
+        options: {
+          frameworks: ['mocha', 'chai-as-promised', 'chai', 'browserify'],
+          reporters: ['dots'],
+          files: [
+            'test/compat/require.js',
+          ],
+          preprocessors: {
+            'test/compat/require.js': ['browserify']
+          },
+          browsers: ['ChromeHeadless', 'FirefoxHeadless'] 
+        }
+      },
+      compatibilityWithWebpack: {
+        options: {
+          frameworks: ['mocha', 'chai-as-promised', 'chai'],
+          reporters: ['dots'],
+          files: [
+            'test/compat/require.js',
+          ],
+          preprocessors: {
+            'test/compat/require.js': ['webpack']
+          },
+          browsers: ['ChromeHeadless', 'FirefoxHeadless'] 
+        }
+      },
       benchmark: {
         options: {
           frameworks: ['browserify', 'benchmark'],
@@ -116,7 +142,9 @@ module.exports = function (grunt) {
     'karma:unit',
     'karma:functional',
     'karma:compatibilityWithVanillaScript',
-    'karma:compatibilityWithVanillaWorker'
+    'karma:compatibilityWithVanillaWorker',
+    'karma:compatibilityWithBrowserify',
+    'karma:compatibilityWithWebpack'
   ]);
 
   grunt.registerTask('benchmark', ['browserify', 'uglify', 'karma:benchmark']);
