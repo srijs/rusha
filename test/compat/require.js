@@ -1,4 +1,10 @@
 describe('Require() Compatibility', () => {
+  it('does not pollute the global namespace', () => {
+    const Rusha = require('../../dist/rusha.min.js');
+    expect(typeof window.Rusha).to.equal('undefined');
+    expect(typeof global.Rusha).to.equal('undefined');
+  });
+
   it('provides compatibility with Rusha in-process', () => {
     const Rusha = require('../../dist/rusha.min.js');
     const digest = Rusha.createHash().update('abc').digest('hex');
