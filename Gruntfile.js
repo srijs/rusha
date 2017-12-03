@@ -31,6 +31,10 @@ module.exports = function (grunt) {
         basePath: '',
         singleRun: true,
         files: [],
+        reporters: ['mocha'],
+        mochaReporter: {
+          showDiff: true
+        },
         customLaunchers: {
           FirefoxHeadless: {
             base: 'Firefox',
@@ -41,8 +45,7 @@ module.exports = function (grunt) {
       },
       unit: {
         options: {
-          frameworks: ['browserify', 'mocha'],
-          reporters: ['dots'],
+          frameworks: ['browserify', 'mocha', 'chai'],
           files: ['test/unit/*.js'],
           preprocessors: {
             'test/unit/*.js': ['browserify']
@@ -53,7 +56,6 @@ module.exports = function (grunt) {
       functional: {
         options: {
           frameworks: ['browserify', 'mocha', 'chai-as-promised', 'chai'],
-          reporters: ['dots'],
           files: ['test/functional/*.js'],
           preprocessors: {
             'test/functional/*.js': ['browserify']
@@ -67,7 +69,6 @@ module.exports = function (grunt) {
       compatibilityWithVanillaScript: {
         options: {
           frameworks: ['mocha', 'chai-as-promised', 'chai'],
-          reporters: ['dots'],
           files: [
             'test/compat/vanilla_script.js',
             'dist/rusha.min.js'
@@ -78,7 +79,6 @@ module.exports = function (grunt) {
       compatibilityWithVanillaWorker: {
         options: {
           frameworks: ['mocha', 'chai-as-promised', 'chai'],
-          reporters: ['dots'],
           files: [
             'test/compat/vanilla_worker.js',
             {pattern: 'dist/rusha.min.js', included: false, served: true}
@@ -89,7 +89,6 @@ module.exports = function (grunt) {
       compatibilityWithBrowserify: {
         options: {
           frameworks: ['mocha', 'chai-as-promised', 'chai', 'browserify'],
-          reporters: ['dots'],
           files: [
             'test/compat/require.js',
           ],
@@ -102,7 +101,6 @@ module.exports = function (grunt) {
       compatibilityWithWebpack: {
         options: {
           frameworks: ['mocha', 'chai-as-promised', 'chai'],
-          reporters: ['dots'],
           files: [
             'test/compat/require.js',
           ],
