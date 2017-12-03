@@ -1,7 +1,7 @@
 /* eslint-env commonjs, browser */
 
-const Rusha = require('./rusha.js');
-const {toHex} = require('./utils.js');
+const Rusha = require('./rusha');
+const {toHex} = require('./utils');
 
 class Hash {
   constructor() {

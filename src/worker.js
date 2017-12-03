@@ -1,7 +1,7 @@
 /* eslint-env commonjs, worker */
 
 module.exports = () => {
-  const Rusha = require('./rusha.js');
+  const Rusha = require('./rusha');
 
   const hashData = (hasher, data, cb) => {
     try {

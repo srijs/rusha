@@ -353,15 +353,11 @@ var webworkify = _dereq_('webworkify');
 
 var Rusha = _dereq_('./rusha.js');
 var createHash = _dereq_('./hash.js');
+var runWorker = _dereq_('./worker');
 
-// If we're running in a webworker, accept
-// messages containing a jobid and a buffer
-// or blob object, and return the hash result.
-if (typeof FileReaderSync !== 'undefined' && typeof DedicatedWorkerGlobalScope !== 'undefined') {
-  Rusha.disableWorkerBehaviour = _dereq_('./worker')();
-} else {
-  Rusha.disableWorkerBehaviour = function () {};
-}
+var isRunningInDedicatedWorker = typeof FileReaderSync !== 'undefined' && typeof DedicatedWorkerGlobalScope !== 'undefined';
+
+Rusha.disableWorkerBehaviour = isRunningInDedicatedWorker ? runWorker() : function () {};
 
 Rusha.createWorker = function () {
   var worker = webworkify(_dereq_('./worker'));
