@@ -4,6 +4,7 @@
 
 var RushaCore = require('./core.sjs');
 var utils = require('./utils');
+var conv = require('./conv');
 
 // The Rusha object is a wrapper around the low-level RushaCore.
 // It provides means of converting different inputs to the
@@ -38,105 +39,6 @@ module.exports = function Rusha (chunkSize) {
     // high 32-bits of the big-endian message length in bits.
     bin[(((chunkLen >> 2) + 2) & ~0x0f) + 14] = (msgLen / (1 << 29)) |0;
     bin[(((chunkLen >> 2) + 2) & ~0x0f) + 15] = msgLen << 3;
-  };
-
-  // Convert a binary string and write it to the heap.
-  // A binary string is expected to only contain char codes < 256.
-  var convStr = function (H8, H32, start, len, off) {
-    var str = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
-    switch (om) {
-    case 0: H8[off] = str.charCodeAt(start+3);
-    case 1: H8[off+1-(om<<1)|0] = str.charCodeAt(start+2);
-    case 2: H8[off+2-(om<<1)|0] = str.charCodeAt(start+1);
-    case 3: H8[off+3-(om<<1)|0] = str.charCodeAt(start);
-    }
-    if (len < lm + om) {
-      return;
-    }
-    for (i = 4 - om; i < j; i = i + 4 | 0) {
-      H32[off+i>>2] = str.charCodeAt(start+i)   << 24 |
-                      str.charCodeAt(start+i+1) << 16 |
-                      str.charCodeAt(start+i+2) <<  8 |
-                      str.charCodeAt(start+i+3);
-    }
-    switch (lm) {
-    case 3: H8[off+j+1|0] = str.charCodeAt(start+j+2);
-    case 2: H8[off+j+2|0] = str.charCodeAt(start+j+1);
-    case 1: H8[off+j+3|0] = str.charCodeAt(start+j);
-    }
-  };
-
-  // Convert a buffer or array and write it to the heap.
-  // The buffer or array is expected to only contain elements < 256.
-  var convBuf = function (H8, H32, start, len, off) {
-    var buf = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
-    switch (om) {
-    case 0: H8[off] = buf[start + 3];
-    case 1: H8[off+1-(om<<1)|0] = buf[start+2];
-    case 2: H8[off+2-(om<<1)|0] = buf[start+1];
-    case 3: H8[off+3-(om<<1)|0] = buf[start];
-    }
-    if (len < lm + om) {
-      return;
-    }
-    for (i = 4 - om; i < j; i = i + 4 | 0) {
-      H32[off+i>>2|0] = buf[start+i]   << 24 |
-                        buf[start+i+1] << 16 | 
-                        buf[start+i+2] <<  8 | 
-                        buf[start+i+3];
-    }
-    switch (lm) {
-    case 3: H8[off+j+1|0] = buf[start+j+2];
-    case 2: H8[off+j+2|0] = buf[start+j+1];
-    case 1: H8[off+j+3|0] = buf[start+j];
-    }
-  };
-
-  var convBlob = function (H8, H32, start, len, off) {
-    var blob = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
-    var buf = new Uint8Array(reader.readAsArrayBuffer(blob.slice(start, start + len)));
-    switch (om) {
-    case 0: H8[off] = buf[3];
-    case 1: H8[off+1-(om<<1)|0] = buf[2];
-    case 2: H8[off+2-(om<<1)|0] = buf[1];
-    case 3: H8[off+3-(om<<1)|0] = buf[0];
-    }
-    if (len < lm + om) {
-      return;
-    }
-    for (i = 4 - om; i < j; i = i + 4 | 0) {
-      H32[off+i>>2|0] = buf[i]   << 24 | 
-                        buf[i+1] << 16 |
-                        buf[i+2] <<  8 |
-                        buf[i+3];
-    }
-    switch (lm) {
-    case 3: H8[off+j+1|0] = buf[j + 2];
-    case 2: H8[off+j+2|0] = buf[j + 1];
-    case 1: H8[off+j+3|0] = buf[j];
-    }
-  };
-
-  var convFn = function (data) {
-    if (typeof data === 'string') {
-      return convStr.bind(data);
-    }
-    if (data instanceof Array) {
-      return convBuf.bind(data);
-    }
-    if (global.Buffer && global.Buffer.isBuffer(data)) {
-      return convBuf.bind(data);
-    }
-    if (data instanceof ArrayBuffer) {
-      return convBuf.bind(new Uint8Array(data));
-    }
-    if (data.buffer instanceof ArrayBuffer) {
-      return convBuf.bind(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
-    }
-    if (data instanceof Blob) {
-      return convBlob.bind(data);
-    }
-    throw new Error('Unsupported data type.');
   };
 
   // Initialize the internal data structures to a new capacity.
@@ -182,7 +84,7 @@ module.exports = function Rusha (chunkSize) {
 
   // Write data to the heap.
   var write = function (data, chunkOffset, chunkLen, off) {
-    convFn(data)(self.h8, self.h32, chunkOffset, chunkLen, off || 0);
+    conv(data, self.h8, self.h32, chunkOffset, chunkLen, off || 0);
   };
 
   // Initialize and call the RushaCore,
@@ -295,10 +197,3 @@ module.exports = function Rusha (chunkSize) {
 };
 
 module.exports._core = RushaCore;
-
-// If we're running in a webworker, accept
-// messages containing a jobid and a buffer
-// or blob object, and return the hash result.
-if (typeof self !== 'undefined' && typeof self.FileReaderSync !== 'undefined') {
-  var reader = new self.FileReaderSync();
-}

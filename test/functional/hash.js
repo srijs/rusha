@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const Rusha = require('../../dist/rusha.min.js');
+const Rusha = require('../../dist/rusha.js');
 
 const assertBytesEqual = (buffer1, buffer2) => {
   const v1 = new Int8Array(buffer1);

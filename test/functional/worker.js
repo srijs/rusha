@@ -3,7 +3,7 @@
 const assert = require('assert');
 const fs = require('fs');
 
-const Rusha = require('../../dist/rusha.min.js');
+const Rusha = require('../../dist/rusha.js');
 
 const hashInWorker = (createWorker, input) => {
   return new Promise((resolve, reject) => {

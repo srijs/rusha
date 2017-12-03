@@ -15,6 +15,7 @@ module.exports = function (grunt) {
     browserify: {
       options: {
         transform: ['sweetify'],
+        plugin: ['browserify-derequire'],
         browserifyOptions: {
           standalone: 'Rusha'
         }

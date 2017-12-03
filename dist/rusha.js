@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Rusha = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Rusha = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 var bundleFn = arguments[3];
 var sources = arguments[4];
 var cache = arguments[5];
@@ -80,7 +80,118 @@ module.exports = function (fn, options) {
     return worker;
 };
 
-},{}],2:[function(require,module,exports){
+},{}],2:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+/* eslint-env commonjs, browser */
+
+var reader;
+if (typeof self !== 'undefined' && typeof self.FileReaderSync !== 'undefined') {
+  reader = new self.FileReaderSync();
+}
+
+// Convert a binary string and write it to the heap.
+// A binary string is expected to only contain char codes < 256.
+function convStr(str, H8, H32, start, len, off) {
+  var i, om = off % 4, lm = (len + om) % 4, j = len - lm;
+  switch (om) {
+  case 0: H8[off] = str.charCodeAt(start+3);
+  case 1: H8[off+1-(om<<1)|0] = str.charCodeAt(start+2);
+  case 2: H8[off+2-(om<<1)|0] = str.charCodeAt(start+1);
+  case 3: H8[off+3-(om<<1)|0] = str.charCodeAt(start);
+  }
+  if (len < lm + om) {
+    return;
+  }
+  for (i = 4 - om; i < j; i = i + 4 | 0) {
+    H32[off+i>>2] = str.charCodeAt(start+i)   << 24 |
+                    str.charCodeAt(start+i+1) << 16 |
+                    str.charCodeAt(start+i+2) <<  8 |
+                    str.charCodeAt(start+i+3);
+  }
+  switch (lm) {
+  case 3: H8[off+j+1|0] = str.charCodeAt(start+j+2);
+  case 2: H8[off+j+2|0] = str.charCodeAt(start+j+1);
+  case 1: H8[off+j+3|0] = str.charCodeAt(start+j);
+  }
+}
+
+// Convert a buffer or array and write it to the heap.
+// The buffer or array is expected to only contain elements < 256.
+function convBuf(buf, H8, H32, start, len, off) {
+  var i, om = off % 4, lm = (len + om) % 4, j = len - lm;
+  switch (om) {
+  case 0: H8[off] = buf[start + 3];
+  case 1: H8[off+1-(om<<1)|0] = buf[start+2];
+  case 2: H8[off+2-(om<<1)|0] = buf[start+1];
+  case 3: H8[off+3-(om<<1)|0] = buf[start];
+  }
+  if (len < lm + om) {
+    return;
+  }
+  for (i = 4 - om; i < j; i = i + 4 | 0) {
+    H32[off+i>>2|0] = buf[start+i]   << 24 |
+                      buf[start+i+1] << 16 | 
+                      buf[start+i+2] <<  8 | 
+                      buf[start+i+3];
+  }
+  switch (lm) {
+  case 3: H8[off+j+1|0] = buf[start+j+2];
+  case 2: H8[off+j+2|0] = buf[start+j+1];
+  case 1: H8[off+j+3|0] = buf[start+j];
+  }
+}
+
+function convBlob(blob, H8, H32, start, len, off) {
+  var i, om = off % 4, lm = (len + om) % 4, j = len - lm;
+  var buf = new Uint8Array(reader.readAsArrayBuffer(blob.slice(start, start + len)));
+  switch (om) {
+  case 0: H8[off] = buf[3];
+  case 1: H8[off+1-(om<<1)|0] = buf[2];
+  case 2: H8[off+2-(om<<1)|0] = buf[1];
+  case 3: H8[off+3-(om<<1)|0] = buf[0];
+  }
+  if (len < lm + om) {
+    return;
+  }
+  for (i = 4 - om; i < j; i = i + 4 | 0) {
+    H32[off+i>>2|0] = buf[i]   << 24 | 
+                      buf[i+1] << 16 |
+                      buf[i+2] <<  8 |
+                      buf[i+3];
+  }
+  switch (lm) {
+  case 3: H8[off+j+1|0] = buf[j + 2];
+  case 2: H8[off+j+2|0] = buf[j + 1];
+  case 1: H8[off+j+3|0] = buf[j];
+  }
+}
+
+module.exports = function conv(data, H8, H32, start, len, off) {
+  if (typeof data === 'string') {
+    return convStr(data, H8, H32, start, len, off);
+  }
+  if (data instanceof Array) {
+    return convBuf(data, H8, H32, start, len, off);
+  }
+  if (global.Buffer && global.Buffer.isBuffer(data)) {
+    return convBuf(data, H8, H32, start, len, off);
+  }
+  if (data instanceof ArrayBuffer) {
+    return convBuf(new Uint8Array(data), H8, H32, start, len, off);
+  }
+  if (data.buffer instanceof ArrayBuffer) {
+    return convBuf(new Uint8Array(data.buffer, data.byteOffset, data.byteLength), H8, H32, start, len, off);
+  }
+  if (data instanceof Blob) {
+    return convBlob(data, H8, H32, start, len, off);
+  }
+  throw new Error('Unsupported data type.');
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],3:[function(_dereq_,module,exports){
 // The low-level RushCore module provides the heart of Rusha,
 // a high-speed sha1 implementation working on an Int32Array heap.
 // At first glance, the implementation seems complicated, however
@@ -171,13 +282,13 @@ module.exports = function RushaCore(stdlib$1186, foreign$1187, heap$1188) {
     return { hash: hash$1190 };
 };
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 'use strict';
 
 /* eslint-env commonjs, browser */
 
-var Rusha = require('./rusha.js');
-var utils = require('./utils.js');
+var Rusha = _dereq_('./rusha.js');
+var utils = _dereq_('./utils.js');
 
 function Hash() {
   this._rusha = new Rusha();
@@ -204,27 +315,27 @@ module.exports = function createHash() {
   return new Hash();
 };
 
-},{"./rusha.js":5,"./utils.js":6}],4:[function(require,module,exports){
+},{"./rusha.js":6,"./utils.js":7}],5:[function(_dereq_,module,exports){
 'use strict';
 
 /* eslint-env commonjs, browser */
 
-var webworkify = require('webworkify');
+var webworkify = _dereq_('webworkify');
 
-var Rusha = require('./rusha.js');
-var createHash = require('./hash.js');
+var Rusha = _dereq_('./rusha.js');
+var createHash = _dereq_('./hash.js');
 
 // If we're running in a webworker, accept
 // messages containing a jobid and a buffer
 // or blob object, and return the hash result.
 if (typeof FileReaderSync !== 'undefined' && typeof DedicatedWorkerGlobalScope !== 'undefined') {
-  Rusha.disableWorkerBehaviour = require('./worker')();
+  Rusha.disableWorkerBehaviour = _dereq_('./worker')();
 } else {
   Rusha.disableWorkerBehaviour = function () {};
 }
 
 Rusha.createWorker = function createWorker() {
-  var worker = webworkify(require('./worker'));
+  var worker = webworkify(_dereq_('./worker'));
   var terminate = worker.terminate;
   worker.terminate = function () {
     URL.revokeObjectURL(worker.objectURL);
@@ -237,14 +348,14 @@ Rusha.createHash = createHash;
 
 module.exports = Rusha;
 
-},{"./hash.js":3,"./rusha.js":5,"./worker":7,"webworkify":1}],5:[function(require,module,exports){
-(function (global){
+},{"./hash.js":4,"./rusha.js":6,"./worker":8,"webworkify":1}],6:[function(_dereq_,module,exports){
 'use strict';
 
 /* eslint-env commonjs, browser */
 
-var RushaCore = require('./core.sjs');
-var utils = require('./utils');
+var RushaCore = _dereq_('./core.sjs');
+var utils = _dereq_('./utils');
+var conv = _dereq_('./conv');
 
 // The Rusha object is a wrapper around the low-level RushaCore.
 // It provides means of converting different inputs to the
@@ -279,105 +390,6 @@ module.exports = function Rusha (chunkSize) {
     // high 32-bits of the big-endian message length in bits.
     bin[(((chunkLen >> 2) + 2) & ~0x0f) + 14] = (msgLen / (1 << 29)) |0;
     bin[(((chunkLen >> 2) + 2) & ~0x0f) + 15] = msgLen << 3;
-  };
-
-  // Convert a binary string and write it to the heap.
-  // A binary string is expected to only contain char codes < 256.
-  var convStr = function (H8, H32, start, len, off) {
-    var str = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
-    switch (om) {
-    case 0: H8[off] = str.charCodeAt(start+3);
-    case 1: H8[off+1-(om<<1)|0] = str.charCodeAt(start+2);
-    case 2: H8[off+2-(om<<1)|0] = str.charCodeAt(start+1);
-    case 3: H8[off+3-(om<<1)|0] = str.charCodeAt(start);
-    }
-    if (len < lm + om) {
-      return;
-    }
-    for (i = 4 - om; i < j; i = i + 4 | 0) {
-      H32[off+i>>2] = str.charCodeAt(start+i)   << 24 |
-                      str.charCodeAt(start+i+1) << 16 |
-                      str.charCodeAt(start+i+2) <<  8 |
-                      str.charCodeAt(start+i+3);
-    }
-    switch (lm) {
-    case 3: H8[off+j+1|0] = str.charCodeAt(start+j+2);
-    case 2: H8[off+j+2|0] = str.charCodeAt(start+j+1);
-    case 1: H8[off+j+3|0] = str.charCodeAt(start+j);
-    }
-  };
-
-  // Convert a buffer or array and write it to the heap.
-  // The buffer or array is expected to only contain elements < 256.
-  var convBuf = function (H8, H32, start, len, off) {
-    var buf = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
-    switch (om) {
-    case 0: H8[off] = buf[start + 3];
-    case 1: H8[off+1-(om<<1)|0] = buf[start+2];
-    case 2: H8[off+2-(om<<1)|0] = buf[start+1];
-    case 3: H8[off+3-(om<<1)|0] = buf[start];
-    }
-    if (len < lm + om) {
-      return;
-    }
-    for (i = 4 - om; i < j; i = i + 4 | 0) {
-      H32[off+i>>2|0] = buf[start+i]   << 24 |
-                        buf[start+i+1] << 16 | 
-                        buf[start+i+2] <<  8 | 
-                        buf[start+i+3];
-    }
-    switch (lm) {
-    case 3: H8[off+j+1|0] = buf[start+j+2];
-    case 2: H8[off+j+2|0] = buf[start+j+1];
-    case 1: H8[off+j+3|0] = buf[start+j];
-    }
-  };
-
-  var convBlob = function (H8, H32, start, len, off) {
-    var blob = this, i, om = off % 4, lm = (len + om) % 4, j = len - lm;
-    var buf = new Uint8Array(reader.readAsArrayBuffer(blob.slice(start, start + len)));
-    switch (om) {
-    case 0: H8[off] = buf[3];
-    case 1: H8[off+1-(om<<1)|0] = buf[2];
-    case 2: H8[off+2-(om<<1)|0] = buf[1];
-    case 3: H8[off+3-(om<<1)|0] = buf[0];
-    }
-    if (len < lm + om) {
-      return;
-    }
-    for (i = 4 - om; i < j; i = i + 4 | 0) {
-      H32[off+i>>2|0] = buf[i]   << 24 | 
-                        buf[i+1] << 16 |
-                        buf[i+2] <<  8 |
-                        buf[i+3];
-    }
-    switch (lm) {
-    case 3: H8[off+j+1|0] = buf[j + 2];
-    case 2: H8[off+j+2|0] = buf[j + 1];
-    case 1: H8[off+j+3|0] = buf[j];
-    }
-  };
-
-  var convFn = function (data) {
-    if (typeof data === 'string') {
-      return convStr.bind(data);
-    }
-    if (data instanceof Array) {
-      return convBuf.bind(data);
-    }
-    if (global.Buffer && global.Buffer.isBuffer(data)) {
-      return convBuf.bind(data);
-    }
-    if (data instanceof ArrayBuffer) {
-      return convBuf.bind(new Uint8Array(data));
-    }
-    if (data.buffer instanceof ArrayBuffer) {
-      return convBuf.bind(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
-    }
-    if (data instanceof Blob) {
-      return convBlob.bind(data);
-    }
-    throw new Error('Unsupported data type.');
   };
 
   // Initialize the internal data structures to a new capacity.
@@ -423,7 +435,7 @@ module.exports = function Rusha (chunkSize) {
 
   // Write data to the heap.
   var write = function (data, chunkOffset, chunkLen, off) {
-    convFn(data)(self.h8, self.h32, chunkOffset, chunkLen, off || 0);
+    conv(data, self.h8, self.h32, chunkOffset, chunkLen, off || 0);
   };
 
   // Initialize and call the RushaCore,
@@ -537,15 +549,7 @@ module.exports = function Rusha (chunkSize) {
 
 module.exports._core = RushaCore;
 
-// If we're running in a webworker, accept
-// messages containing a jobid and a buffer
-// or blob object, and return the hash result.
-if (typeof self !== 'undefined' && typeof self.FileReaderSync !== 'undefined') {
-  var reader = new self.FileReaderSync();
-}
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./core.sjs":2,"./utils":6}],6:[function(require,module,exports){
+},{"./conv":2,"./core.sjs":3,"./utils":7}],7:[function(_dereq_,module,exports){
 'use strict';
 
 /* eslint-env commonjs, browser */
@@ -591,13 +595,13 @@ module.exports.ceilHeapSize = function (v) {
   return p;
 };
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 /* eslint-env commonjs, worker */
 
 module.exports = function worker() {
-  var Rusha = require('./rusha.js');
+  var Rusha = _dereq_('./rusha.js');
 
   var hashData = function hashData (hasher, data, cb) {
     try {
@@ -660,5 +664,5 @@ module.exports = function worker() {
   };
 };
 
-},{"./rusha.js":5}]},{},[4])(4)
+},{"./rusha.js":6}]},{},[5])(5)
 });

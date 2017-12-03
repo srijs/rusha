@@ -23,6 +23,7 @@
     "benchmark": "^1.0.0",
     "brfs": "^1.4.3",
     "browserify": "^14.5.0",
+    "browserify-derequire": "^0.9.4",
     "grunt": "^1.0.1",
     "grunt-browserify": "^5.2.0",
     "grunt-cli": "^1.2.0",
