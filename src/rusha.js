@@ -1,7 +1,7 @@
 /* eslint-env commonjs, browser */
 
 const RushaCore = require('./core.sjs');
-const utils = require('./utils');
+const {toHex, ceilHeapSize} = require('./utils');
 const conv = require('./conv');
 
 // The Rusha object is a wrapper around the low-level RushaCore.
@@ -51,7 +51,7 @@ module.exports = function Rusha (chunkSize) {
     // 1. The padded input message size
     // 2. The extended space the algorithm needs (320 byte)
     // 3. The 160 bit state the algoritm uses
-    self.heap     = new ArrayBuffer(utils.ceilHeapSize(self.padMaxChunkLen + 320 + 20));
+    self.heap     = new ArrayBuffer(ceilHeapSize(self.padMaxChunkLen + 320 + 20));
     self.h32      = new Int32Array(self.heap);
     self.h8       = new Int8Array(self.heap);
     self.core     = new RushaCore({Int32Array: Int32Array}, {}, self.heap);
@@ -122,7 +122,7 @@ module.exports = function Rusha (chunkSize) {
 
   this.rawDigest = rawDigest;
 
-  const digest = (str) => utils.toHex(rawDigest(str).buffer);
+  const digest = (str) => toHex(rawDigest(str).buffer);
 
   // The digest and digestFrom* interface returns the hash digest
   // as a hex string.
@@ -194,7 +194,7 @@ module.exports = function Rusha (chunkSize) {
 
   this.rawEnd = rawEnd;
 
-  this.end = () => utils.toHex(rawEnd().buffer);
+  this.end = () => toHex(rawEnd().buffer);
 };
 
 module.exports._core = RushaCore;

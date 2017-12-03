@@ -1,7 +1,7 @@
 /* eslint-env commonjs, browser */
 
 const Rusha = require('./rusha.js');
-const utils = require('./utils.js');
+const {toHex} = require('./utils.js');
 
 class Hash {
   constructor() {
@@ -20,7 +20,7 @@ class Hash {
       return digest;
     }
     if (encoding === 'hex') {
-      return utils.toHex(digest);
+      return toHex(digest);
     }
     throw new Error('unsupported digest encoding');
   }

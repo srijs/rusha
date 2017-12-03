@@ -310,7 +310,9 @@ module.exports = function RushaCore(stdlib$1186, foreign$1187, heap$1188) {
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Rusha = _dereq_('./rusha.js');
-var utils = _dereq_('./utils.js');
+
+var _require = _dereq_('./utils.js'),
+    toHex = _require.toHex;
 
 var Hash = function () {
   function Hash() {
@@ -331,7 +333,7 @@ var Hash = function () {
       return digest;
     }
     if (encoding === 'hex') {
-      return utils.toHex(digest);
+      return toHex(digest);
     }
     throw new Error('unsupported digest encoding');
   };
@@ -380,7 +382,11 @@ module.exports = Rusha;
 /* eslint-env commonjs, browser */
 
 var RushaCore = _dereq_('./core.sjs');
-var utils = _dereq_('./utils');
+
+var _require = _dereq_('./utils'),
+    toHex = _require.toHex,
+    ceilHeapSize = _require.ceilHeapSize;
+
 var conv = _dereq_('./conv');
 
 // The Rusha object is a wrapper around the low-level RushaCore.
@@ -436,7 +442,7 @@ module.exports = function Rusha(chunkSize) {
     // 1. The padded input message size
     // 2. The extended space the algorithm needs (320 byte)
     // 3. The 160 bit state the algoritm uses
-    self.heap = new ArrayBuffer(utils.ceilHeapSize(self.padMaxChunkLen + 320 + 20));
+    self.heap = new ArrayBuffer(ceilHeapSize(self.padMaxChunkLen + 320 + 20));
     self.h32 = new Int32Array(self.heap);
     self.h8 = new Int8Array(self.heap);
     self.core = new RushaCore({ Int32Array: Int32Array }, {}, self.heap);
@@ -509,7 +515,7 @@ module.exports = function Rusha(chunkSize) {
   this.rawDigest = rawDigest;
 
   var digest = function (str) {
-    return utils.toHex(rawDigest(str).buffer);
+    return toHex(rawDigest(str).buffer);
   };
 
   // The digest and digestFrom* interface returns the hash digest
@@ -583,7 +589,7 @@ module.exports = function Rusha(chunkSize) {
   this.rawEnd = rawEnd;
 
   this.end = function () {
-    return utils.toHex(rawEnd().buffer);
+    return toHex(rawEnd().buffer);
   };
 };
 
