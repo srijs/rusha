@@ -250,28 +250,6 @@ var utils = require('./utils');
 // It provides means of converting different inputs to the
 // format accepted by RushaCore as well as other utility methods.
 module.exports = function Rusha (chunkSize) {
-  var getDataType = function (data) {
-    if (typeof data === 'string') {
-      return 'string';
-    }
-    if (data instanceof Array) {
-      return 'array';
-    }
-    if (global.Buffer && global.Buffer.isBuffer(data)) {
-      return 'buffer';
-    }
-    if (data instanceof ArrayBuffer) {
-      return 'arraybuffer';
-    }
-    if (data.buffer instanceof ArrayBuffer) {
-      return 'view';
-    }
-    if (data instanceof Blob) {
-      return 'blob';
-    }
-    throw new Error('Unsupported data type.');
-  };
-
   // Private object structure.
   var self = {};
 
@@ -381,14 +359,25 @@ module.exports = function Rusha (chunkSize) {
   };
 
   var convFn = function (data) {
-    switch (getDataType(data)) {
-    case 'string': return convStr.bind(data);
-    case 'array': return convBuf.bind(data);
-    case 'buffer': return convBuf.bind(data);
-    case 'arraybuffer': return convBuf.bind(new Uint8Array(data));
-    case 'view': return convBuf.bind(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
-    case 'blob': return convBlob.bind(data);
+    if (typeof data === 'string') {
+      return convStr.bind(data);
     }
+    if (data instanceof Array) {
+      return convBuf.bind(data);
+    }
+    if (global.Buffer && global.Buffer.isBuffer(data)) {
+      return convBuf.bind(data);
+    }
+    if (data instanceof ArrayBuffer) {
+      return convBuf.bind(new Uint8Array(data));
+    }
+    if (data.buffer instanceof ArrayBuffer) {
+      return convBuf.bind(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+    }
+    if (data instanceof Blob) {
+      return convBlob.bind(data);
+    }
+    throw new Error('Unsupported data type.');
   };
 
   // Initialize the internal data structures to a new capacity.
@@ -490,7 +479,7 @@ module.exports = function Rusha (chunkSize) {
     var chunkLen = chunk.byteLength || chunk.length || chunk.size || 0;
     var turnOffset = self.offset % self.maxChunkLen;
     var inputLen;
-    
+
     self.offset += chunkLen;
     while (chunkOffset < chunkLen) {
       inputLen = Math.min(chunkLen - chunkOffset, self.maxChunkLen - turnOffset);
