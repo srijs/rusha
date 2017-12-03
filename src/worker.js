@@ -1,11 +1,9 @@
-'use strict';
-
 /* eslint-env commonjs, worker */
 
-module.exports = function worker() {
-  var Rusha = require('./rusha.js');
+module.exports = () => {
+  const Rusha = require('./rusha.js');
 
-  var hashData = function hashData (hasher, data, cb) {
+  const hashData = (hasher, data, cb) => {
     try {
       return cb(null, hasher.digest(data));
     } catch (e) {
@@ -13,13 +11,13 @@ module.exports = function worker() {
     }
   };
 
-  var hashFile = function hashFile (hasher, readTotal, blockSize, file, cb) {
-    var reader = new self.FileReader();
+  const hashFile = (hasher, readTotal, blockSize, file, cb) => {
+    const reader = new self.FileReader();
     reader.onloadend = function onloadend () {
       if (reader.error) {
         return cb(reader.error);
       }
-      var buffer = reader.result;
+      const buffer = reader.result;
       readTotal += reader.result.byteLength;
       try {
         hasher.append(buffer);
@@ -37,20 +35,20 @@ module.exports = function worker() {
     reader.readAsArrayBuffer(file.slice(readTotal, readTotal + blockSize));
   };
 
-  var workerBehaviourEnabled = true;
+  let workerBehaviourEnabled = true;
 
-  self.onmessage = function onMessage (event) {
+  self.onmessage = (event) => {
     if (!workerBehaviourEnabled) {
       return;
     }
 
-    var data = event.data.data, file = event.data.file, id = event.data.id;
+    const data = event.data.data, file = event.data.file, id = event.data.id;
     if (typeof id === 'undefined') return;
     if (!file && !data) return;
-    var blockSize = event.data.blockSize || (4 * 1024 * 1024);
-    var hasher = new Rusha(blockSize);
+    const blockSize = event.data.blockSize || (4 * 1024 * 1024);
+    const hasher = new Rusha(blockSize);
     hasher.resetState();
-    var done = function done (err, hash) {
+    const done = (err, hash) => {
       if (!err) {
         self.postMessage({id: id, hash: hash});
       } else {
@@ -61,7 +59,7 @@ module.exports = function worker() {
     if (file) hashFile(hasher, 0, blockSize, file, done);
   };
 
-  return function disableWorkerBehaviour() {
+  return () => {
     workerBehaviourEnabled = false;
   };
 };

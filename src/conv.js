@@ -1,16 +1,14 @@
-'use strict';
-
 /* eslint-env commonjs, browser */
 
-var reader;
+let reader;
 if (typeof self !== 'undefined' && typeof self.FileReaderSync !== 'undefined') {
   reader = new self.FileReaderSync();
 }
 
 // Convert a binary string and write it to the heap.
 // A binary string is expected to only contain char codes < 256.
-function convStr(str, H8, H32, start, len, off) {
-  var i, om = off % 4, lm = (len + om) % 4, j = len - lm;
+const convStr = (str, H8, H32, start, len, off) => {
+  let i, om = off % 4, lm = (len + om) % 4, j = len - lm;
   switch (om) {
   case 0: H8[off] = str.charCodeAt(start+3);
   case 1: H8[off+1-(om<<1)|0] = str.charCodeAt(start+2);
@@ -31,12 +29,12 @@ function convStr(str, H8, H32, start, len, off) {
   case 2: H8[off+j+2|0] = str.charCodeAt(start+j+1);
   case 1: H8[off+j+3|0] = str.charCodeAt(start+j);
   }
-}
+};
 
 // Convert a buffer or array and write it to the heap.
 // The buffer or array is expected to only contain elements < 256.
-function convBuf(buf, H8, H32, start, len, off) {
-  var i, om = off % 4, lm = (len + om) % 4, j = len - lm;
+const convBuf = (buf, H8, H32, start, len, off) => {
+  let i, om = off % 4, lm = (len + om) % 4, j = len - lm;
   switch (om) {
   case 0: H8[off] = buf[start + 3];
   case 1: H8[off+1-(om<<1)|0] = buf[start+2];
@@ -57,11 +55,11 @@ function convBuf(buf, H8, H32, start, len, off) {
   case 2: H8[off+j+2|0] = buf[start+j+1];
   case 1: H8[off+j+3|0] = buf[start+j];
   }
-}
+};
 
-function convBlob(blob, H8, H32, start, len, off) {
-  var i, om = off % 4, lm = (len + om) % 4, j = len - lm;
-  var buf = new Uint8Array(reader.readAsArrayBuffer(blob.slice(start, start + len)));
+const convBlob = (blob, H8, H32, start, len, off) => {
+  let i, om = off % 4, lm = (len + om) % 4, j = len - lm;
+  const buf = new Uint8Array(reader.readAsArrayBuffer(blob.slice(start, start + len)));
   switch (om) {
   case 0: H8[off] = buf[3];
   case 1: H8[off+1-(om<<1)|0] = buf[2];
@@ -82,9 +80,9 @@ function convBlob(blob, H8, H32, start, len, off) {
   case 2: H8[off+j+2|0] = buf[j + 1];
   case 1: H8[off+j+3|0] = buf[j];
   }
-}
+};
 
-module.exports = function conv(data, H8, H32, start, len, off) {
+module.exports = (data, H8, H32, start, len, off) => {
   if (typeof data === 'string') {
     return convStr(data, H8, H32, start, len, off);
   }

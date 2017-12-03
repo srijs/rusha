@@ -1,5 +1,5 @@
 module.exports = {
-  "root": true,
+  "parser": "babel-eslint",
   "extends": "eslint:recommended",
   "rules": {
     // enable additional rules
@@ -7,7 +7,7 @@ module.exports = {
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
-
+    "no-var": "error",
     "no-cond-assign": ["error", "always"],
     "strict": ["error", "global"],
 

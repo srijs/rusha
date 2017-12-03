@@ -1,11 +1,9 @@
-'use strict';
-
 /* eslint-env commonjs, browser */
 
-var webworkify = require('webworkify');
+const webworkify = require('webworkify');
 
-var Rusha = require('./rusha.js');
-var createHash = require('./hash.js');
+const Rusha = require('./rusha.js');
+const createHash = require('./hash.js');
 
 // If we're running in a webworker, accept
 // messages containing a jobid and a buffer
@@ -13,13 +11,13 @@ var createHash = require('./hash.js');
 if (typeof FileReaderSync !== 'undefined' && typeof DedicatedWorkerGlobalScope !== 'undefined') {
   Rusha.disableWorkerBehaviour = require('./worker')();
 } else {
-  Rusha.disableWorkerBehaviour = function () {};
+  Rusha.disableWorkerBehaviour = () => {};
 }
 
-Rusha.createWorker = function createWorker() {
-  var worker = webworkify(require('./worker'));
-  var terminate = worker.terminate;
-  worker.terminate = function () {
+Rusha.createWorker = () => {
+  const worker = webworkify(require('./worker'));
+  const terminate = worker.terminate;
+  worker.terminate = () => {
     URL.revokeObjectURL(worker.objectURL);
     terminate.call(worker);
   };
