@@ -30,6 +30,7 @@ module.exports = function (grunt) {
       options: {
         basePath: '',
         singleRun: true,
+        logLevel: 'WARN',
         files: [],
         reporters: ['mocha'],
         mochaReporter: {
