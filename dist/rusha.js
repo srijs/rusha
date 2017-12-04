@@ -309,9 +309,9 @@ module.exports = function RushaCore(stdlib$1186, foreign$1187, heap$1188) {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Rusha = _dereq_('./rusha.js');
+var Rusha = _dereq_('./rusha');
 
-var _require = _dereq_('./utils.js'),
+var _require = _dereq_('./utils'),
     toHex = _require.toHex;
 
 var Hash = function () {
@@ -345,14 +345,14 @@ module.exports = function () {
   return new Hash();
 };
 
-},{"./rusha.js":6,"./utils.js":7}],5:[function(_dereq_,module,exports){
+},{"./rusha":6,"./utils":7}],5:[function(_dereq_,module,exports){
 "use strict";
 /* eslint-env commonjs, browser */
 
 var webworkify = _dereq_('webworkify');
 
-var Rusha = _dereq_('./rusha.js');
-var createHash = _dereq_('./hash.js');
+var Rusha = _dereq_('./rusha');
+var createHash = _dereq_('./hash');
 var runWorker = _dereq_('./worker');
 
 var isRunningInDedicatedWorker = typeof FileReaderSync !== 'undefined' && typeof DedicatedWorkerGlobalScope !== 'undefined';
@@ -373,9 +373,11 @@ Rusha.createHash = createHash;
 
 module.exports = Rusha;
 
-},{"./hash.js":4,"./rusha.js":6,"./worker":8,"webworkify":1}],6:[function(_dereq_,module,exports){
+},{"./hash":4,"./rusha":6,"./worker":8,"webworkify":1}],6:[function(_dereq_,module,exports){
 "use strict";
 /* eslint-env commonjs, browser */
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var RushaCore = _dereq_('./core.sjs');
 
@@ -385,72 +387,75 @@ var _require = _dereq_('./utils'),
 
 var conv = _dereq_('./conv');
 
-// The Rusha object is a wrapper around the low-level RushaCore.
-// It provides means of converting different inputs to the
-// format accepted by RushaCore as well as other utility methods.
-module.exports = function Rusha(chunkSize) {
-  // Private object structure.
-  var self = {};
+// Calculate the length of buffer that the sha1 routine uses
+// including the padding.
+var padlen = function (len) {
+  for (len += 9; len % 64 > 0; len += 1) {}
+  return len;
+};
 
-  // Calculate the length of buffer that the sha1 routine uses
-  // including the padding.
-  var padlen = function (len) {
-    for (len += 9; len % 64 > 0; len += 1) {}
-    return len;
-  };
+var padZeroes = function (bin, len) {
+  var h8 = new Uint8Array(bin.buffer);
+  var om = len % 4,
+      align = len - om;
+  switch (om) {
+    case 0:
+      h8[align + 3] = 0;
+    case 1:
+      h8[align + 2] = 0;
+    case 2:
+      h8[align + 1] = 0;
+    case 3:
+      h8[align + 0] = 0;
+  }
+  for (var i = (len >> 2) + 1; i < bin.length; i++) {
+    bin[i] = 0;
+  }
+};
 
-  var padZeroes = function (bin, len) {
-    var h8 = new Uint8Array(bin.buffer);
-    var om = len % 4,
-        align = len - om;
-    switch (om) {
-      case 0:
-        h8[align + 3] = 0;
-      case 1:
-        h8[align + 2] = 0;
-      case 2:
-        h8[align + 1] = 0;
-      case 3:
-        h8[align + 0] = 0;
-    }
-    for (var i = (len >> 2) + 1; i < bin.length; i++) {
-      bin[i] = 0;
-    }
-  };
+var padData = function (bin, chunkLen, msgLen) {
+  bin[chunkLen >> 2] |= 0x80 << 24 - (chunkLen % 4 << 3);
+  // To support msgLen >= 2 GiB, use a float division when computing the
+  // high 32-bits of the big-endian message length in bits.
+  bin[((chunkLen >> 2) + 2 & ~0x0f) + 14] = msgLen / (1 << 29) | 0;
+  bin[((chunkLen >> 2) + 2 & ~0x0f) + 15] = msgLen << 3;
+};
 
-  var padData = function (bin, chunkLen, msgLen) {
-    bin[chunkLen >> 2] |= 0x80 << 24 - (chunkLen % 4 << 3);
-    // To support msgLen >= 2 GiB, use a float division when computing the
-    // high 32-bits of the big-endian message length in bits.
-    bin[((chunkLen >> 2) + 2 & ~0x0f) + 14] = msgLen / (1 << 29) | 0;
-    bin[((chunkLen >> 2) + 2 & ~0x0f) + 15] = msgLen << 3;
-  };
+var getRawDigest = function (heap, padMaxChunkLen) {
+  var io = new Int32Array(heap, padMaxChunkLen + 320, 5);
+  var out = new Int32Array(5);
+  var arr = new DataView(out.buffer);
+  arr.setInt32(0, io[0], false);
+  arr.setInt32(4, io[1], false);
+  arr.setInt32(8, io[2], false);
+  arr.setInt32(12, io[3], false);
+  arr.setInt32(16, io[4], false);
+  return out;
+};
 
-  // Initialize the internal data structures to a new capacity.
-  var init = function (size) {
-    if (size % 64 > 0) {
+var Rusha = function () {
+  function Rusha(chunkSize) {
+    _classCallCheck(this, Rusha);
+
+    chunkSize = chunkSize || 64 * 1024;
+    if (chunkSize % 64 > 0) {
       throw new Error('Chunk size must be a multiple of 128 bit');
     }
-    self.offset = 0;
-    self.maxChunkLen = size;
-    self.padMaxChunkLen = padlen(size);
+    this._offset = 0;
+    this._maxChunkLen = chunkSize;
+    this._padMaxChunkLen = padlen(chunkSize);
     // The size of the heap is the sum of:
     // 1. The padded input message size
     // 2. The extended space the algorithm needs (320 byte)
     // 3. The 160 bit state the algoritm uses
-    self.heap = new ArrayBuffer(ceilHeapSize(self.padMaxChunkLen + 320 + 20));
-    self.h32 = new Int32Array(self.heap);
-    self.h8 = new Int8Array(self.heap);
-    self.core = new RushaCore({ Int32Array: Int32Array }, {}, self.heap);
-    self.buffer = null;
-  };
+    this._heap = new ArrayBuffer(ceilHeapSize(this._padMaxChunkLen + 320 + 20));
+    this._h32 = new Int32Array(this._heap);
+    this._h8 = new Int8Array(this._heap);
+    this._core = new RushaCore({ Int32Array: Int32Array }, {}, this._heap);
+  }
 
-  // Iinitializethe datastructures according
-  // to a chunk siyze.
-  init(chunkSize || 64 * 1024);
-
-  var initState = function (heap, padMsgLen) {
-    self.offset = 0;
+  Rusha.prototype._initState = function _initState(heap, padMsgLen) {
+    this._offset = 0;
     var io = new Int32Array(heap, padMsgLen + 320, 5);
     io[0] = 1732584193;
     io[1] = -271733879;
@@ -459,136 +464,124 @@ module.exports = function Rusha(chunkSize) {
     io[4] = -1009589776;
   };
 
-  var padChunk = function (chunkLen, msgLen) {
+  Rusha.prototype._padChunk = function _padChunk(chunkLen, msgLen) {
     var padChunkLen = padlen(chunkLen);
-    var view = new Int32Array(self.heap, 0, padChunkLen >> 2);
+    var view = new Int32Array(this._heap, 0, padChunkLen >> 2);
     padZeroes(view, chunkLen);
     padData(view, chunkLen, msgLen);
     return padChunkLen;
   };
 
-  // Write data to the heap.
-  var write = function (data, chunkOffset, chunkLen, off) {
-    conv(data, self.h8, self.h32, chunkOffset, chunkLen, off || 0);
+  Rusha.prototype._write = function _write(data, chunkOffset, chunkLen, off) {
+    conv(data, this._h8, this._h32, chunkOffset, chunkLen, off || 0);
   };
 
-  // Initialize and call the RushaCore,
-  // assuming an input buffer of length len * 4.
-  var coreCall = function (data, chunkOffset, chunkLen, msgLen, finalize) {
+  Rusha.prototype._coreCall = function _coreCall(data, chunkOffset, chunkLen, msgLen, finalize) {
     var padChunkLen = chunkLen;
-    write(data, chunkOffset, chunkLen);
+    this._write(data, chunkOffset, chunkLen);
     if (finalize) {
-      padChunkLen = padChunk(chunkLen, msgLen);
+      padChunkLen = this._padChunk(chunkLen, msgLen);
     }
-    self.core.hash(padChunkLen, self.padMaxChunkLen);
+    this._core.hash(padChunkLen, this._padMaxChunkLen);
   };
 
-  var getRawDigest = function (heap, padMaxChunkLen) {
-    var io = new Int32Array(heap, padMaxChunkLen + 320, 5);
-    var out = new Int32Array(5);
-    var arr = new DataView(out.buffer);
-    arr.setInt32(0, io[0], false);
-    arr.setInt32(4, io[1], false);
-    arr.setInt32(8, io[2], false);
-    arr.setInt32(12, io[3], false);
-    arr.setInt32(16, io[4], false);
-    return out;
-  };
-
-  // Calculate the hash digest as an array of 5 32bit integers.
-  var rawDigest = function (str) {
+  Rusha.prototype.rawDigest = function rawDigest(str) {
     var msgLen = str.byteLength || str.length || str.size || 0;
-    initState(self.heap, self.padMaxChunkLen);
+    this._initState(this._heap, this._padMaxChunkLen);
     var chunkOffset = 0,
-        chunkLen = self.maxChunkLen;
+        chunkLen = this._maxChunkLen;
     for (chunkOffset = 0; msgLen > chunkOffset + chunkLen; chunkOffset += chunkLen) {
-      coreCall(str, chunkOffset, chunkLen, msgLen, false);
+      this._coreCall(str, chunkOffset, chunkLen, msgLen, false);
     }
-    coreCall(str, chunkOffset, msgLen - chunkOffset, msgLen, true);
-    return getRawDigest(self.heap, self.padMaxChunkLen);
+    this._coreCall(str, chunkOffset, msgLen - chunkOffset, msgLen, true);
+    return getRawDigest(this._heap, this._padMaxChunkLen);
   };
 
-  this.rawDigest = rawDigest;
-
-  var digest = function (str) {
-    return toHex(rawDigest(str).buffer);
+  Rusha.prototype.digest = function digest(str) {
+    return toHex(this.rawDigest(str).buffer);
   };
 
-  // The digest and digestFrom* interface returns the hash digest
-  // as a hex string.
-  this.digest = digest;
-  this.digestFromString = digest;
-  this.digestFromBuffer = digest;
-  this.digestFromArrayBuffer = digest;
+  Rusha.prototype.digestFromString = function digestFromString(str) {
+    return this.digest(str);
+  };
 
-  this.resetState = function () {
-    initState(self.heap, self.padMaxChunkLen);
+  Rusha.prototype.digestFromBuffer = function digestFromBuffer(str) {
+    return this.digest(str);
+  };
+
+  Rusha.prototype.digestFromArrayBuffer = function digestFromArrayBuffer(str) {
+    return this.digest(str);
+  };
+
+  Rusha.prototype.resetState = function resetState() {
+    this._initState(this._heap, this._padMaxChunkLen);
     return this;
   };
 
-  this.append = function (chunk) {
+  Rusha.prototype.append = function append(chunk) {
     var chunkOffset = 0;
     var chunkLen = chunk.byteLength || chunk.length || chunk.size || 0;
-    var turnOffset = self.offset % self.maxChunkLen;
+    var turnOffset = this._offset % this._maxChunkLen;
     var inputLen = void 0;
 
-    self.offset += chunkLen;
+    this._offset += chunkLen;
     while (chunkOffset < chunkLen) {
-      inputLen = Math.min(chunkLen - chunkOffset, self.maxChunkLen - turnOffset);
-      write(chunk, chunkOffset, inputLen, turnOffset);
+      inputLen = Math.min(chunkLen - chunkOffset, this._maxChunkLen - turnOffset);
+      this._write(chunk, chunkOffset, inputLen, turnOffset);
       turnOffset += inputLen;
       chunkOffset += inputLen;
-      if (turnOffset === self.maxChunkLen) {
-        self.core.hash(self.maxChunkLen, self.padMaxChunkLen);
+      if (turnOffset === this._maxChunkLen) {
+        this._core.hash(this._maxChunkLen, this._padMaxChunkLen);
         turnOffset = 0;
       }
     }
     return this;
   };
 
-  this.getState = function () {
-    var turnOffset = self.offset % self.maxChunkLen;
+  Rusha.prototype.getState = function getState() {
+    var turnOffset = this._offset % this._maxChunkLen;
     var heap = void 0;
     if (!turnOffset) {
-      var io = new Int32Array(self.heap, self.padMaxChunkLen + 320, 5);
+      var io = new Int32Array(this._heap, this._padMaxChunkLen + 320, 5);
       heap = io.buffer.slice(io.byteOffset, io.byteOffset + io.byteLength);
     } else {
-      heap = self.heap.slice(0);
+      heap = this._heap.slice(0);
     }
     return {
-      offset: self.offset,
+      offset: this._offset,
       heap: heap
     };
   };
 
-  this.setState = function (state) {
-    self.offset = state.offset;
+  Rusha.prototype.setState = function setState(state) {
+    this._offset = state.offset;
     if (state.heap.byteLength === 20) {
-      var io = new Int32Array(self.heap, self.padMaxChunkLen + 320, 5);
+      var io = new Int32Array(this._heap, this._padMaxChunkLen + 320, 5);
       io.set(new Int32Array(state.heap));
     } else {
-      self.h32.set(new Int32Array(state.heap));
+      this._h32.set(new Int32Array(state.heap));
     }
     return this;
   };
 
-  var rawEnd = function () {
-    var msgLen = self.offset;
-    var chunkLen = msgLen % self.maxChunkLen;
-    var padChunkLen = padChunk(chunkLen, msgLen);
-    self.core.hash(padChunkLen, self.padMaxChunkLen);
-    var result = getRawDigest(self.heap, self.padMaxChunkLen);
-    initState(self.heap, self.padMaxChunkLen);
+  Rusha.prototype.rawEnd = function rawEnd() {
+    var msgLen = this._offset;
+    var chunkLen = msgLen % this._maxChunkLen;
+    var padChunkLen = this._padChunk(chunkLen, msgLen);
+    this._core.hash(padChunkLen, this._padMaxChunkLen);
+    var result = getRawDigest(this._heap, this._padMaxChunkLen);
+    this._initState(this._heap, this._padMaxChunkLen);
     return result;
   };
 
-  this.rawEnd = rawEnd;
-
-  this.end = function () {
-    return toHex(rawEnd().buffer);
+  Rusha.prototype.end = function end() {
+    return toHex(this.rawEnd().buffer);
   };
-};
 
+  return Rusha;
+}();
+
+module.exports = Rusha;
 module.exports._core = RushaCore;
 
 },{"./conv":2,"./core.sjs":3,"./utils":7}],7:[function(_dereq_,module,exports){
@@ -641,7 +634,7 @@ module.exports.ceilHeapSize = function (v) {
 /* eslint-env commonjs, worker */
 
 module.exports = function () {
-  var Rusha = _dereq_('./rusha.js');
+  var Rusha = _dereq_('./rusha');
 
   var hashData = function (hasher, data, cb) {
     try {
@@ -705,5 +698,5 @@ module.exports = function () {
   };
 };
 
-},{"./rusha.js":6}]},{},[5])(5)
+},{"./rusha":6}]},{},[5])(5)
 });
