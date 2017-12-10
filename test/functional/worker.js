@@ -60,44 +60,62 @@ describe('Rusha Worker', () => {
   describe('hashing', () => {
     it('1 kiB', () => {
       const zero1k = new Int8Array(1024);
+      for (let i = 0; i < 1024; i++) {
+        zero1k[i] = i;
+      }
       const blob = new Blob([zero1k]);
       return expect(hashInWorker(Rusha.createWorker, {data: blob}))
-        .to.eventually.equal('60cacbf3d72e1e7834203da608037b1bf83b40e8');
+        .to.eventually.equal('5b00669c480d5cffbdfa8bdba99561160f2d1b77');
     });
 
     it('1 kiB file', () => {
       const zero1k = new Int8Array(1024);
+      for (let i = 0; i < 1024; i++) {
+        zero1k[i] = i;
+      }
       const blob = new Blob([zero1k]);
       return expect(hashInWorker(Rusha.createWorker, {file: blob}))
-        .to.eventually.equal('60cacbf3d72e1e7834203da608037b1bf83b40e8');
+        .to.eventually.equal('5b00669c480d5cffbdfa8bdba99561160f2d1b77');
     });
 
     it('1 MiB', () => {
       const zero1M = new Int8Array(1024 * 1024);
+      for (let i = 0; i < 1024 * 1024; i++) {
+        zero1M[i] = i;
+      }
       const blob = new Blob([zero1M]);
       return expect(hashInWorker(Rusha.createWorker, {data: blob}))
-        .to.eventually.equal('3b71f43ff30f4b15b5cd85dd9e95ebc7e84eb5a3');
+        .to.eventually.equal('ecfc8e86fdd83811f9cc9bf500993b63069923be');
     });
 
     it('1 MiB file', () => {
       const zero1M = new Int8Array(1024 * 1024);
+      for (let i = 0; i < 1024 * 1024; i++) {
+        zero1M[i] = i;
+      }
       const blob = new Blob([zero1M]);
       return expect(hashInWorker(Rusha.createWorker, {file: blob}))
-        .to.eventually.equal('3b71f43ff30f4b15b5cd85dd9e95ebc7e84eb5a3');
+        .to.eventually.equal('ecfc8e86fdd83811f9cc9bf500993b63069923be');
     });
 
     it('10 MiB', () => {
       const zero1M = new Int8Array(1024 * 1024);
+      for (let i = 0; i < 1024 * 1024; i++) {
+        zero1M[i] = i;
+      }
       const blob = new Blob(new Array(8).fill(zero1M));
       return expect(hashInWorker(Rusha.createWorker, {data: blob}))
-        .to.eventually.equal('5fde1cce603e6566d20da811c9c8bcccb044d4ae');
+        .to.eventually.equal('2f9ae0e3d61b155cb367ef711bda8c5ee2924954');
     });
 
     it('10 MiB file', () => {
       const zero1M = new Int8Array(1024 * 1024);
+      for (let i = 0; i < 1024 * 1024; i++) {
+        zero1M[i] = i;
+      }
       const blob = new Blob(new Array(8).fill(zero1M));
       return expect(hashInWorker(Rusha.createWorker, {file: blob}))
-        .to.eventually.equal('5fde1cce603e6566d20da811c9c8bcccb044d4ae');
+        .to.eventually.equal('2f9ae0e3d61b155cb367ef711bda8c5ee2924954');
     });
   });
 });

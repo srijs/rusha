@@ -107,7 +107,7 @@ var convStr = function (str, H8, H32, start, len, off) {
     case 3:
       H8[off + 3 - (om << 1) | 0] = str.charCodeAt(start);
   }
-  if (len < lm + om) {
+  if (len < lm + (4 - om)) {
     return;
   }
   for (i = 4 - om; i < j; i = i + 4 | 0) {
@@ -140,7 +140,7 @@ var convBuf = function (buf, H8, H32, start, len, off) {
     case 3:
       H8[off + 3 - (om << 1) | 0] = buf[start];
   }
-  if (len < lm + om) {
+  if (len < lm + (4 - om)) {
     return;
   }
   for (i = 4 - om; i < j; i = i + 4 | 0) {
@@ -172,7 +172,7 @@ var convBlob = function (blob, H8, H32, start, len, off) {
     case 3:
       H8[off + 3 - (om << 1) | 0] = buf[0];
   }
-  if (len < lm + om) {
+  if (len < lm + (4 - om)) {
     return;
   }
   for (i = 4 - om; i < j; i = i + 4 | 0) {

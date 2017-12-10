@@ -147,6 +147,13 @@ module.exports = function (grunt) {
     'karma:compatibilityWithWebpack'
   ]);
 
+  grunt.registerTask('test:unit', [
+    'eslint',
+    'browserify',
+    'uglify',
+    'karma:unit'
+  ]);
+
   grunt.registerTask('benchmark', ['browserify', 'uglify', 'karma:benchmark']);
 
   grunt.registerTask('build', ['eslint', 'browserify', 'uglify']);
