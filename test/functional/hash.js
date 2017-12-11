@@ -70,24 +70,29 @@ describe('Hash', () => {
   });
 
   describe('raw digest', () => {
-    it('returns a sliced Int32Array', () => {
+    it('returns an ArrayBuffer', () => {
       const digest = Rusha.createHash().update(abcString).digest();
+      assert(digest instanceof ArrayBuffer);
       assert.strictEqual(20, digest.byteLength);
     });
-    it('returns Int32Array from string', () => {
+    it('returns ArrayBuffer from string', () => {
       const digest = Rusha.createHash().update(abcString).digest();
+      assert(digest instanceof ArrayBuffer);
       assertBytesEqual(abcHashedBuffer, digest);
     });
-    it('returns Int32Array from buffer', () => {
+    it('returns ArrayBuffer from buffer', () => {
       const digest = Rusha.createHash().update(abcBuffer).digest();
+      assert(digest instanceof ArrayBuffer);
       assertBytesEqual(abcHashedBuffer, digest);
     });
-    it('returns Int32Array from array', () => {
+    it('returns ArrayBuffer from array', () => {
       const digest = Rusha.createHash().update(abcArray).digest();
+      assert(digest instanceof ArrayBuffer);
       assertBytesEqual(abcHashedBuffer, digest);
     });
-    it('returns Int32Array from ArrayBuffer', () => {
+    it('returns ArrayBuffer from ArrayBuffer', () => {
       const digest = Rusha.createHash().update(abcArrayBuffer).digest();
+      assert(digest instanceof ArrayBuffer);
       assertBytesEqual(abcHashedBuffer, digest);
     });
   });
