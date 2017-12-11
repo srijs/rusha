@@ -54,6 +54,16 @@ module.exports = function (grunt) {
           browsers: ['ChromeHeadless', 'FirefoxHeadless']
         }
       },
+      fuzz: {
+        options: {
+          frameworks: ['browserify', 'mocha', 'chai'],
+          files: ['test/fuzz.js'],
+          preprocessors: {
+            'test/fuzz.js': ['browserify']
+          },
+          browsers: ['ChromeHeadless', 'FirefoxHeadless']
+        }
+      },
       functional: {
         options: {
           frameworks: ['browserify', 'mocha', 'chai-as-promised', 'chai'],
@@ -140,6 +150,7 @@ module.exports = function (grunt) {
     'browserify',
     'uglify',
     'karma:unit',
+    'karma:fuzz',
     'karma:functional',
     'karma:compatibilityWithVanillaScript',
     'karma:compatibilityWithVanillaWorker',
