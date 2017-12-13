@@ -35,14 +35,14 @@ If you have a good reason not to use Web Workers, follow the instructions on [_U
 You can create a new worker in two ways. The preferred way is using `Rusha.createWorker()`, which spawns a webworker containing the hashing logic, and returns back a `Worker` object:
 
 ```js
-var worker = Rusha.createWorker();
+const worker = Rusha.createWorker();
 ```
 
 If for some reason this does not work for you, you can also just point the `Worker` constructor
 at `rusha.js` or `rusha.min.js`, like so:
 
 ```js
-var worker = new Worker("dist/rusha.min.js");
+const worker = new Worker("dist/rusha.min.js");
 ```
 
 _**Note**: In order to make the latter work, Rusha will by default subscribe to incoming messages
@@ -61,16 +61,16 @@ The Rusha `Hash` API is inspired by the [Node.js `Hash` API](https://nodejs.org/
 ##### Simple usage
 
 ```js
-var hexHash = Rusha.createHash().update('I am Rusha').digest('hex'); 
+const hexHash = Rusha.createHash().update('I am Rusha').digest('hex'); 
 ```
 
 ##### Incremental usage
 
 ```js
-var hash = Rusha.createHash(); 
+const hash = Rusha.createHash(); 
 hash.update('I am');
 hash.update(' Rusha');
-var hexHash = rusha.digest('hex');
+const hexHash = rusha.digest('hex');
 ```
 
 #### Reference
@@ -91,23 +91,23 @@ You should be using the `Hash` API instead, which is documented above.
 ##### Normal usage
 
 ```js
-var rusha = new Rusha();
-var hexHash = rusha.digest('I am Rusha'); 
+const rusha = new Rusha();
+const hexHash = rusha.digest('I am Rusha'); 
 ```
 
 ##### Incremental usage
 
 ```js
-var rusha = new Rusha();
+const rusha = new Rusha();
 rusha.resetState();
 rusha.append('I am');
 rusha.append(' Rusha');
-var hexHash = rusha.end();
+const hexHash = rusha.end();
 ```
 
 #### Reference
 
-Your instantiate a new Rusha object by doing `var r = new Rusha(optionalSizeHint)`. When created, it provides the following methods:
+Your instantiate a new Rusha object by doing `new Rusha()`. When created, it provides the following methods:
 
 - `Rusha#digest(d)`: Create a hex digest from data of the three kinds mentioned below, or throw and error if the type is unsupported.
 - `Rusha#digestFromString(s)`: Create a hex digest from a binary `String`. A binary string is expected to only contain characters whose charCode < 256.
