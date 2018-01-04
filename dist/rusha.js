@@ -358,7 +358,7 @@ var runWorker = _dereq_('./worker');
 var _require = _dereq_('./utils'),
     isDedicatedWorkerScope = _require.isDedicatedWorkerScope;
 
-var isRunningInDedicatedWorker = isDedicatedWorkerScope(self);
+var isRunningInDedicatedWorker = typeof self !== 'undefined' && isDedicatedWorkerScope(self);
 
 Rusha.disableWorkerBehaviour = isRunningInDedicatedWorker ? runWorker() : function () {};
 

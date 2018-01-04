@@ -7,7 +7,8 @@ const createHash = require('./hash');
 const runWorker = require('./worker');
 const { isDedicatedWorkerScope } = require('./utils');
 
-const isRunningInDedicatedWorker = isDedicatedWorkerScope(self);
+const isRunningInDedicatedWorker = typeof self !== 'undefined'
+  && isDedicatedWorkerScope(self);
 
 Rusha.disableWorkerBehaviour = isRunningInDedicatedWorker ? runWorker() : () => {};
 
