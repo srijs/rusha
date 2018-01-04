@@ -355,7 +355,20 @@ var Rusha = _dereq_('./rusha');
 var createHash = _dereq_('./hash');
 var runWorker = _dereq_('./worker');
 
-var isRunningInDedicatedWorker = typeof FileReaderSync !== 'undefined' && typeof DedicatedWorkerGlobalScope !== 'undefined';
+var isRunningInWorker = 'WorkerGlobalScope' in self && self instanceof self.WorkerGlobalScope;
+var isRunningInSharedWorker = 'SharedWorkerGlobalScope' in self && self instanceof self.SharedWorkerGlobalScope;
+var isRunningInServiceWorker = 'ServiceWorkerGlobalScope' in self && self instanceof self.ServiceWorkerGlobalScope;
+
+// Detects whether we run inside a dedicated worker or not.
+//
+// We can't just check for `DedicatedWorkerGlobalScope`, since IE11
+// has a bug where it only supports `WorkerGlobalScope`.
+//
+// Therefore, we consider us as running inside a dedicated worker
+// when we are running inside a worker, but not in a shared or service worker.
+//
+// When new types of workers are introduced, we will need to adjust this code.
+var isRunningInDedicatedWorker = isRunningInWorker && !isRunningInSharedWorker && !isRunningInServiceWorker;
 
 Rusha.disableWorkerBehaviour = isRunningInDedicatedWorker ? runWorker() : function () {};
 
