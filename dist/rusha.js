@@ -355,20 +355,10 @@ var Rusha = _dereq_('./rusha');
 var createHash = _dereq_('./hash');
 var runWorker = _dereq_('./worker');
 
-var isRunningInWorker = 'WorkerGlobalScope' in self && self instanceof self.WorkerGlobalScope;
-var isRunningInSharedWorker = 'SharedWorkerGlobalScope' in self && self instanceof self.SharedWorkerGlobalScope;
-var isRunningInServiceWorker = 'ServiceWorkerGlobalScope' in self && self instanceof self.ServiceWorkerGlobalScope;
+var _require = _dereq_('./utils'),
+    isDedicatedWorkerScope = _require.isDedicatedWorkerScope;
 
-// Detects whether we run inside a dedicated worker or not.
-//
-// We can't just check for `DedicatedWorkerGlobalScope`, since IE11
-// has a bug where it only supports `WorkerGlobalScope`.
-//
-// Therefore, we consider us as running inside a dedicated worker
-// when we are running inside a worker, but not in a shared or service worker.
-//
-// When new types of workers are introduced, we will need to adjust this code.
-var isRunningInDedicatedWorker = isRunningInWorker && !isRunningInSharedWorker && !isRunningInServiceWorker;
+var isRunningInDedicatedWorker = isDedicatedWorkerScope(self);
 
 Rusha.disableWorkerBehaviour = isRunningInDedicatedWorker ? runWorker() : function () {};
 
@@ -386,7 +376,7 @@ Rusha.createHash = createHash;
 
 module.exports = Rusha;
 
-},{"./hash":4,"./rusha":6,"./worker":8,"webworkify":1}],6:[function(_dereq_,module,exports){
+},{"./hash":4,"./rusha":6,"./utils":7,"./worker":8,"webworkify":1}],6:[function(_dereq_,module,exports){
 "use strict";
 /* eslint-env commonjs, browser */
 
@@ -640,6 +630,27 @@ module.exports.ceilHeapSize = function (v) {
     for (p = 16777216; p < v; p += 16777216) {}
   }
   return p;
+};
+
+//
+// isDedicatedWorkerScope
+//
+
+module.exports.isDedicatedWorkerScope = function (self) {
+  var isRunningInWorker = 'WorkerGlobalScope' in self && self instanceof self.WorkerGlobalScope;
+  var isRunningInSharedWorker = 'SharedWorkerGlobalScope' in self && self instanceof self.SharedWorkerGlobalScope;
+  var isRunningInServiceWorker = 'ServiceWorkerGlobalScope' in self && self instanceof self.ServiceWorkerGlobalScope;
+
+  // Detects whether we run inside a dedicated worker or not.
+  //
+  // We can't just check for `DedicatedWorkerGlobalScope`, since IE11
+  // has a bug where it only supports `WorkerGlobalScope`.
+  //
+  // Therefore, we consider us as running inside a dedicated worker
+  // when we are running inside a worker, but not in a shared or service worker.
+  //
+  // When new types of workers are introduced, we will need to adjust this code.
+  return isRunningInWorker && !isRunningInSharedWorker && !isRunningInServiceWorker;
 };
 
 },{}],8:[function(_dereq_,module,exports){

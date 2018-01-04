@@ -56,3 +56,39 @@ describe('ceilHeapSize', () => {
     assert.strictEqual(33554432, utils.ceilHeapSize(16777217));
   });
 });
+
+describe('isDedicatedWorkerScope', () => {
+  it('detects a standard dedicated worker scope', () => {
+    class CustomWorkerScope {};
+    class CustomDedicatedWorkerScope extends CustomWorkerScope {};
+    const scope = new CustomDedicatedWorkerScope;
+    scope.WorkerGlobalScope = CustomWorkerScope;
+    scope.DedicatedWorkerGlobalScope = CustomDedicatedWorkerScope;
+    assert.equal(true, utils.isDedicatedWorkerScope(scope));
+  });
+
+  it('detects a legacy dedicated worker scope (IE11)', () => {
+    class CustomWorkerScope {};
+    const scope = new CustomWorkerScope;
+    scope.WorkerGlobalScope = CustomWorkerScope;
+    assert.equal(true, utils.isDedicatedWorkerScope(scope));
+  });
+
+  it('bails out on a shared worker scope', () => {
+    class CustomWorkerScope {};
+    class CustomSharedWorkerScope extends CustomWorkerScope {};
+    const scope = new CustomSharedWorkerScope;
+    scope.WorkerGlobalScope = CustomWorkerScope;
+    scope.SharedWorkerGlobalScope = CustomSharedWorkerScope;
+    assert.equal(false, utils.isDedicatedWorkerScope(scope));
+  });
+
+  it('bails out on a service worker scope', () => {
+    class CustomWorkerScope {};
+    class CustomServiceWorkerScope extends CustomWorkerScope {};
+    const scope = new CustomServiceWorkerScope;
+    scope.WorkerGlobalScope = CustomWorkerScope;
+    scope.ServiceWorkerGlobalScope = CustomServiceWorkerScope;
+    assert.equal(false, utils.isDedicatedWorkerScope(scope));
+  });
+});
