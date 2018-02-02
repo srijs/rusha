@@ -20,6 +20,7 @@ module.exports = {
     "DataView": true,
     "Int8Array": true,
     "Int32Array": true,
-    "Uint8Array": true
+    "Uint8Array": true,
+    "Buffer": true
   }
 };

@@ -89,7 +89,7 @@ module.exports = (data, H8, H32, start, len, off) => {
   if (data instanceof Array) {
     return convBuf(data, H8, H32, start, len, off);
   }
-  if (global.Buffer && global.Buffer.isBuffer(data)) {
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(data)) {
     return convBuf(data, H8, H32, start, len, off);
   }
   if (data instanceof ArrayBuffer) {

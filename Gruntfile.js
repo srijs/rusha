@@ -16,10 +16,7 @@ module.exports = function (grunt) {
     browserify: {
       options: {
         transform: ['strictify', 'sweetify', 'babelify'],
-        plugin: ['browserify-derequire'],
-        browserifyOptions: {
-          standalone: 'Rusha'
-        }
+        plugin: ['browserify-derequire']
       },
       build: {
         files: {

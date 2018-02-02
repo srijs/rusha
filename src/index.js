@@ -25,3 +25,9 @@ Rusha.createWorker = () => {
 Rusha.createHash = createHash;
 
 module.exports = Rusha;
+
+// Exporting Rusha into browser environment by hand instead of using browserify
+// due minification issues
+if (typeof window !== 'undefined') {
+  window.Rusha = Rusha;
+}
