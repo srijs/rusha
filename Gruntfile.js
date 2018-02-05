@@ -13,17 +13,6 @@ module.exports = function (grunt) {
         dest: 'dist/<%= pkg.name %>.min.js'
       }
     },
-    browserify: {
-      options: {
-        transform: ['strictify', 'sweetify', 'babelify'],
-        plugin: ['browserify-derequire']
-      },
-      build: {
-        files: {
-          'dist/rusha.js': ['src/index.js']
-        }
-      }
-    },
     karma: {
       options: {
         basePath: '',
@@ -140,12 +129,11 @@ module.exports = function (grunt) {
 
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-karma');
-  grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-uglify');
 
   grunt.registerTask('test', [
     'eslint',
-    'browserify',
+    'buildWebpack',
     'uglify',
     'karma:unit',
     'karma:fuzz',
@@ -158,13 +146,23 @@ module.exports = function (grunt) {
 
   grunt.registerTask('test:unit', [
     'eslint',
-    'browserify',
+    'buildWebpack',
     'uglify',
     'karma:unit'
   ]);
 
-  grunt.registerTask('benchmark', ['browserify', 'uglify', 'karma:benchmark']);
+  grunt.registerTask('benchmark', ['buildWebpack', 'uglify', 'karma:benchmark']);
 
-  grunt.registerTask('build', ['eslint', 'browserify', 'uglify']);
+  grunt.registerTask('build', ['eslint', 'buildWebpack', 'uglify']);
 
+  grunt.registerTask('buildWebpack', 'create dist using Webpack', function() {
+    var done = this.async();
+
+    grunt.util.spawn({
+      cmd: './node_modules/.bin/webpack',
+    }, function() {
+      grunt.log.ok('dist created');
+      done();
+    });
+  });
 };

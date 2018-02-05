@@ -6,3 +6,6 @@ Makefile
 coverage
 test
 src
+perf
+misc
+webpack.config.js

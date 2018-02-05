@@ -1,7 +1,6 @@
 /* eslint-env commonjs, browser */
 
-const webworkify = require('webworkify');
-
+const work = require('webworkify-webpack');
 const Rusha = require('./rusha');
 const createHash = require('./hash');
 const runWorker = require('./worker');
@@ -13,7 +12,7 @@ const isRunningInDedicatedWorker = typeof self !== 'undefined'
 Rusha.disableWorkerBehaviour = isRunningInDedicatedWorker ? runWorker() : () => {};
 
 Rusha.createWorker = () => {
-  const worker = webworkify(require('./worker'));
+  const worker = work(require.resolve('./worker'));
   const terminate = worker.terminate;
   worker.terminate = () => {
     URL.revokeObjectURL(worker.objectURL);
@@ -25,9 +24,3 @@ Rusha.createWorker = () => {
 Rusha.createHash = createHash;
 
 module.exports = Rusha;
-
-// Exporting Rusha into browser environment by hand instead of using browserify
-// due minification issues
-if (typeof window !== 'undefined') {
-  window.Rusha = Rusha;
-}
