@@ -108,6 +108,18 @@ module.exports = function (grunt) {
           browsers
         }
       },
+      compatibilityWithWebpackProd: {
+        options: {
+          frameworks: ['mocha', 'chai-as-promised', 'chai'],
+          files: [
+            'test/compat/require.js',
+          ],
+          preprocessors: {
+            'test/compat/require.js': ['webpack']
+          },
+          browsers
+        }
+      },
       benchmark: {
         options: {
           frameworks: ['browserify', 'benchmark'],
@@ -133,6 +145,7 @@ module.exports = function (grunt) {
 
   grunt.registerTask('test', [
     'eslint',
+    'compatibilityWithWebpackProd',
     'buildWebpack',
     'uglify',
     'karma:unit',
@@ -140,8 +153,7 @@ module.exports = function (grunt) {
     'karma:functional',
     'karma:compatibilityWithVanillaScript',
     'karma:compatibilityWithVanillaWorker',
-    'karma:compatibilityWithBrowserify',
-    'karma:compatibilityWithWebpack'
+    'karma:compatibilityWithBrowserify'
   ]);
 
   grunt.registerTask('test:unit', [
@@ -150,6 +162,8 @@ module.exports = function (grunt) {
     'uglify',
     'karma:unit'
   ]);
+
+  grunt.registerTask('compatibilityWithWebpackProd', ['buildWebpackProd', 'uglify', 'karma:compatibilityWithWebpackProd'])
 
   grunt.registerTask('benchmark', ['buildWebpack', 'uglify', 'karma:benchmark']);
 
@@ -162,6 +176,18 @@ module.exports = function (grunt) {
       cmd: './node_modules/.bin/webpack',
     }, function() {
       grunt.log.ok('dist created');
+      done();
+    });
+  });
+
+  grunt.registerTask('buildWebpackProd', 'create production dist using Webpack', function() {
+    var done = this.async();
+
+    grunt.util.spawn({
+      cmd: './node_modules/.bin/webpack',
+      args: ['-p']
+    }, function() {
+      grunt.log.ok('prod dist created');
       done();
     });
   });
