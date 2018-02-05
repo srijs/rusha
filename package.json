@@ -13,7 +13,6 @@
     "test": "grunt test",
     "test:unit": "grunt test:unit",
     "build": "grunt build",
-    "build:webpack:prod": "webpack -p",
     "benchmark": "grunt benchmark"
   },
   "repository": {
