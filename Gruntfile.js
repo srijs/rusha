@@ -1,3 +1,5 @@
+const webpackConfig = require('./webpack.config');
+
 module.exports = function (grunt) {
   const browsers = ['ChromeHeadless', 'FirefoxHeadless'];
 
@@ -117,6 +119,12 @@ module.exports = function (grunt) {
           preprocessors: {
             'test/compat/require.js': ['webpack']
           },
+          webpack: {
+            // plugins: [
+            //   new webpack.DefinePlugin({NODE_ENV: JSON.stringify(process.env.NODE_ENV)}),
+            //   new webpack.optimize.UglifyJsPlugin()
+            // ]
+          },
           browsers
         }
       },
@@ -136,59 +144,40 @@ module.exports = function (grunt) {
       target: [
         'src/*.js'
       ]
+    },
+    webpack: {
+      prod: webpackConfig,
+      dev: webpackConfig
     }
   });
 
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-webpack');
 
   grunt.registerTask('test', [
     'eslint',
-    'compatibilityWithWebpackProd',
-    'buildWebpack',
+    'webpack:dev',
     'uglify',
     'karma:unit',
     'karma:fuzz',
     'karma:functional',
     'karma:compatibilityWithVanillaScript',
     'karma:compatibilityWithVanillaWorker',
-    'karma:compatibilityWithBrowserify'
+    'karma:compatibilityWithBrowserify',
+    'karma:compatibilityWithWebpack',
+    'karma:compatibilityWithWebpackProd'
   ]);
 
   grunt.registerTask('test:unit', [
     'eslint',
-    'buildWebpack',
+    'webpack:dev',
     'uglify',
     'karma:unit'
   ]);
 
-  grunt.registerTask('compatibilityWithWebpackProd', ['buildWebpackProd', 'uglify', 'karma:compatibilityWithWebpackProd'])
+  grunt.registerTask('benchmark', ['webpack:dev', 'uglify', 'karma:benchmark']);
 
-  grunt.registerTask('benchmark', ['buildWebpack', 'uglify', 'karma:benchmark']);
-
-  grunt.registerTask('build', ['eslint', 'buildWebpack', 'uglify']);
-
-  grunt.registerTask('buildWebpack', 'create dist using Webpack', function() {
-    var done = this.async();
-
-    grunt.util.spawn({
-      cmd: './node_modules/.bin/webpack',
-    }, function() {
-      grunt.log.ok('dist created');
-      done();
-    });
-  });
-
-  grunt.registerTask('buildWebpackProd', 'create production dist using Webpack', function() {
-    var done = this.async();
-
-    grunt.util.spawn({
-      cmd: './node_modules/.bin/webpack',
-      args: ['-p']
-    }, function() {
-      grunt.log.ok('prod dist created');
-      done();
-    });
-  });
+  grunt.registerTask('build', ['eslint', 'webpack:prod', 'uglify']);
 };

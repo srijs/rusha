@@ -37,6 +37,7 @@
     "grunt-contrib-uglify": "^3.1.0",
     "grunt-eslint": "^20.1.0",
     "grunt-karma": "^2.0.0",
+    "grunt-webpack": "^3.0.2",
     "karma": "^1.7.1",
     "karma-benchmark": "^0.7.1",
     "karma-benchmark-reporter": "^0.1.1",
@@ -54,7 +55,7 @@
     "sweet.js": "^0.7.1",
     "sweetjs-loader": "^0.0.7",
     "watchify": "^3.9.0",
-    "webpack": "^3.10.0",
+    "webpack": "^3.11.0",
     "webworkify-webpack": "^2.1.0"
   },
   "author": "Sam Rijs",
