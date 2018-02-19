@@ -89,7 +89,8 @@ module.exports = (data, H8, H32, start, len, off) => {
   if (data instanceof Array) {
     return convBuf(data, H8, H32, start, len, off);
   }
-  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(data)) {
+  // Safely doing a Buffer check using "this" to avoid Buffer polyfill to be included in the dist
+  if (this && this.Buffer && this.Buffer.isBuffer(data)) {
     return convBuf(data, H8, H32, start, len, off);
   }
   if (data instanceof ArrayBuffer) {

@@ -1,3 +1,4 @@
+
 const webpackConfig = require('./webpack.config');
 
 module.exports = function (grunt) {
@@ -110,24 +111,6 @@ module.exports = function (grunt) {
           browsers
         }
       },
-      compatibilityWithWebpackProd: {
-        options: {
-          frameworks: ['mocha', 'chai-as-promised', 'chai'],
-          files: [
-            'test/compat/require.js',
-          ],
-          preprocessors: {
-            'test/compat/require.js': ['webpack']
-          },
-          webpack: {
-            // plugins: [
-            //   new webpack.DefinePlugin({NODE_ENV: JSON.stringify(process.env.NODE_ENV)}),
-            //   new webpack.optimize.UglifyJsPlugin()
-            // ]
-          },
-          browsers
-        }
-      },
       benchmark: {
         options: {
           frameworks: ['browserify', 'benchmark'],
@@ -166,8 +149,7 @@ module.exports = function (grunt) {
     'karma:compatibilityWithVanillaScript',
     'karma:compatibilityWithVanillaWorker',
     'karma:compatibilityWithBrowserify',
-    'karma:compatibilityWithWebpack',
-    'karma:compatibilityWithWebpackProd'
+    'karma:compatibilityWithWebpack'
   ]);
 
   grunt.registerTask('test:unit', [
