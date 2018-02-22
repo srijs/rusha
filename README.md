@@ -77,8 +77,10 @@ const hexHash = rusha.digest('hex');
 
 You instantiate a new Hash object by calling `Rusha.createHash`. When created, it provides the following methods:
 
-- `Hash#update(data)`: Update the hash state with the given `data`, which can be a binary `String`, `Buffer`, `Array`, `ArrayBuffer` or `Blob`.
+- `Hash#update(data)`: Update the hash state with the given `data`, which can be a binary `String`, `Buffer`, `Array` or `ArrayBuffer`.
 - `Hash#digest([encoding])`: Calculates the digest of all of the data passed to be hashed. The `encoding` can be `'hex'` or undefined. If `encoding` is provided a string will be returned; otherwise an `ArrayBuffer` is returned.
+
+_**Note**: Due to its synchronous nature, `Hash#update` does not accept data of type `Blob`. If you need to work with `Blobs`, you can either use the [Rusha Worker](#using-the-rusha-worker), or use [`FileReader#readAsArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsArrayBuffer) to read the contents of the `Blob`, and then invoke `Hash#update` with the `ArrayBuffer` that was returned._
 
 ### Using the Rusha Object (DEPRECATED)
 
