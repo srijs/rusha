@@ -1,394 +1,93 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Rusha = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-var bundleFn = arguments[3];
-var sources = arguments[4];
-var cache = arguments[5];
-
-var stringify = JSON.stringify;
-
-module.exports = function (fn, options) {
-    var wkey;
-    var cacheKeys = Object.keys(cache);
-
-    for (var i = 0, l = cacheKeys.length; i < l; i++) {
-        var key = cacheKeys[i];
-        var exp = cache[key].exports;
-        // Using babel as a transpiler to use esmodule, the export will always
-        // be an object with the default export as a property of it. To ensure
-        // the existing api and babel esmodule exports are both supported we
-        // check for both
-        if (exp === fn || exp && exp.default === fn) {
-            wkey = key;
-            break;
-        }
-    }
-
-    if (!wkey) {
-        wkey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
-        var wcache = {};
-        for (var i = 0, l = cacheKeys.length; i < l; i++) {
-            var key = cacheKeys[i];
-            wcache[key] = key;
-        }
-        sources[wkey] = [
-            'function(require,module,exports){' + fn + '(self); }',
-            wcache
-        ];
-    }
-    var skey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
-
-    var scache = {}; scache[wkey] = wkey;
-    sources[skey] = [
-        'function(require,module,exports){' +
-            // try to call default if defined to also support babel esmodule exports
-            'var f = require(' + stringify(wkey) + ');' +
-            '(f.default ? f.default : f)(self);' +
-        '}',
-        scache
-    ];
-
-    var workerSources = {};
-    resolveSources(skey);
-
-    function resolveSources(key) {
-        workerSources[key] = true;
-
-        for (var depPath in sources[key][1]) {
-            var depKey = sources[key][1][depPath];
-            if (!workerSources[depKey]) {
-                resolveSources(depKey);
-            }
-        }
-    }
-
-    var src = '(' + bundleFn + ')({'
-        + Object.keys(workerSources).map(function (key) {
-            return stringify(key) + ':['
-                + sources[key][0]
-                + ',' + stringify(sources[key][1]) + ']'
-            ;
-        }).join(',')
-        + '},{},[' + stringify(skey) + '])'
-    ;
-
-    var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
-
-    var blob = new Blob([src], { type: 'text/javascript' });
-    if (options && options.bare) { return blob; }
-    var workerUrl = URL.createObjectURL(blob);
-    var worker = new Worker(workerUrl);
-    worker.objectURL = workerUrl;
-    return worker;
-};
-
-},{}],2:[function(_dereq_,module,exports){
-(function (global){
-"use strict";
-/* eslint-env commonjs, browser */
-
-var reader = void 0;
-if (typeof self !== 'undefined' && typeof self.FileReaderSync !== 'undefined') {
-  reader = new self.FileReaderSync();
-}
-
-// Convert a binary string and write it to the heap.
-// A binary string is expected to only contain char codes < 256.
-var convStr = function (str, H8, H32, start, len, off) {
-  var i = void 0,
-      om = off % 4,
-      lm = (len + om) % 4,
-      j = len - lm;
-  switch (om) {
-    case 0:
-      H8[off] = str.charCodeAt(start + 3);
-    case 1:
-      H8[off + 1 - (om << 1) | 0] = str.charCodeAt(start + 2);
-    case 2:
-      H8[off + 2 - (om << 1) | 0] = str.charCodeAt(start + 1);
-    case 3:
-      H8[off + 3 - (om << 1) | 0] = str.charCodeAt(start);
-  }
-  if (len < lm + (4 - om)) {
-    return;
-  }
-  for (i = 4 - om; i < j; i = i + 4 | 0) {
-    H32[off + i >> 2] = str.charCodeAt(start + i) << 24 | str.charCodeAt(start + i + 1) << 16 | str.charCodeAt(start + i + 2) << 8 | str.charCodeAt(start + i + 3);
-  }
-  switch (lm) {
-    case 3:
-      H8[off + j + 1 | 0] = str.charCodeAt(start + j + 2);
-    case 2:
-      H8[off + j + 2 | 0] = str.charCodeAt(start + j + 1);
-    case 1:
-      H8[off + j + 3 | 0] = str.charCodeAt(start + j);
-  }
-};
-
-// Convert a buffer or array and write it to the heap.
-// The buffer or array is expected to only contain elements < 256.
-var convBuf = function (buf, H8, H32, start, len, off) {
-  var i = void 0,
-      om = off % 4,
-      lm = (len + om) % 4,
-      j = len - lm;
-  switch (om) {
-    case 0:
-      H8[off] = buf[start + 3];
-    case 1:
-      H8[off + 1 - (om << 1) | 0] = buf[start + 2];
-    case 2:
-      H8[off + 2 - (om << 1) | 0] = buf[start + 1];
-    case 3:
-      H8[off + 3 - (om << 1) | 0] = buf[start];
-  }
-  if (len < lm + (4 - om)) {
-    return;
-  }
-  for (i = 4 - om; i < j; i = i + 4 | 0) {
-    H32[off + i >> 2 | 0] = buf[start + i] << 24 | buf[start + i + 1] << 16 | buf[start + i + 2] << 8 | buf[start + i + 3];
-  }
-  switch (lm) {
-    case 3:
-      H8[off + j + 1 | 0] = buf[start + j + 2];
-    case 2:
-      H8[off + j + 2 | 0] = buf[start + j + 1];
-    case 1:
-      H8[off + j + 3 | 0] = buf[start + j];
-  }
-};
-
-var convBlob = function (blob, H8, H32, start, len, off) {
-  var i = void 0,
-      om = off % 4,
-      lm = (len + om) % 4,
-      j = len - lm;
-  var buf = new Uint8Array(reader.readAsArrayBuffer(blob.slice(start, start + len)));
-  switch (om) {
-    case 0:
-      H8[off] = buf[3];
-    case 1:
-      H8[off + 1 - (om << 1) | 0] = buf[2];
-    case 2:
-      H8[off + 2 - (om << 1) | 0] = buf[1];
-    case 3:
-      H8[off + 3 - (om << 1) | 0] = buf[0];
-  }
-  if (len < lm + (4 - om)) {
-    return;
-  }
-  for (i = 4 - om; i < j; i = i + 4 | 0) {
-    H32[off + i >> 2 | 0] = buf[i] << 24 | buf[i + 1] << 16 | buf[i + 2] << 8 | buf[i + 3];
-  }
-  switch (lm) {
-    case 3:
-      H8[off + j + 1 | 0] = buf[j + 2];
-    case 2:
-      H8[off + j + 2 | 0] = buf[j + 1];
-    case 1:
-      H8[off + j + 3 | 0] = buf[j];
-  }
-};
-
-module.exports = function (data, H8, H32, start, len, off) {
-  if (typeof data === 'string') {
-    return convStr(data, H8, H32, start, len, off);
-  }
-  if (data instanceof Array) {
-    return convBuf(data, H8, H32, start, len, off);
-  }
-  if (global.Buffer && global.Buffer.isBuffer(data)) {
-    return convBuf(data, H8, H32, start, len, off);
-  }
-  if (data instanceof ArrayBuffer) {
-    return convBuf(new Uint8Array(data), H8, H32, start, len, off);
-  }
-  if (data.buffer instanceof ArrayBuffer) {
-    return convBuf(new Uint8Array(data.buffer, data.byteOffset, data.byteLength), H8, H32, start, len, off);
-  }
-  if (data instanceof Blob) {
-    return convBlob(data, H8, H32, start, len, off);
-  }
-  throw new Error('Unsupported data type.');
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],3:[function(_dereq_,module,exports){
-'use strict';
-// The low-level RushCore module provides the heart of Rusha,
-// a high-speed sha1 implementation working on an Int32Array heap.
-// At first glance, the implementation seems complicated, however
-// with the SHA1 spec at hand, it is obvious this almost a textbook
-// implementation that has a few functions hand-inlined and a few loops
-// hand-unrolled.
-module.exports = function RushaCore(stdlib$1186, foreign$1187, heap$1188) {
-    'use asm';
-    var H$1189 = new stdlib$1186.Int32Array(heap$1188);
-    function hash$1190(k$1191, x$1192) {
-        // k in bytes
-        k$1191 = k$1191 | 0;
-        x$1192 = x$1192 | 0;
-        var i$1193 = 0, j$1194 = 0, y0$1195 = 0, z0$1196 = 0, y1$1197 = 0, z1$1198 = 0, y2$1199 = 0, z2$1200 = 0, y3$1201 = 0, z3$1202 = 0, y4$1203 = 0, z4$1204 = 0, t0$1205 = 0, t1$1206 = 0;
-        y0$1195 = H$1189[x$1192 + 320 >> 2] | 0;
-        y1$1197 = H$1189[x$1192 + 324 >> 2] | 0;
-        y2$1199 = H$1189[x$1192 + 328 >> 2] | 0;
-        y3$1201 = H$1189[x$1192 + 332 >> 2] | 0;
-        y4$1203 = H$1189[x$1192 + 336 >> 2] | 0;
-        for (i$1193 = 0; (i$1193 | 0) < (k$1191 | 0); i$1193 = i$1193 + 64 | 0) {
-            z0$1196 = y0$1195;
-            z1$1198 = y1$1197;
-            z2$1200 = y2$1199;
-            z3$1202 = y3$1201;
-            z4$1204 = y4$1203;
-            for (j$1194 = 0; (j$1194 | 0) < 64; j$1194 = j$1194 + 4 | 0) {
-                t1$1206 = H$1189[i$1193 + j$1194 >> 2] | 0;
-                t0$1205 = ((y0$1195 << 5 | y0$1195 >>> 27) + (y1$1197 & y2$1199 | ~y1$1197 & y3$1201) | 0) + ((t1$1206 + y4$1203 | 0) + 1518500249 | 0) | 0;
-                y4$1203 = y3$1201;
-                y3$1201 = y2$1199;
-                y2$1199 = y1$1197 << 30 | y1$1197 >>> 2;
-                y1$1197 = y0$1195;
-                y0$1195 = t0$1205;
-                H$1189[k$1191 + j$1194 >> 2] = t1$1206;
-            }
-            for (j$1194 = k$1191 + 64 | 0; (j$1194 | 0) < (k$1191 + 80 | 0); j$1194 = j$1194 + 4 | 0) {
-                t1$1206 = (H$1189[j$1194 - 12 >> 2] ^ H$1189[j$1194 - 32 >> 2] ^ H$1189[j$1194 - 56 >> 2] ^ H$1189[j$1194 - 64 >> 2]) << 1 | (H$1189[j$1194 - 12 >> 2] ^ H$1189[j$1194 - 32 >> 2] ^ H$1189[j$1194 - 56 >> 2] ^ H$1189[j$1194 - 64 >> 2]) >>> 31;
-                t0$1205 = ((y0$1195 << 5 | y0$1195 >>> 27) + (y1$1197 & y2$1199 | ~y1$1197 & y3$1201) | 0) + ((t1$1206 + y4$1203 | 0) + 1518500249 | 0) | 0;
-                y4$1203 = y3$1201;
-                y3$1201 = y2$1199;
-                y2$1199 = y1$1197 << 30 | y1$1197 >>> 2;
-                y1$1197 = y0$1195;
-                y0$1195 = t0$1205;
-                H$1189[j$1194 >> 2] = t1$1206;
-            }
-            for (j$1194 = k$1191 + 80 | 0; (j$1194 | 0) < (k$1191 + 160 | 0); j$1194 = j$1194 + 4 | 0) {
-                t1$1206 = (H$1189[j$1194 - 12 >> 2] ^ H$1189[j$1194 - 32 >> 2] ^ H$1189[j$1194 - 56 >> 2] ^ H$1189[j$1194 - 64 >> 2]) << 1 | (H$1189[j$1194 - 12 >> 2] ^ H$1189[j$1194 - 32 >> 2] ^ H$1189[j$1194 - 56 >> 2] ^ H$1189[j$1194 - 64 >> 2]) >>> 31;
-                t0$1205 = ((y0$1195 << 5 | y0$1195 >>> 27) + (y1$1197 ^ y2$1199 ^ y3$1201) | 0) + ((t1$1206 + y4$1203 | 0) + 1859775393 | 0) | 0;
-                y4$1203 = y3$1201;
-                y3$1201 = y2$1199;
-                y2$1199 = y1$1197 << 30 | y1$1197 >>> 2;
-                y1$1197 = y0$1195;
-                y0$1195 = t0$1205;
-                H$1189[j$1194 >> 2] = t1$1206;
-            }
-            for (j$1194 = k$1191 + 160 | 0; (j$1194 | 0) < (k$1191 + 240 | 0); j$1194 = j$1194 + 4 | 0) {
-                t1$1206 = (H$1189[j$1194 - 12 >> 2] ^ H$1189[j$1194 - 32 >> 2] ^ H$1189[j$1194 - 56 >> 2] ^ H$1189[j$1194 - 64 >> 2]) << 1 | (H$1189[j$1194 - 12 >> 2] ^ H$1189[j$1194 - 32 >> 2] ^ H$1189[j$1194 - 56 >> 2] ^ H$1189[j$1194 - 64 >> 2]) >>> 31;
-                t0$1205 = ((y0$1195 << 5 | y0$1195 >>> 27) + (y1$1197 & y2$1199 | y1$1197 & y3$1201 | y2$1199 & y3$1201) | 0) + ((t1$1206 + y4$1203 | 0) - 1894007588 | 0) | 0;
-                y4$1203 = y3$1201;
-                y3$1201 = y2$1199;
-                y2$1199 = y1$1197 << 30 | y1$1197 >>> 2;
-                y1$1197 = y0$1195;
-                y0$1195 = t0$1205;
-                H$1189[j$1194 >> 2] = t1$1206;
-            }
-            for (j$1194 = k$1191 + 240 | 0; (j$1194 | 0) < (k$1191 + 320 | 0); j$1194 = j$1194 + 4 | 0) {
-                t1$1206 = (H$1189[j$1194 - 12 >> 2] ^ H$1189[j$1194 - 32 >> 2] ^ H$1189[j$1194 - 56 >> 2] ^ H$1189[j$1194 - 64 >> 2]) << 1 | (H$1189[j$1194 - 12 >> 2] ^ H$1189[j$1194 - 32 >> 2] ^ H$1189[j$1194 - 56 >> 2] ^ H$1189[j$1194 - 64 >> 2]) >>> 31;
-                t0$1205 = ((y0$1195 << 5 | y0$1195 >>> 27) + (y1$1197 ^ y2$1199 ^ y3$1201) | 0) + ((t1$1206 + y4$1203 | 0) - 899497514 | 0) | 0;
-                y4$1203 = y3$1201;
-                y3$1201 = y2$1199;
-                y2$1199 = y1$1197 << 30 | y1$1197 >>> 2;
-                y1$1197 = y0$1195;
-                y0$1195 = t0$1205;
-                H$1189[j$1194 >> 2] = t1$1206;
-            }
-            y0$1195 = y0$1195 + z0$1196 | 0;
-            y1$1197 = y1$1197 + z1$1198 | 0;
-            y2$1199 = y2$1199 + z2$1200 | 0;
-            y3$1201 = y3$1201 + z3$1202 | 0;
-            y4$1203 = y4$1203 + z4$1204 | 0;
-        }
-        H$1189[x$1192 + 320 >> 2] = y0$1195;
-        H$1189[x$1192 + 324 >> 2] = y1$1197;
-        H$1189[x$1192 + 328 >> 2] = y2$1199;
-        H$1189[x$1192 + 332 >> 2] = y3$1201;
-        H$1189[x$1192 + 336 >> 2] = y4$1203;
-    }
-    return { hash: hash$1190 };
-};
-
-},{}],4:[function(_dereq_,module,exports){
-"use strict";
-/* eslint-env commonjs, browser */
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["Rusha"] = factory();
+	else
+		root["Rusha"] = factory();
+})(typeof self !== 'undefined' ? self : this, function() {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports, __webpack_require__) {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Rusha = _dereq_('./rusha');
-
-var _require = _dereq_('./utils'),
-    toHex = _require.toHex;
-
-var Hash = function () {
-  function Hash() {
-    _classCallCheck(this, Hash);
-
-    this._rusha = new Rusha();
-    this._rusha.resetState();
-  }
-
-  Hash.prototype.update = function update(data) {
-    this._rusha.append(data);
-    return this;
-  };
-
-  Hash.prototype.digest = function digest(encoding) {
-    var digest = this._rusha.rawEnd().buffer;
-    if (!encoding) {
-      return digest;
-    }
-    if (encoding === 'hex') {
-      return toHex(digest);
-    }
-    throw new Error('unsupported digest encoding');
-  };
-
-  return Hash;
-}();
-
-module.exports = function () {
-  return new Hash();
-};
-
-},{"./rusha":6,"./utils":7}],5:[function(_dereq_,module,exports){
-"use strict";
 /* eslint-env commonjs, browser */
 
-var webworkify = _dereq_('webworkify');
+var RushaCore = __webpack_require__(5);
 
-var Rusha = _dereq_('./rusha');
-var createHash = _dereq_('./hash');
-var runWorker = _dereq_('./worker');
-
-var _require = _dereq_('./utils'),
-    isDedicatedWorkerScope = _require.isDedicatedWorkerScope;
-
-var isRunningInDedicatedWorker = typeof self !== 'undefined' && isDedicatedWorkerScope(self);
-
-Rusha.disableWorkerBehaviour = isRunningInDedicatedWorker ? runWorker() : function () {};
-
-Rusha.createWorker = function () {
-  var worker = webworkify(_dereq_('./worker'));
-  var terminate = worker.terminate;
-  worker.terminate = function () {
-    URL.revokeObjectURL(worker.objectURL);
-    terminate.call(worker);
-  };
-  return worker;
-};
-
-Rusha.createHash = createHash;
-
-module.exports = Rusha;
-
-},{"./hash":4,"./rusha":6,"./utils":7,"./worker":8,"webworkify":1}],6:[function(_dereq_,module,exports){
-"use strict";
-/* eslint-env commonjs, browser */
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var RushaCore = _dereq_('./core.sjs');
-
-var _require = _dereq_('./utils'),
+var _require = __webpack_require__(1),
     toHex = _require.toHex,
     ceilHeapSize = _require.ceilHeapSize;
 
-var conv = _dereq_('./conv');
+var conv = __webpack_require__(6);
 
 // Calculate the length of buffer that the sha1 routine uses
 // including the padding.
@@ -587,8 +286,10 @@ var Rusha = function () {
 module.exports = Rusha;
 module.exports._core = RushaCore;
 
-},{"./conv":2,"./core.sjs":3,"./utils":7}],7:[function(_dereq_,module,exports){
-"use strict";
+/***/ }),
+/* 1 */
+/***/ (function(module, exports) {
+
 /* eslint-env commonjs, browser */
 
 //
@@ -653,12 +354,14 @@ module.exports.isDedicatedWorkerScope = function (self) {
   return isRunningInWorker && !isRunningInSharedWorker && !isRunningInServiceWorker;
 };
 
-},{}],8:[function(_dereq_,module,exports){
-"use strict";
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
 /* eslint-env commonjs, worker */
 
 module.exports = function () {
-  var Rusha = _dereq_('./rusha');
+  var Rusha = __webpack_require__(0);
 
   var hashData = function (hasher, data, cb) {
     try {
@@ -722,5 +425,504 @@ module.exports = function () {
   };
 };
 
-},{"./rusha":6}]},{},[5])(5)
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* eslint-env commonjs, browser */
+
+var work = __webpack_require__(4);
+var Rusha = __webpack_require__(0);
+var createHash = __webpack_require__(7);
+var runWorker = __webpack_require__(2);
+
+var _require = __webpack_require__(1),
+    isDedicatedWorkerScope = _require.isDedicatedWorkerScope;
+
+var isRunningInDedicatedWorker = typeof self !== 'undefined' && isDedicatedWorkerScope(self);
+
+Rusha.disableWorkerBehaviour = isRunningInDedicatedWorker ? runWorker() : function () {};
+
+Rusha.createWorker = function () {
+  var worker = work(/*require.resolve*/(2));
+  var terminate = worker.terminate;
+  worker.terminate = function () {
+    URL.revokeObjectURL(worker.objectURL);
+    terminate.call(worker);
+  };
+  return worker;
+};
+
+Rusha.createHash = createHash;
+
+module.exports = Rusha;
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+function webpackBootstrapFunc (modules) {
+/******/  // The module cache
+/******/  var installedModules = {};
+
+/******/  // The require function
+/******/  function __webpack_require__(moduleId) {
+
+/******/    // Check if module is in cache
+/******/    if(installedModules[moduleId])
+/******/      return installedModules[moduleId].exports;
+
+/******/    // Create a new module (and put it into the cache)
+/******/    var module = installedModules[moduleId] = {
+/******/      i: moduleId,
+/******/      l: false,
+/******/      exports: {}
+/******/    };
+
+/******/    // Execute the module function
+/******/    modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+
+/******/    // Flag the module as loaded
+/******/    module.l = true;
+
+/******/    // Return the exports of the module
+/******/    return module.exports;
+/******/  }
+
+/******/  // expose the modules object (__webpack_modules__)
+/******/  __webpack_require__.m = modules;
+
+/******/  // expose the module cache
+/******/  __webpack_require__.c = installedModules;
+
+/******/  // identity function for calling harmony imports with the correct context
+/******/  __webpack_require__.i = function(value) { return value; };
+
+/******/  // define getter function for harmony exports
+/******/  __webpack_require__.d = function(exports, name, getter) {
+/******/    if(!__webpack_require__.o(exports, name)) {
+/******/      Object.defineProperty(exports, name, {
+/******/        configurable: false,
+/******/        enumerable: true,
+/******/        get: getter
+/******/      });
+/******/    }
+/******/  };
+
+/******/  // define __esModule on exports
+/******/  __webpack_require__.r = function(exports) {
+/******/    Object.defineProperty(exports, '__esModule', { value: true });
+/******/  };
+
+/******/  // getDefaultExport function for compatibility with non-harmony modules
+/******/  __webpack_require__.n = function(module) {
+/******/    var getter = module && module.__esModule ?
+/******/      function getDefault() { return module['default']; } :
+/******/      function getModuleExports() { return module; };
+/******/    __webpack_require__.d(getter, 'a', getter);
+/******/    return getter;
+/******/  };
+
+/******/  // Object.prototype.hasOwnProperty.call
+/******/  __webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+
+/******/  // __webpack_public_path__
+/******/  __webpack_require__.p = "/";
+
+/******/  // on error function for async loading
+/******/  __webpack_require__.oe = function(err) { console.error(err); throw err; };
+
+  var f = __webpack_require__(__webpack_require__.s = ENTRY_MODULE)
+  return f.default || f // try to call default if defined to also support babel esmodule exports
+}
+
+var moduleNameReqExp = '[\\.|\\-|\\+|\\w|\/|@]+'
+var dependencyRegExp = '\\((\/\\*.*?\\*\/)?\s?.*?(' + moduleNameReqExp + ').*?\\)' // additional chars when output.pathinfo is true
+
+// http://stackoverflow.com/a/2593661/130442
+function quoteRegExp (str) {
+  return (str + '').replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&')
+}
+
+function getModuleDependencies (sources, module, queueName) {
+  var retval = {}
+  retval[queueName] = []
+
+  var fnString = module.toString()
+  var wrapperSignature = fnString.match(/^function\s?\(\w+,\s*\w+,\s*(\w+)\)/)
+  if (!wrapperSignature) return retval
+  var webpackRequireName = wrapperSignature[1]
+
+  // main bundle deps
+  var re = new RegExp('(\\\\n|\\W)' + quoteRegExp(webpackRequireName) + dependencyRegExp, 'g')
+  var match
+  while ((match = re.exec(fnString))) {
+    if (match[3] === 'dll-reference') continue
+    retval[queueName].push(match[3])
+  }
+
+  // dll deps
+  re = new RegExp('\\(' + quoteRegExp(webpackRequireName) + '\\("(dll-reference\\s(' + moduleNameReqExp + '))"\\)\\)' + dependencyRegExp, 'g')
+  while ((match = re.exec(fnString))) {
+    if (!sources[match[2]]) {
+      retval[queueName].push(match[1])
+      sources[match[2]] = __webpack_require__(match[1]).m
+    }
+    retval[match[2]] = retval[match[2]] || []
+    retval[match[2]].push(match[4])
+  }
+
+  return retval
+}
+
+function hasValuesInQueues (queues) {
+  var keys = Object.keys(queues)
+  return keys.reduce(function (hasValues, key) {
+    return hasValues || queues[key].length > 0
+  }, false)
+}
+
+function getRequiredModules (sources, moduleId) {
+  var modulesQueue = {
+    main: [moduleId]
+  }
+  var requiredModules = {
+    main: []
+  }
+  var seenModules = {
+    main: {}
+  }
+
+  while (hasValuesInQueues(modulesQueue)) {
+    var queues = Object.keys(modulesQueue)
+    for (var i = 0; i < queues.length; i++) {
+      var queueName = queues[i]
+      var queue = modulesQueue[queueName]
+      var moduleToCheck = queue.pop()
+      seenModules[queueName] = seenModules[queueName] || {}
+      if (seenModules[queueName][moduleToCheck] || !sources[queueName][moduleToCheck]) continue
+      seenModules[queueName][moduleToCheck] = true
+      requiredModules[queueName] = requiredModules[queueName] || []
+      requiredModules[queueName].push(moduleToCheck)
+      var newModules = getModuleDependencies(sources, sources[queueName][moduleToCheck], queueName)
+      var newModulesKeys = Object.keys(newModules)
+      for (var j = 0; j < newModulesKeys.length; j++) {
+        modulesQueue[newModulesKeys[j]] = modulesQueue[newModulesKeys[j]] || []
+        modulesQueue[newModulesKeys[j]] = modulesQueue[newModulesKeys[j]].concat(newModules[newModulesKeys[j]])
+      }
+    }
+  }
+
+  return requiredModules
+}
+
+module.exports = function (moduleId, options) {
+  options = options || {}
+  var sources = {
+    main: __webpack_require__.m
+  }
+
+  var requiredModules = options.all ? { main: Object.keys(sources) } : getRequiredModules(sources, moduleId)
+
+  var src = ''
+
+  Object.keys(requiredModules).filter(function (m) { return m !== 'main' }).forEach(function (module) {
+    var entryModule = 0
+    while (requiredModules[module][entryModule]) {
+      entryModule++
+    }
+    requiredModules[module].push(entryModule)
+    sources[module][entryModule] = '(function(module, exports, __webpack_require__) { module.exports = __webpack_require__; })'
+    src = src + 'var ' + module + ' = (' + webpackBootstrapFunc.toString().replace('ENTRY_MODULE', JSON.stringify(entryModule)) + ')({' + requiredModules[module].map(function (id) { return '' + JSON.stringify(id) + ': ' + sources[module][id].toString() }).join(',') + '});\n'
+  })
+
+  src = src + '(' + webpackBootstrapFunc.toString().replace('ENTRY_MODULE', JSON.stringify(moduleId)) + ')({' + requiredModules.main.map(function (id) { return '' + JSON.stringify(id) + ': ' + sources.main[id].toString() }).join(',') + '})(self);'
+
+  var blob = new window.Blob([src], { type: 'text/javascript' })
+  if (options.bare) { return blob }
+
+  var URL = window.URL || window.webkitURL || window.mozURL || window.msURL
+
+  var workerUrl = URL.createObjectURL(blob)
+  var worker = new window.Worker(workerUrl)
+  worker.objectURL = workerUrl
+
+  return worker
+}
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports) {
+
+// The low-level RushCore module provides the heart of Rusha,
+// a high-speed sha1 implementation working on an Int32Array heap.
+// At first glance, the implementation seems complicated, however
+// with the SHA1 spec at hand, it is obvious this almost a textbook
+// implementation that has a few functions hand-inlined and a few loops
+// hand-unrolled.
+module.exports = function RushaCore(stdlib$846, foreign$847, heap$848) {
+    'use asm';
+    var H$849 = new stdlib$846.Int32Array(heap$848);
+    function hash$850(k$851, x$852) {
+        // k in bytes
+        k$851 = k$851 | 0;
+        x$852 = x$852 | 0;
+        var i$853 = 0, j$854 = 0, y0$855 = 0, z0$856 = 0, y1$857 = 0, z1$858 = 0, y2$859 = 0, z2$860 = 0, y3$861 = 0, z3$862 = 0, y4$863 = 0, z4$864 = 0, t0$865 = 0, t1$866 = 0;
+        y0$855 = H$849[x$852 + 320 >> 2] | 0;
+        y1$857 = H$849[x$852 + 324 >> 2] | 0;
+        y2$859 = H$849[x$852 + 328 >> 2] | 0;
+        y3$861 = H$849[x$852 + 332 >> 2] | 0;
+        y4$863 = H$849[x$852 + 336 >> 2] | 0;
+        for (i$853 = 0; (i$853 | 0) < (k$851 | 0); i$853 = i$853 + 64 | 0) {
+            z0$856 = y0$855;
+            z1$858 = y1$857;
+            z2$860 = y2$859;
+            z3$862 = y3$861;
+            z4$864 = y4$863;
+            for (j$854 = 0; (j$854 | 0) < 64; j$854 = j$854 + 4 | 0) {
+                t1$866 = H$849[i$853 + j$854 >> 2] | 0;
+                t0$865 = ((y0$855 << 5 | y0$855 >>> 27) + (y1$857 & y2$859 | ~y1$857 & y3$861) | 0) + ((t1$866 + y4$863 | 0) + 1518500249 | 0) | 0;
+                y4$863 = y3$861;
+                y3$861 = y2$859;
+                y2$859 = y1$857 << 30 | y1$857 >>> 2;
+                y1$857 = y0$855;
+                y0$855 = t0$865;
+                H$849[k$851 + j$854 >> 2] = t1$866;
+            }
+            for (j$854 = k$851 + 64 | 0; (j$854 | 0) < (k$851 + 80 | 0); j$854 = j$854 + 4 | 0) {
+                t1$866 = (H$849[j$854 - 12 >> 2] ^ H$849[j$854 - 32 >> 2] ^ H$849[j$854 - 56 >> 2] ^ H$849[j$854 - 64 >> 2]) << 1 | (H$849[j$854 - 12 >> 2] ^ H$849[j$854 - 32 >> 2] ^ H$849[j$854 - 56 >> 2] ^ H$849[j$854 - 64 >> 2]) >>> 31;
+                t0$865 = ((y0$855 << 5 | y0$855 >>> 27) + (y1$857 & y2$859 | ~y1$857 & y3$861) | 0) + ((t1$866 + y4$863 | 0) + 1518500249 | 0) | 0;
+                y4$863 = y3$861;
+                y3$861 = y2$859;
+                y2$859 = y1$857 << 30 | y1$857 >>> 2;
+                y1$857 = y0$855;
+                y0$855 = t0$865;
+                H$849[j$854 >> 2] = t1$866;
+            }
+            for (j$854 = k$851 + 80 | 0; (j$854 | 0) < (k$851 + 160 | 0); j$854 = j$854 + 4 | 0) {
+                t1$866 = (H$849[j$854 - 12 >> 2] ^ H$849[j$854 - 32 >> 2] ^ H$849[j$854 - 56 >> 2] ^ H$849[j$854 - 64 >> 2]) << 1 | (H$849[j$854 - 12 >> 2] ^ H$849[j$854 - 32 >> 2] ^ H$849[j$854 - 56 >> 2] ^ H$849[j$854 - 64 >> 2]) >>> 31;
+                t0$865 = ((y0$855 << 5 | y0$855 >>> 27) + (y1$857 ^ y2$859 ^ y3$861) | 0) + ((t1$866 + y4$863 | 0) + 1859775393 | 0) | 0;
+                y4$863 = y3$861;
+                y3$861 = y2$859;
+                y2$859 = y1$857 << 30 | y1$857 >>> 2;
+                y1$857 = y0$855;
+                y0$855 = t0$865;
+                H$849[j$854 >> 2] = t1$866;
+            }
+            for (j$854 = k$851 + 160 | 0; (j$854 | 0) < (k$851 + 240 | 0); j$854 = j$854 + 4 | 0) {
+                t1$866 = (H$849[j$854 - 12 >> 2] ^ H$849[j$854 - 32 >> 2] ^ H$849[j$854 - 56 >> 2] ^ H$849[j$854 - 64 >> 2]) << 1 | (H$849[j$854 - 12 >> 2] ^ H$849[j$854 - 32 >> 2] ^ H$849[j$854 - 56 >> 2] ^ H$849[j$854 - 64 >> 2]) >>> 31;
+                t0$865 = ((y0$855 << 5 | y0$855 >>> 27) + (y1$857 & y2$859 | y1$857 & y3$861 | y2$859 & y3$861) | 0) + ((t1$866 + y4$863 | 0) - 1894007588 | 0) | 0;
+                y4$863 = y3$861;
+                y3$861 = y2$859;
+                y2$859 = y1$857 << 30 | y1$857 >>> 2;
+                y1$857 = y0$855;
+                y0$855 = t0$865;
+                H$849[j$854 >> 2] = t1$866;
+            }
+            for (j$854 = k$851 + 240 | 0; (j$854 | 0) < (k$851 + 320 | 0); j$854 = j$854 + 4 | 0) {
+                t1$866 = (H$849[j$854 - 12 >> 2] ^ H$849[j$854 - 32 >> 2] ^ H$849[j$854 - 56 >> 2] ^ H$849[j$854 - 64 >> 2]) << 1 | (H$849[j$854 - 12 >> 2] ^ H$849[j$854 - 32 >> 2] ^ H$849[j$854 - 56 >> 2] ^ H$849[j$854 - 64 >> 2]) >>> 31;
+                t0$865 = ((y0$855 << 5 | y0$855 >>> 27) + (y1$857 ^ y2$859 ^ y3$861) | 0) + ((t1$866 + y4$863 | 0) - 899497514 | 0) | 0;
+                y4$863 = y3$861;
+                y3$861 = y2$859;
+                y2$859 = y1$857 << 30 | y1$857 >>> 2;
+                y1$857 = y0$855;
+                y0$855 = t0$865;
+                H$849[j$854 >> 2] = t1$866;
+            }
+            y0$855 = y0$855 + z0$856 | 0;
+            y1$857 = y1$857 + z1$858 | 0;
+            y2$859 = y2$859 + z2$860 | 0;
+            y3$861 = y3$861 + z3$862 | 0;
+            y4$863 = y4$863 + z4$864 | 0;
+        }
+        H$849[x$852 + 320 >> 2] = y0$855;
+        H$849[x$852 + 324 >> 2] = y1$857;
+        H$849[x$852 + 328 >> 2] = y2$859;
+        H$849[x$852 + 332 >> 2] = y3$861;
+        H$849[x$852 + 336 >> 2] = y4$863;
+    }
+    return { hash: hash$850 };
+};
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+var _this = this;
+
+/* eslint-env commonjs, browser */
+
+var reader = void 0;
+if (typeof self !== 'undefined' && typeof self.FileReaderSync !== 'undefined') {
+  reader = new self.FileReaderSync();
+}
+
+// Convert a binary string and write it to the heap.
+// A binary string is expected to only contain char codes < 256.
+var convStr = function (str, H8, H32, start, len, off) {
+  var i = void 0,
+      om = off % 4,
+      lm = (len + om) % 4,
+      j = len - lm;
+  switch (om) {
+    case 0:
+      H8[off] = str.charCodeAt(start + 3);
+    case 1:
+      H8[off + 1 - (om << 1) | 0] = str.charCodeAt(start + 2);
+    case 2:
+      H8[off + 2 - (om << 1) | 0] = str.charCodeAt(start + 1);
+    case 3:
+      H8[off + 3 - (om << 1) | 0] = str.charCodeAt(start);
+  }
+  if (len < lm + (4 - om)) {
+    return;
+  }
+  for (i = 4 - om; i < j; i = i + 4 | 0) {
+    H32[off + i >> 2] = str.charCodeAt(start + i) << 24 | str.charCodeAt(start + i + 1) << 16 | str.charCodeAt(start + i + 2) << 8 | str.charCodeAt(start + i + 3);
+  }
+  switch (lm) {
+    case 3:
+      H8[off + j + 1 | 0] = str.charCodeAt(start + j + 2);
+    case 2:
+      H8[off + j + 2 | 0] = str.charCodeAt(start + j + 1);
+    case 1:
+      H8[off + j + 3 | 0] = str.charCodeAt(start + j);
+  }
+};
+
+// Convert a buffer or array and write it to the heap.
+// The buffer or array is expected to only contain elements < 256.
+var convBuf = function (buf, H8, H32, start, len, off) {
+  var i = void 0,
+      om = off % 4,
+      lm = (len + om) % 4,
+      j = len - lm;
+  switch (om) {
+    case 0:
+      H8[off] = buf[start + 3];
+    case 1:
+      H8[off + 1 - (om << 1) | 0] = buf[start + 2];
+    case 2:
+      H8[off + 2 - (om << 1) | 0] = buf[start + 1];
+    case 3:
+      H8[off + 3 - (om << 1) | 0] = buf[start];
+  }
+  if (len < lm + (4 - om)) {
+    return;
+  }
+  for (i = 4 - om; i < j; i = i + 4 | 0) {
+    H32[off + i >> 2 | 0] = buf[start + i] << 24 | buf[start + i + 1] << 16 | buf[start + i + 2] << 8 | buf[start + i + 3];
+  }
+  switch (lm) {
+    case 3:
+      H8[off + j + 1 | 0] = buf[start + j + 2];
+    case 2:
+      H8[off + j + 2 | 0] = buf[start + j + 1];
+    case 1:
+      H8[off + j + 3 | 0] = buf[start + j];
+  }
+};
+
+var convBlob = function (blob, H8, H32, start, len, off) {
+  var i = void 0,
+      om = off % 4,
+      lm = (len + om) % 4,
+      j = len - lm;
+  var buf = new Uint8Array(reader.readAsArrayBuffer(blob.slice(start, start + len)));
+  switch (om) {
+    case 0:
+      H8[off] = buf[3];
+    case 1:
+      H8[off + 1 - (om << 1) | 0] = buf[2];
+    case 2:
+      H8[off + 2 - (om << 1) | 0] = buf[1];
+    case 3:
+      H8[off + 3 - (om << 1) | 0] = buf[0];
+  }
+  if (len < lm + (4 - om)) {
+    return;
+  }
+  for (i = 4 - om; i < j; i = i + 4 | 0) {
+    H32[off + i >> 2 | 0] = buf[i] << 24 | buf[i + 1] << 16 | buf[i + 2] << 8 | buf[i + 3];
+  }
+  switch (lm) {
+    case 3:
+      H8[off + j + 1 | 0] = buf[j + 2];
+    case 2:
+      H8[off + j + 2 | 0] = buf[j + 1];
+    case 1:
+      H8[off + j + 3 | 0] = buf[j];
+  }
+};
+
+module.exports = function (data, H8, H32, start, len, off) {
+  if (typeof data === 'string') {
+    return convStr(data, H8, H32, start, len, off);
+  }
+  if (data instanceof Array) {
+    return convBuf(data, H8, H32, start, len, off);
+  }
+  // Safely doing a Buffer check using "this" to avoid Buffer polyfill to be included in the dist
+  if (_this && _this.Buffer && _this.Buffer.isBuffer(data)) {
+    return convBuf(data, H8, H32, start, len, off);
+  }
+  if (data instanceof ArrayBuffer) {
+    return convBuf(new Uint8Array(data), H8, H32, start, len, off);
+  }
+  if (data.buffer instanceof ArrayBuffer) {
+    return convBuf(new Uint8Array(data.buffer, data.byteOffset, data.byteLength), H8, H32, start, len, off);
+  }
+  if (data instanceof Blob) {
+    return convBlob(data, H8, H32, start, len, off);
+  }
+  throw new Error('Unsupported data type.');
+};
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/* eslint-env commonjs, browser */
+
+var Rusha = __webpack_require__(0);
+
+var _require = __webpack_require__(1),
+    toHex = _require.toHex;
+
+var Hash = function () {
+  function Hash() {
+    _classCallCheck(this, Hash);
+
+    this._rusha = new Rusha();
+    this._rusha.resetState();
+  }
+
+  Hash.prototype.update = function update(data) {
+    this._rusha.append(data);
+    return this;
+  };
+
+  Hash.prototype.digest = function digest(encoding) {
+    var digest = this._rusha.rawEnd().buffer;
+    if (!encoding) {
+      return digest;
+    }
+    if (encoding === 'hex') {
+      return toHex(digest);
+    }
+    throw new Error('unsupported digest encoding');
+  };
+
+  return Hash;
+}();
+
+module.exports = function () {
+  return new Hash();
+};
+
+/***/ })
+/******/ ]);
 });

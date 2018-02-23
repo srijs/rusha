@@ -1,3 +1,6 @@
+
+const webpackConfig = require('./webpack.config');
+
 module.exports = function (grunt) {
   const browsers = ['ChromeHeadless', 'FirefoxHeadless'];
 
@@ -11,20 +14,6 @@ module.exports = function (grunt) {
       build: {
         src: 'dist/<%= pkg.name %>.js',
         dest: 'dist/<%= pkg.name %>.min.js'
-      }
-    },
-    browserify: {
-      options: {
-        transform: ['strictify', 'sweetify', 'babelify'],
-        plugin: ['browserify-derequire'],
-        browserifyOptions: {
-          standalone: 'Rusha'
-        }
-      },
-      build: {
-        files: {
-          'dist/rusha.js': ['src/index.js']
-        }
       }
     },
     karma: {
@@ -138,17 +127,21 @@ module.exports = function (grunt) {
       target: [
         'src/*.js'
       ]
+    },
+    webpack: {
+      prod: webpackConfig,
+      dev: webpackConfig
     }
   });
 
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-karma');
-  grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-webpack');
 
   grunt.registerTask('test', [
     'eslint',
-    'browserify',
+    'webpack:dev',
     'uglify',
     'karma:unit',
     'karma:fuzz',
@@ -161,13 +154,12 @@ module.exports = function (grunt) {
 
   grunt.registerTask('test:unit', [
     'eslint',
-    'browserify',
+    'webpack:dev',
     'uglify',
     'karma:unit'
   ]);
 
-  grunt.registerTask('benchmark', ['browserify', 'uglify', 'karma:benchmark']);
+  grunt.registerTask('benchmark', ['webpack:dev', 'uglify', 'karma:benchmark']);
 
-  grunt.registerTask('build', ['eslint', 'browserify', 'uglify']);
-
+  grunt.registerTask('build', ['eslint', 'webpack:prod', 'uglify']);
 };

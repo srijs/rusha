@@ -1,7 +1,6 @@
 /* eslint-env commonjs, browser */
 
-const webworkify = require('webworkify');
-
+const work = require('webworkify-webpack');
 const Rusha = require('./rusha');
 const createHash = require('./hash');
 const runWorker = require('./worker');
@@ -13,7 +12,7 @@ const isRunningInDedicatedWorker = typeof self !== 'undefined'
 Rusha.disableWorkerBehaviour = isRunningInDedicatedWorker ? runWorker() : () => {};
 
 Rusha.createWorker = () => {
-  const worker = webworkify(require('./worker'));
+  const worker = work(require.resolve('./worker'));
   const terminate = worker.terminate;
   worker.terminate = () => {
     URL.revokeObjectURL(worker.objectURL);
