@@ -21,6 +21,18 @@ const digestAppendOneByOne = (input) => {
   return hash.digest('hex');
 };
 
+const digestAppendOneByOneByGettingAndSettingState = (input) => {
+  let state = Rusha.createHash().state;
+  for (let i = 0, len = (input.byteLength || input.length); i < len; i++) {
+    const hash = Rusha.createHash();
+    hash.state = state;
+    state = hash.update(input.slice(i, i + 1)).state;
+  }
+  const hash = Rusha.createHash();
+  hash.state = state;
+  return hash.digest('hex');
+};
+
 const abcString = 'abc';
 let abcBuffer;
 const abcArray = [97, 98, 99];
@@ -47,6 +59,13 @@ describe('Hash', () => {
     });
     it('returns hex string from ArrayBuffer', () => {
       assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d', digestAppendOneByOne(abcArrayBuffer));
+    });
+  });
+
+  describe('digestAppendOneByOneByGettingAndSettingState', () => {
+    it('returns hex string from string', () => {
+      assert.strictEqual('a9993e364706816aba3e25717850c26c9cd0d89d',
+        digestAppendOneByOneByGettingAndSettingState(abcString));
     });
   });
 

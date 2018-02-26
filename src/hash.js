@@ -24,6 +24,14 @@ class Hash {
     }
     throw new Error('unsupported digest encoding');
   }
+
+  get state() {
+    return this._rusha.getState();
+  }
+
+  set state(state) {
+    this._rusha.setState(state);
+  }
 }
 
 module.exports = () => {

@@ -16,7 +16,7 @@ const assertBytesEqual = (buffer1, buffer2) => {
 };
 
 const digestAppendOneByOne = (input) => {
-  let middleState;   
+  let middleState;
   for (let i = 0, len = (input.byteLength || input.length); i < len; i++) {
     if (i !== 0){
       r.setState(middleState);
