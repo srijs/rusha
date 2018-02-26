@@ -45,7 +45,7 @@ at `rusha.js` or `rusha.min.js`, like so:
 const worker = new Worker("dist/rusha.min.js");
 ```
 
-_**Note**: In order to make the latter work, Rusha will by default subscribe to incoming messages
+> _**Note**: In order to make the latter work, Rusha will by default subscribe to incoming messages
 when it finds itself inside a worker context. This can lead to problems when you would like to use Rusha as a library inside a web worker, but still have control over the messaging. To disable this behaviour, you can call `Rusha.disableWorkerBehaviour()` from within the worker._
 
 #### Communicating with the worker
@@ -82,7 +82,7 @@ You instantiate a new Hash object by calling `Rusha.createHash()`.
 - `update(data)`: Update the hash state with the given `data`, which can be a binary `String`, `Buffer`, `Array` or `ArrayBuffer`.
 - `digest([encoding])`: Calculates the digest of all of the data passed to be hashed. The `encoding` can be `'hex'` or undefined. If `encoding` is provided a string will be returned; otherwise an `ArrayBuffer` is returned.
 
-_**Note**: Due to its synchronous nature, `Hash#update` does not accept data of type `Blob`. If you need to work with `Blob`s, you can either use the [Rusha Worker](#using-the-rusha-worker), or use [`FileReader#readAsArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsArrayBuffer) to read the contents of the `Blob`, and then invoke `Hash#update` with the `ArrayBuffer` that was returned._
+> _**Note**: Due to its synchronous nature, `Hash#update` does not accept data of type `Blob`. If you need to work with `Blob`s, you can either use the [Rusha Worker](#using-the-rusha-worker), or use [`FileReader#readAsArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsArrayBuffer) to read the contents of the `Blob`, and then invoke `Hash#update` with the `ArrayBuffer` that was returned._
 
 ##### Properties
 
