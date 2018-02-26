@@ -75,13 +75,18 @@ const hexHash = rusha.digest('hex');
 
 #### Reference
 
-You instantiate a new Hash object by calling `Rusha.createHash`. When created, it provides the following methods:
+You instantiate a new Hash object by calling `Rusha.createHash()`.
 
-- `Hash#update(data)`: Update the hash state with the given `data`, which can be a binary `String`, `Buffer`, `Array` or `ArrayBuffer`.
-- `Hash#digest([encoding])`: Calculates the digest of all of the data passed to be hashed. The `encoding` can be `'hex'` or undefined. If `encoding` is provided a string will be returned; otherwise an `ArrayBuffer` is returned.
-- `Hash#state` (getter and setter): Allows getting and setting the internal hashing state.
+##### Methods
+
+- `update(data)`: Update the hash state with the given `data`, which can be a binary `String`, `Buffer`, `Array` or `ArrayBuffer`.
+- `digest([encoding])`: Calculates the digest of all of the data passed to be hashed. The `encoding` can be `'hex'` or undefined. If `encoding` is provided a string will be returned; otherwise an `ArrayBuffer` is returned.
 
 _**Note**: Due to its synchronous nature, `Hash#update` does not accept data of type `Blob`. If you need to work with `Blob`s, you can either use the [Rusha Worker](#using-the-rusha-worker), or use [`FileReader#readAsArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsArrayBuffer) to read the contents of the `Blob`, and then invoke `Hash#update` with the `ArrayBuffer` that was returned._
+
+##### Properties
+
+- `state` (getter and setter): Allows getting and setting the internal hashing state.
 
 ### Using the Rusha Object (DEPRECATED)
 
@@ -112,17 +117,17 @@ const hexHash = rusha.end();
 
 Your instantiate a new Rusha object by doing `new Rusha()`. When created, it provides the following methods:
 
-- `Rusha#digest(d)`: Create a hex digest from data of the three kinds mentioned below, or throw and error if the type is unsupported.
-- `Rusha#digestFromString(s)`: Create a hex digest from a binary `String`. A binary string is expected to only contain characters whose charCode < 256.
-- `Rusha#digestFromBuffer(b)`: Create a hex digest from a `Buffer` or `Array`. Both are expected to only contain elements < 256.
-- `Rusha#digestFromArrayBuffer(a)`: Create a hex digest from an `ArrayBuffer` object.
-- `Rusha#rawDigest(d)`: Behaves just like #digest(d), except that it returns the digest as an Int32Array of size 5.
-- `Rusha#resetState()`: Resets the internal state of the computation.
-- `Rusha#append(d)`: Appends a binary `String`, `Buffer`, `Array`, `ArrayBuffer` or `Blob`.
-- `Rusha#setState(state)`: Sets the internal computation state. See: getState().
-- `Rusha#getState()`: Returns an object representing the internal computation state. You can pass this state to setState(). This feature is useful to resume an incremental sha.
-- `Rusha#end()`: Finishes the computation of the sha, returning a hex digest.
-- `Rusha#rawEnd()`: Behaves just like #end(), except that it returns the digest as an Int32Array of size 5.
+- `digest(d)`: Create a hex digest from data of the three kinds mentioned below, or throw and error if the type is unsupported.
+- `digestFromString(s)`: Create a hex digest from a binary `String`. A binary string is expected to only contain characters whose charCode < 256.
+- `digestFromBuffer(b)`: Create a hex digest from a `Buffer` or `Array`. Both are expected to only contain elements < 256.
+- `digestFromArrayBuffer(a)`: Create a hex digest from an `ArrayBuffer` object.
+- `rawDigest(d)`: Behaves just like #digest(d), except that it returns the digest as an Int32Array of size 5.
+- `resetState()`: Resets the internal state of the computation.
+- `append(d)`: Appends a binary `String`, `Buffer`, `Array`, `ArrayBuffer` or `Blob`.
+- `setState(state)`: Sets the internal computation state. See: getState().
+- `setState()`: Returns an object representing the internal computation state. You can pass this state to setState(). This feature is useful to resume an incremental sha.
+- `end()`: Finishes the computation of the sha, returning a hex digest.
+- `rawEnd()`: Behaves just like #end(), except that it returns the digest as an Int32Array of size 5.
 
 ## Development
 
