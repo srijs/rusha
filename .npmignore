@@ -2,6 +2,9 @@ examples
 rusha.pp.js
 component.json
 node_modules
+.babelrc
+.eslintrc.*
+Gruntfile.js
 Makefile
 coverage
 test
